@@ -15,6 +15,7 @@ import javax.inject.Inject
 data class HomeUiState(
     val links: List<SavedLink> = emptyList(),
     val recentCollections: List<Collection> = emptyList(),
+    val allCollections: List<Collection> = emptyList(),
     val collectionsWithCounts: Map<Long, Int> = emptyMap(),
     val searchQuery: String = "",
     val isLoading: Boolean = false,
@@ -41,9 +42,10 @@ class HomeViewModel @Inject constructor(
             }
         },
         collectionRepository.getRecentCollections(),
+        collectionRepository.getAllCollections(),
         _isLoading,
         _error
-    ) { links, recentCollections, isLoading, error ->
+    ) { links, recentCollections, allCollections, isLoading, error ->
         
         // Get collection counts for recent collections
         val collectionsWithCounts = mutableMapOf<Long, Int>()
@@ -55,8 +57,9 @@ class HomeViewModel @Inject constructor(
         }
         
         HomeUiState(
-            links = links,
+            links = links.sortedByDescending { it.saveDate }, // Sort by most recent first
             recentCollections = recentCollections,
+            allCollections = allCollections,
             collectionsWithCounts = collectionsWithCounts,
             searchQuery = _searchQuery.value,
             isLoading = isLoading,
