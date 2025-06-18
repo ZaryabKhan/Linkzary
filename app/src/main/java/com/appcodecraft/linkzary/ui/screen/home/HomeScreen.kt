@@ -1,20 +1,18 @@
 package com.appcodecraft.linkzary.ui.screen.home
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ViewModule
-import androidx.compose.material.icons.filled.ViewList
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.PushPin
@@ -25,6 +23,7 @@ import androidx.compose.material.icons.filled.CreateNewFolder
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.*
@@ -39,12 +38,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.appcodecraft.linkzary.navigation.Screen
-import com.appcodecraft.linkzary.data.entity.Collection
 import com.appcodecraft.linkzary.data.entity.SavedLink
 import com.appcodecraft.linkzary.ui.component.BookmarkCard
 import com.appcodecraft.linkzary.ui.component.SmallCollectionCard
 import com.appcodecraft.linkzary.ui.theme.LinkzaryTheme
-import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -132,13 +129,27 @@ fun HomeScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 // View toggle button
-                IconButton(
-                    onClick = { isGridView = !isGridView }
-                ) {
-                    Icon(
-                        imageVector = if (isGridView) Icons.Default.ViewList else Icons.Default.ViewModule,
-                        contentDescription = if (isGridView) "List view" else "Grid view"
+                Surface(
+                    onClick = { isGridView = !isGridView },
+                    modifier = Modifier.size(40.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    color = if (isGridView) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+                    border = BorderStroke(
+                        width = 1.dp,
+                        color = if (isGridView) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
                     )
+                ) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Icon(
+                            imageVector = if (isGridView) Icons.AutoMirrored.Filled.ViewList else Icons.Default.GridView,
+                            contentDescription = if (isGridView) "List view" else "Grid view",
+                            tint = if (isGridView) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                 }
 
                 FloatingActionButton(
@@ -327,7 +338,7 @@ fun HomeScreen(
                                             onCardClick = {
                                                 try {
                                                     uriHandler.openUri(link.url)
-                                                } catch (e: Exception) {
+                                                } catch (_: Exception) {
                                                     // Handle error - could show a snackbar
                                                 }
                                             },
@@ -357,8 +368,8 @@ fun HomeScreen(
                                 onCardClick = {
                                     try {
                                         uriHandler.openUri(link.url)
-                                    } catch (e: Exception) {
-                                        // Handle error - could show a snackbar
+                                    } catch (_: Exception) {
+                                        // Handle error - could show a snack bar
                                     }
                                 },
                                 onMoreClick = {
@@ -378,7 +389,7 @@ fun HomeScreen(
     // Error handling
     uiState.error?.let { error ->
         LaunchedEffect(error) {
-            // TODO: Show snackbar with error
+            // TODO: Show snack bar with error
             viewModel.clearError()
         }
     }
