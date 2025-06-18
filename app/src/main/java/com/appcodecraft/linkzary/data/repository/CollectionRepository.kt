@@ -26,4 +26,7 @@ class CollectionRepository @Inject constructor(
 
     suspend fun getLinksCountInCollection(collectionId: Long): Int =
         collectionDao.getLinksCountInCollection(collectionId)
+
+    fun getLinksCountInCollectionFlow(collectionId: Long): Flow<Int> =
+        collectionDao.getLinksCountInCollectionFlow(collectionId)
 }

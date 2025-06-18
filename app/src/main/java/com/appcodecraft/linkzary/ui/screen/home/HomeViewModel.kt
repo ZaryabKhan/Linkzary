@@ -50,24 +50,52 @@ class HomeViewModel @Inject constructor(
         _error
     ) { links, recentCollections, allCollections, isLoading, error ->
         
-        // Get collection counts for recent collections
-        val collectionsWithCounts = mutableMapOf<Long, Int>()
-        recentCollections.forEach { collection ->
-            viewModelScope.launch {
-                val count = collectionRepository.getLinksCountInCollection(collection.id)
-                collectionsWithCounts[collection.id] = count
-            }
-        }
-        
         HomeUiState(
             links = links, // Keep DAO sorting (pinned first, then by date)
             recentCollections = recentCollections,
             allCollections = allCollections,
-            collectionsWithCounts = collectionsWithCounts,
+            collectionsWithCounts = emptyMap(), // Will be populated by separate flow
             searchQuery = _searchQuery.value,
             isLoading = isLoading,
             error = error
         )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = HomeUiState(isLoading = true)
+    )
+
+    // Real-time collection counts that update when links are added/removed
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val collectionsWithCounts: StateFlow<Map<Long, Int>> = uiState
+        .map { it.recentCollections }
+        .distinctUntilChanged()
+        .flatMapLatest { collections ->
+            if (collections.isEmpty()) {
+                flowOf(emptyMap())
+            } else {
+                combine(
+                    collections.map { collection ->
+                        collectionRepository.getLinksCountInCollectionFlow(collection.id)
+                            .map { count -> collection.id to count }
+                    }
+                ) { counts ->
+                    counts.toMap()
+                }
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyMap()
+        )
+
+    // Combined UI state with real-time collection counts
+    val combinedUiState: StateFlow<HomeUiState> = combine(
+        uiState,
+        collectionsWithCounts
+    ) { state, counts ->
+        state.copy(collectionsWithCounts = counts)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),

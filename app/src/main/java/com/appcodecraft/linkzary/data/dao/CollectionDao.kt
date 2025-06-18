@@ -29,4 +29,7 @@ interface CollectionDao {
 
     @Query("SELECT COUNT(*) FROM saved_links WHERE collectionId = :collectionId")
     suspend fun getLinksCountInCollection(collectionId: Long): Int
+
+    @Query("SELECT COUNT(*) FROM saved_links WHERE collectionId = :collectionId")
+    fun getLinksCountInCollectionFlow(collectionId: Long): Flow<Int>
 }

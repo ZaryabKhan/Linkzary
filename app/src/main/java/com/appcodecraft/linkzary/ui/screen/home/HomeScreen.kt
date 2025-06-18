@@ -53,7 +53,7 @@ fun HomeScreen(
     sharedUrl: String? = null,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.combinedUiState.collectAsStateWithLifecycle()
     var showAddLinkDialog by remember { mutableStateOf(false) }
     var selectedLink by remember { mutableStateOf<SavedLink?>(null) }
     var isGridView by remember { mutableStateOf(true) }
@@ -760,7 +760,7 @@ fun CollectionSelectionDialog(
     onCollectionSelected: (Long?) -> Unit
 ) {
     val viewModel: HomeViewModel = hiltViewModel()
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.combinedUiState.collectAsStateWithLifecycle()
     var showCreateDialog by remember { mutableStateOf(false) }
 
     AlertDialog(
