@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ViewModule
 import androidx.compose.material.icons.filled.ViewList
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -42,8 +43,19 @@ fun HomeScreen(
     var showAddLinkDialog by remember { mutableStateOf(false) }
     var selectedLink by remember { mutableStateOf<SavedLink?>(null) }
     var isGridView by remember { mutableStateOf(true) }
+
+    // Local search state to prevent bouncing
+    var localSearchQuery by remember { mutableStateOf("") }
+
     val uriHandler = LocalUriHandler.current
     val scrollState = rememberScrollState()
+
+    // Sync local search query with UI state
+    LaunchedEffect(uiState.searchQuery) {
+        if (localSearchQuery != uiState.searchQuery) {
+            localSearchQuery = uiState.searchQuery
+        }
+    }
 
     // Handle shared URL - prevent duplicates
     LaunchedEffect(sharedUrl) {
@@ -59,7 +71,7 @@ fun HomeScreen(
             .padding(horizontal = 16.dp)
     ) {
         Spacer(modifier = Modifier.height(16.dp))
-        
+
         // Header
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -78,7 +90,7 @@ fun HomeScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            
+
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -92,7 +104,7 @@ fun HomeScreen(
                         contentDescription = if (isGridView) "List view" else "Grid view"
                     )
                 }
-                
+
                 FloatingActionButton(
                     onClick = { showAddLinkDialog = true },
                     modifier = Modifier.size(48.dp),
@@ -105,13 +117,17 @@ fun HomeScreen(
                 }
             }
         }
-        
+
         Spacer(modifier = Modifier.height(24.dp))
-        
-        // Search bar
+
+        // Search bar with improved state management
         OutlinedTextField(
-            value = uiState.searchQuery,
-            onValueChange = viewModel::updateSearchQuery,
+            value = localSearchQuery,
+            onValueChange = { newQuery ->
+                localSearchQuery = newQuery
+                // Use a slight delay to debounce the search
+                viewModel.updateSearchQuery(newQuery)
+            },
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text("Search bookmarks...") },
             leadingIcon = {
@@ -120,22 +136,37 @@ fun HomeScreen(
                     contentDescription = "Search"
                 )
             },
+            trailingIcon = {
+                if (localSearchQuery.isNotEmpty()) {
+                    IconButton(
+                        onClick = {
+                            localSearchQuery = ""
+                            viewModel.updateSearchQuery("")
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Clear,
+                            contentDescription = "Clear search"
+                        )
+                    }
+                }
+            },
             shape = RoundedCornerShape(12.dp),
             singleLine = true
         )
-        
+
         Spacer(modifier = Modifier.height(24.dp))
-        
+
         // Recent Collections section
-        if (uiState.recentCollections.isNotEmpty() && uiState.searchQuery.isBlank()) {
+        if (uiState.recentCollections.isNotEmpty() && localSearchQuery.isBlank()) {
             Text(
                 text = "Recent Collections",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold
             )
-            
+
             Spacer(modifier = Modifier.height(12.dp))
-            
+
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 contentPadding = PaddingValues(horizontal = 4.dp),
@@ -151,10 +182,10 @@ fun HomeScreen(
                     )
                 }
             }
-            
+
             Spacer(modifier = Modifier.height(24.dp))
         }
-        
+
         // Recent Bookmarks section
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -162,14 +193,14 @@ fun HomeScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = if (uiState.searchQuery.isBlank()) "Recent Bookmarks" else "Search Results (${uiState.links.size})",
+                text = if (localSearchQuery.isBlank()) "Recent Bookmarks" else "Search Results (${uiState.links.size})",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold
             )
         }
-        
+
         Spacer(modifier = Modifier.height(12.dp))
-        
+
         // Bookmarks list
         when {
             uiState.isLoading -> {
@@ -182,7 +213,7 @@ fun HomeScreen(
                     CircularProgressIndicator()
                 }
             }
-            
+
             uiState.links.isEmpty() -> {
                 Box(
                     modifier = Modifier
@@ -194,12 +225,12 @@ fun HomeScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = if (uiState.searchQuery.isBlank()) 
+                            text = if (localSearchQuery.isBlank())
                                 "No bookmarks yet" else "No results found",
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        if (uiState.searchQuery.isBlank()) {
+                        if (localSearchQuery.isBlank()) {
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 text = "Start saving your favorite links",
@@ -210,7 +241,7 @@ fun HomeScreen(
                     }
                 }
             }
-            
+
             else -> {
                 if (isGridView) {
                     // Grid view - using Column with Rows for scrollable grid
@@ -277,11 +308,11 @@ fun HomeScreen(
                 }
             }
         }
-        
+
         // Add bottom padding for better scrolling experience
         Spacer(modifier = Modifier.height(100.dp))
     }
-    
+
     // Error handling
     uiState.error?.let { error ->
         LaunchedEffect(error) {
@@ -289,7 +320,7 @@ fun HomeScreen(
             viewModel.clearError()
         }
     }
-    
+
     // Add Link Dialog
     if (showAddLinkDialog) {
         AddLinkDialog(
@@ -300,7 +331,7 @@ fun HomeScreen(
             }
         )
     }
-    
+
     // Link Options Bottom Sheet
     selectedLink?.let { link ->
         LinkOptionsBottomSheet(
@@ -333,7 +364,7 @@ fun AddLinkDialog(
     onSave: (String) -> Unit
 ) {
     var url by remember { mutableStateOf("") }
-    
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Add Link") },
@@ -375,7 +406,7 @@ fun LinkOptionsBottomSheet(
 ) {
     var showEditDialog by remember { mutableStateOf(false) }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
-    
+
     ModalBottomSheet(
         onDismissRequest = onDismiss
     ) {
@@ -390,7 +421,7 @@ fun LinkOptionsBottomSheet(
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
-            
+
             // Edit option
             TextButton(
                 onClick = { showEditDialog = true },
@@ -398,7 +429,7 @@ fun LinkOptionsBottomSheet(
             ) {
                 Text("Edit Link")
             }
-            
+
             // Pin/Unpin option
             TextButton(
                 onClick = {
@@ -409,7 +440,7 @@ fun LinkOptionsBottomSheet(
             ) {
                 Text(if (link.isPinned) "Unpin" else "Pin to Top")
             }
-            
+
             // Delete option
             TextButton(
                 onClick = { showDeleteConfirmation = true },
@@ -420,11 +451,11 @@ fun LinkOptionsBottomSheet(
                     color = MaterialTheme.colorScheme.error
                 )
             }
-            
+
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
-    
+
     // Edit Dialog
     if (showEditDialog) {
         EditLinkDialog(
@@ -437,7 +468,7 @@ fun LinkOptionsBottomSheet(
             }
         )
     }
-    
+
     // Delete Confirmation Dialog
     if (showDeleteConfirmation) {
         AlertDialog(
@@ -480,7 +511,7 @@ fun EditLinkDialog(
     var url by remember { mutableStateOf(link.url) }
     var note by remember { mutableStateOf(link.note) }
     var tags by remember { mutableStateOf(link.tags) }
-    
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Edit Link") },
@@ -493,9 +524,9 @@ fun EditLinkDialog(
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
-                
+
                 Spacer(modifier = Modifier.height(8.dp))
-                
+
                 OutlinedTextField(
                     value = url,
                     onValueChange = { url = it },
@@ -503,9 +534,9 @@ fun EditLinkDialog(
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
-                
+
                 Spacer(modifier = Modifier.height(8.dp))
-                
+
                 OutlinedTextField(
                     value = note,
                     onValueChange = { note = it },
@@ -513,9 +544,9 @@ fun EditLinkDialog(
                     modifier = Modifier.fillMaxWidth(),
                     maxLines = 3
                 )
-                
+
                 Spacer(modifier = Modifier.height(8.dp))
-                
+
                 OutlinedTextField(
                     value = tags,
                     onValueChange = { tags = it },
@@ -559,7 +590,7 @@ fun HomeScreenPreview() {
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Text("Home Screen with Enhanced Grid Layout")
+                Text("Home Screen with Fixed Search")
             }
         }
     }
