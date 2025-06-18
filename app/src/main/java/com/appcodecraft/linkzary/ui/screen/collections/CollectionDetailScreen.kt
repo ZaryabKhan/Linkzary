@@ -1,10 +1,14 @@
 package com.appcodecraft.linkzary.ui.screen.collections
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Surface
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.*
@@ -84,13 +88,27 @@ fun CollectionDetailScreen(
                 )
             }
 
-            IconButton(
-                onClick = { isGridView = !isGridView }
-            ) {
-                Icon(
-                    imageVector = if (isGridView) Icons.AutoMirrored.Filled.ViewList else Icons.Default.GridView,
-                    contentDescription = if (isGridView) "List view" else "Grid view"
+            Surface(
+                onClick = { isGridView = !isGridView },
+                modifier = Modifier.size(40.dp),
+                shape = RoundedCornerShape(8.dp),
+                color = if (isGridView) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+                border = BorderStroke(
+                    width = 1.dp,
+                    color = if (isGridView) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
                 )
+            ) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    Icon(
+                        imageVector = if (isGridView) Icons.AutoMirrored.Filled.ViewList else Icons.Default.GridView,
+                        contentDescription = if (isGridView) "List view" else "Grid view",
+                        tint = if (isGridView) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
             }
         }
 
@@ -173,19 +191,39 @@ fun CollectionDetailScreen(
                 }
             }
             else -> {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(filteredLinks) { link ->
-                        BookmarkCard(
-                            link = link,
-                            collectionName = uiState.collection?.name ?: "",
-                            collectionColor = uiState.collection?.color ?: "#FF6200EE",
-                            onCardClick = { uriHandler.openUri(link.url) },
-                            onMoreClick = {
-                                selectedLink = link
-                            }
-                        )
+                if (isGridView) {
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(filteredLinks) { link ->
+                            BookmarkCard(
+                                link = link,
+                                collectionName = uiState.collection?.name ?: "",
+                                collectionColor = uiState.collection?.color ?: "#FF6200EE",
+                                onCardClick = { uriHandler.openUri(link.url) },
+                                onMoreClick = {
+                                    selectedLink = link
+                                }
+                            )
+                        }
+                    }
+                } else {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(filteredLinks) { link ->
+                            BookmarkCard(
+                                link = link,
+                                collectionName = uiState.collection?.name ?: "",
+                                collectionColor = uiState.collection?.color ?: "#FF6200EE",
+                                onCardClick = { uriHandler.openUri(link.url) },
+                                onMoreClick = {
+                                    selectedLink = link
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -205,44 +243,83 @@ fun CollectionDetailScreen(
                 Text(
                     text = "Link Options",
                     style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(bottom = 24.dp)
+                    modifier = Modifier.padding(bottom = 16.dp)
                 )
 
                 // Pin/Unpin option
-                ListItem(
-                    headlineContent = { Text(if (link.isPinned) "Unpin" else "Pin to Top") },
-                    supportingContent = { Text(if (link.isPinned) "Remove from pinned links" else "Keep at the top of your list") },
-                    leadingContent = {
-                        Icon(
-                            imageVector = if (link.isPinned) Icons.Default.PushPin else Icons.Outlined.PushPin,
-                            contentDescription = null
-                        )
-                    },
-                    modifier = Modifier.clickable {
-                        viewModel.togglePin(link.id)
-                        selectedLink = null
-                    }
+                OptionItem(
+                    icon = if (link.isPinned) Icons.Default.PushPin else Icons.Outlined.PushPin,
+                    title = if (link.isPinned) "Unpin" else "Pin",
+                    subtitle = if (link.isPinned) "Remove from pinned links" else "Add to pinned links",
+                    onClick = {
+                         viewModel.togglePin(link.id)
+                         selectedLink = null
+                     }
                 )
 
                 // Delete option
-                ListItem(
-                    headlineContent = { Text("Delete") },
-                    supportingContent = { Text("Remove this link permanently") },
-                    leadingContent = {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.error
-                        )
-                    },
-                    modifier = Modifier.clickable {
+                OptionItem(
+                    icon = Icons.Default.Delete,
+                    title = "Delete",
+                    subtitle = "Remove this link permanently",
+                    onClick = {
                         viewModel.deleteLink(link.id)
                         selectedLink = null
-                    }
+                    },
+                    isDestructive = true
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
+    }
+}
+
+@Composable
+fun OptionItem(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+    isDestructive: Boolean = false
+) {
+    Surface(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surface
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = title,
+                tint = if (isDestructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.size(24.dp)
+            )
+            
+            Spacer(modifier = Modifier.width(16.dp))
+            
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
+                    color = if (isDestructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (isDestructive) MaterialTheme.colorScheme.error.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }
