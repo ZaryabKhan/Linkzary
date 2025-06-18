@@ -34,19 +34,24 @@ class CollectionDetailViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             
             try {
-                // Load collection details
-                val collection = collectionRepository.getCollectionById(collectionId.toLong())
+                val collectionIdLong = collectionId.toLong()
                 
-                // Load links in this collection
-                linkRepository.getLinksByCollection(collectionId.toLong()).collect { links ->
+                // Load collection details
+                val collection = collectionRepository.getCollectionById(collectionIdLong)
+                _uiState.value = _uiState.value.copy(collection = collection)
+                
+                // Observe links in this collection for real-time updates
+                linkRepository.getLinksByCollection(collectionIdLong).collect { links ->
                     _uiState.value = _uiState.value.copy(
-                        collection = collection,
-                        links = links,
-                        isLoading = false
+                        links = links.sortedWith(
+                            compareByDescending<SavedLink> { it.isPinned }
+                                .thenByDescending { it.saveDate }
+                        ),
+                        isLoading = false,
+                        error = null
                     )
                 }
                 
-
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
@@ -59,17 +64,10 @@ class CollectionDetailViewModel @Inject constructor(
     fun togglePin(linkId: Long) {
         viewModelScope.launch {
             try {
-                val currentLinks = _uiState.value.links
-                val linkToUpdate = currentLinks.find { it.id == linkId }
-                
+                val linkToUpdate = _uiState.value.links.find { it.id == linkId }
                 linkToUpdate?.let { link ->
                     linkRepository.updatePinStatus(linkId, !link.isPinned)
-                    
-                    // Update UI state
-                    val updatedLinks = currentLinks.map { 
-                        if (it.id == linkId) it.copy(isPinned = !it.isPinned) else it 
-                    }
-                    _uiState.value = _uiState.value.copy(links = updatedLinks)
+                    // UI will update automatically via Flow collection
                 }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
@@ -85,10 +83,7 @@ class CollectionDetailViewModel @Inject constructor(
                 val linkToDelete = _uiState.value.links.find { it.id == linkId }
                 linkToDelete?.let { link ->
                     linkRepository.deleteLink(link)
-                    
-                    // Update UI state
-                    val updatedLinks = _uiState.value.links.filter { it.id != linkId }
-                    _uiState.value = _uiState.value.copy(links = updatedLinks)
+                    // UI will update automatically via Flow collection
                 }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
@@ -96,6 +91,11 @@ class CollectionDetailViewModel @Inject constructor(
                 )
             }
         }
+    }
+    
+    fun refreshCollection() {
+        // Clear error state and let the Flow handle the refresh
+        _uiState.value = _uiState.value.copy(error = null)
     }
     
     fun clearError() {
