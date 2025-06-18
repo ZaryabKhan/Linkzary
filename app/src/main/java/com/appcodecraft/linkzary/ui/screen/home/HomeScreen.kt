@@ -24,6 +24,9 @@ import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.filled.CreateNewFolder
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,6 +37,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
+import com.appcodecraft.linkzary.navigation.Screen
 import com.appcodecraft.linkzary.data.entity.Collection
 import com.appcodecraft.linkzary.data.entity.SavedLink
 import com.appcodecraft.linkzary.ui.component.BookmarkCard
@@ -44,6 +49,7 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
+    navController: NavController? = null,
     sharedUrl: String? = null,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
@@ -87,16 +93,38 @@ fun HomeScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
-                Text(
-                    text = "Linkzary",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = "${uiState.links.size} saved links",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Bookmark,
+                        contentDescription = "Linkzary",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(32.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Linkzary",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Link,
+                        contentDescription = "Links count",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "${uiState.links.size} saved links",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
 
             Row(
@@ -141,11 +169,12 @@ fun HomeScreen(
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Search,
-                    contentDescription = "Search"
+                    contentDescription = "Search",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },
-            trailingIcon = {
-                if (localSearchQuery.isNotEmpty()) {
+            trailingIcon = if (localSearchQuery.isNotEmpty()) {
+                {
                     IconButton(
                         onClick = {
                             localSearchQuery = ""
@@ -154,11 +183,12 @@ fun HomeScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Clear,
-                            contentDescription = "Clear search"
+                            contentDescription = "Clear search",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
-            },
+            } else null,
             shape = RoundedCornerShape(12.dp),
             singleLine = true
         )
@@ -167,11 +197,22 @@ fun HomeScreen(
 
         // Recent Collections section
         if (uiState.recentCollections.isNotEmpty() && localSearchQuery.isBlank()) {
-            Text(
-                text = "Recent Collections",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.SemiBold
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Folder,
+                    contentDescription = "Collections",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Recent Collections",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -182,12 +223,14 @@ fun HomeScreen(
             ) {
                 items(uiState.recentCollections) { collection ->
                     SmallCollectionCard(
-                        collection = collection,
-                        linkCount = uiState.collectionsWithCounts[collection.id] ?: 0,
-                        onCardClick = {
-                            // TODO: Navigate to collection detail
-                        }
-                    )
+                            collection = collection,
+                            linkCount = uiState.collectionsWithCounts[collection.id] ?: 0,
+                            onCardClick = {
+                                navController?.navigate(
+                                    Screen.CollectionDetail.createRoute(collection.id.toString())
+                                )
+                            }
+                        )
                 }
             }
 
@@ -200,11 +243,22 @@ fun HomeScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = if (localSearchQuery.isBlank()) "Recent Bookmarks" else "Search Results (${uiState.links.size})",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.SemiBold
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = if (localSearchQuery.isBlank()) Icons.Default.History else Icons.Default.Search,
+                    contentDescription = if (localSearchQuery.isBlank()) "Recent" else "Search",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = if (localSearchQuery.isBlank()) "Recent Bookmarks" else "Search Results (${uiState.links.size})",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -372,24 +426,63 @@ fun AddLinkDialog(
     onSave: (String) -> Unit
 ) {
     var url by remember { mutableStateOf("") }
+    var isValidUrl by remember { mutableStateOf(true) }
+    
+    fun validateUrl(input: String): Boolean {
+        return input.isNotBlank() && (
+            input.startsWith("http://") || 
+            input.startsWith("https://") ||
+            input.startsWith("www.") ||
+            input.contains(".") && input.length > 3
+        )
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Add Link") },
+        title = { 
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add link",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Add Link")
+            }
+        },
         text = {
-            OutlinedTextField(
-                value = url,
-                onValueChange = { url = it },
-                label = { Text("URL") },
-                placeholder = { Text("https://example.com") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
+            Column {
+                OutlinedTextField(
+                    value = url,
+                    onValueChange = { 
+                        url = it
+                        isValidUrl = validateUrl(it)
+                    },
+                    label = { Text("URL") },
+                    placeholder = { Text("https://example.com") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Link,
+                            contentDescription = "URL",
+                            tint = if (isValidUrl || url.isEmpty()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    isError = !isValidUrl && url.isNotEmpty(),
+                    supportingText = if (!isValidUrl && url.isNotEmpty()) {
+                        { Text("Please enter a valid URL", color = MaterialTheme.colorScheme.error) }
+                    } else null
+                )
+            }
         },
         confirmButton = {
             TextButton(
                 onClick = { onSave(url) },
-                enabled = url.isNotBlank()
+                enabled = url.isNotBlank() && isValidUrl
             ) {
                 Text("Save")
             }
@@ -820,6 +913,7 @@ fun CreateCollectionDialog(
 ) {
     var name by remember { mutableStateOf("") }
     var selectedColor by remember { mutableStateOf(0xFF6366F1.toInt()) }
+    val maxNameLength = 30
     
     val colors = listOf(
         0xFF6366F1.toInt(), // Indigo
@@ -834,16 +928,47 @@ fun CreateCollectionDialog(
     
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Create Collection") },
+        title = { 
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.CreateNewFolder,
+                    contentDescription = "Create collection",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Create Collection")
+            }
+        },
         text = {
             Column {
                 OutlinedTextField(
                     value = name,
-                    onValueChange = { name = it },
+                    onValueChange = { newValue ->
+                        if (newValue.length <= maxNameLength) {
+                            name = newValue
+                        }
+                    },
                     label = { Text("Collection Name") },
                     placeholder = { Text("Enter collection name") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Folder,
+                            contentDescription = "Collection name",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    singleLine = true,
+                    supportingText = {
+                        Text(
+                            text = "${name.length}/$maxNameLength",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (name.length >= maxNameLength) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 )
                 
                 Spacer(modifier = Modifier.height(16.dp))

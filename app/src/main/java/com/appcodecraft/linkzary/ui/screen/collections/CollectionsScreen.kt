@@ -17,7 +17,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
 import com.appcodecraft.linkzary.data.entity.Collection
+import com.appcodecraft.linkzary.navigation.Screen
 import com.appcodecraft.linkzary.ui.component.CollectionCard
 import com.appcodecraft.linkzary.ui.theme.LinkzaryTheme
 import java.util.*
@@ -25,6 +27,7 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CollectionsScreen(
+    navController: NavController? = null,
     viewModel: CollectionsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -131,7 +134,9 @@ fun CollectionsScreen(
                             collection = collection,
                             linkCount = uiState.collectionsWithCounts[collection.id] ?: 0,
                             onCardClick = {
-                                // TODO: Navigate to collection detail
+                                navController?.navigate(
+                                    Screen.CollectionDetail.createRoute(collection.id.toString())
+                                )
                             },
                             onMoreClick = {
                                 selectedCollection = collection

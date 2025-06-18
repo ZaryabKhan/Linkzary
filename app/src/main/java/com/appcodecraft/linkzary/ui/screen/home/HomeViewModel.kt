@@ -8,6 +8,7 @@ import com.appcodecraft.linkzary.data.repository.CollectionRepository
 import com.appcodecraft.linkzary.data.repository.LinkRepository
 import com.appcodecraft.linkzary.util.UrlMetadataExtractor
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.Date
@@ -34,6 +35,7 @@ class HomeViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     private val _error = MutableStateFlow<String?>(null)
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<HomeUiState> = combine(
         _searchQuery.flatMapLatest { query ->
             if (query.isBlank()) {
