@@ -7,6 +7,8 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -41,6 +43,7 @@ fun HomeScreen(
     var selectedLink by remember { mutableStateOf<SavedLink?>(null) }
     var isGridView by remember { mutableStateOf(true) }
     val uriHandler = LocalUriHandler.current
+    val scrollState = rememberScrollState()
 
     // Handle shared URL - prevent duplicates
     LaunchedEffect(sharedUrl) {
@@ -52,6 +55,7 @@ fun HomeScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(scrollState)
             .padding(horizontal = 16.dp)
     ) {
         Spacer(modifier = Modifier.height(16.dp))
@@ -134,7 +138,8 @@ fun HomeScreen(
             
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(horizontal = 4.dp)
+                contentPadding = PaddingValues(horizontal = 4.dp),
+                modifier = Modifier.height(120.dp)
             ) {
                 items(uiState.recentCollections) { collection ->
                     SmallCollectionCard(
@@ -169,7 +174,9 @@ fun HomeScreen(
         when {
             uiState.isLoading -> {
                 Box(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator()
@@ -178,7 +185,9 @@ fun HomeScreen(
             
             uiState.links.isEmpty() -> {
                 Box(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(
@@ -204,56 +213,73 @@ fun HomeScreen(
             
             else -> {
                 if (isGridView) {
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(2),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        contentPadding = PaddingValues(bottom = 16.dp)
+                    // Grid view - using Column with Rows for scrollable grid
+                    val chunkedLinks = uiState.links.chunked(2)
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        items(uiState.links) { link ->
-                             BookmarkCard(
-                                 link = link,
-                                 collectionName = uiState.allCollections.find { it.id == link.collectionId }?.name,
-                                 collectionColor = uiState.allCollections.find { it.id == link.collectionId }?.color,
-                                 onCardClick = {
-                                     try {
-                                         uriHandler.openUri(link.url)
-                                     } catch (e: Exception) {
-                                         // Handle error - could show a snackbar
-                                     }
-                                 },
-                                 onMoreClick = {
-                                     selectedLink = link
-                                 }
-                             )
-                         }
+                        chunkedLinks.forEach { rowLinks ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                rowLinks.forEach { link ->
+                                    Box(
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        BookmarkCard(
+                                            link = link,
+                                            collectionName = uiState.allCollections.find { it.id == link.collectionId }?.name,
+                                            collectionColor = uiState.allCollections.find { it.id == link.collectionId }?.color,
+                                            onCardClick = {
+                                                try {
+                                                    uriHandler.openUri(link.url)
+                                                } catch (e: Exception) {
+                                                    // Handle error - could show a snackbar
+                                                }
+                                            },
+                                            onMoreClick = {
+                                                selectedLink = link
+                                            }
+                                        )
+                                    }
+                                }
+                                // Add spacer for odd number of items
+                                if (rowLinks.size == 1) {
+                                    Spacer(modifier = Modifier.weight(1f))
+                                }
+                            }
+                        }
                     }
                 } else {
-                    LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                        contentPadding = PaddingValues(bottom = 16.dp)
+                    // List view
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        items(uiState.links) { link ->
-                             BookmarkCard(
-                                 link = link,
-                                 collectionName = uiState.allCollections.find { it.id == link.collectionId }?.name,
-                                 collectionColor = uiState.allCollections.find { it.id == link.collectionId }?.color,
-                                 onCardClick = {
-                                     try {
-                                         uriHandler.openUri(link.url)
-                                     } catch (e: Exception) {
-                                         // Handle error - could show a snackbar
-                                     }
-                                 },
-                                 onMoreClick = {
-                                     selectedLink = link
-                                 }
-                             )
-                         }
+                        uiState.links.forEach { link ->
+                            BookmarkCard(
+                                link = link,
+                                collectionName = uiState.allCollections.find { it.id == link.collectionId }?.name,
+                                collectionColor = uiState.allCollections.find { it.id == link.collectionId }?.color,
+                                onCardClick = {
+                                    try {
+                                        uriHandler.openUri(link.url)
+                                    } catch (e: Exception) {
+                                        // Handle error - could show a snackbar
+                                    }
+                                },
+                                onMoreClick = {
+                                    selectedLink = link
+                                }
+                            )
+                        }
                     }
                 }
             }
         }
+        
+        // Add bottom padding for better scrolling experience
+        Spacer(modifier = Modifier.height(100.dp))
     }
     
     // Error handling
