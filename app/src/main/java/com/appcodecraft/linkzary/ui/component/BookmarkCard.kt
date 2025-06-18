@@ -51,182 +51,164 @@ fun BookmarkCard(
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Website preview image (if available)
+            // Thumbnail/Preview Image
             val previewImageUrl = extractPreviewImage(link.url)
-            if (previewImageUrl != null) {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(previewImageUrl)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = "Website preview",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(120.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                    contentScale = ContentScale.Crop,
-                    error = painterResource(id = android.R.drawable.ic_menu_gallery)
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-            }
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(previewImageUrl)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = "Website preview",
+                modifier = Modifier
+                    .size(80.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentScale = ContentScale.Crop,
+                error = painterResource(id = android.R.drawable.ic_menu_gallery)
+            )
             
-            // Header row with favicon, title, and more button
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+            // Content Column
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
+                verticalArrangement = Arrangement.SpaceBetween
             ) {
-                // Favicon
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(link.favicon)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = "Favicon",
-                    modifier = Modifier
-                        .size(24.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                    contentScale = ContentScale.Crop
-                )
-                
-                Spacer(modifier = Modifier.width(12.dp))
-                
-                // Title and URL
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
+                // Top section with title, domain and pin
+                Column {
+                    // Title with pin icon
                     Row(
-                        verticalAlignment = Alignment.CenterVertically
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.Top
                     ) {
                         Text(
                             text = link.title,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Medium,
-                            maxLines = 1,
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         
                         if (link.isPinned) {
-                            Spacer(modifier = Modifier.width(4.dp))
                             Icon(
                                 imageVector = Icons.Default.PushPin,
                                 contentDescription = "Pinned",
-                                modifier = Modifier.size(16.dp),
+                                modifier = Modifier.size(14.dp),
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         }
                     }
                     
+                    Spacer(modifier = Modifier.height(4.dp))
+                    
+                    // Domain
                     Text(
-                        text = link.url,
+                        text = extractDomain(link.url),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                }
-                
-                // More button - Enhanced with better size and padding
-                IconButton(
-                    onClick = onMoreClick,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .padding(4.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = "More options",
-                        modifier = Modifier.size(24.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-            
-            // Note if present
-            if (link.note.isNotBlank()) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = link.note,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-            
-            // Tags if present
-            if (link.tags.isNotBlank()) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Row {
-                    link.tags.split(",").take(3).forEach { tag ->
-                        if (tag.isNotBlank()) {
-                            AssistChip(
-                                onClick = { },
-                                label = {
-                                    Text(
-                                        text = tag.trim(),
-                                        style = MaterialTheme.typography.labelSmall
-                                    )
-                                },
-                                modifier = Modifier.padding(end = 4.dp)
-                            )
-                        }
-                    }
-                }
-            }
-            
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            // Footer with collection and date
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Collection indicator
-                if (collectionName != null && collectionColor != null) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .clip(CircleShape)
-                                .background(Color(collectionColor.toColorInt()))
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
+                    
+                    // Note if present
+                    if (link.note.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            text = collectionName,
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            text = link.note,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
-                } else {
-                    Spacer(modifier = Modifier.width(1.dp))
                 }
                 
-                // Save date
-                Text(
-                    text = SimpleDateFormat("MMM dd", Locale.getDefault()).format(link.saveDate),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                // Bottom section with collection, date and more button
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        // Collection indicator
+                        if (collectionName != null && collectionColor != null) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(8.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(collectionColor.toColorInt()))
+                                )
+                                Text(
+                                    text = collectionName,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        }
+                        
+                        // Date
+                        Text(
+                            text = SimpleDateFormat("MMM dd", Locale.getDefault()).format(link.saveDate),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        )
+                    }
+                    
+                    // More button
+                    IconButton(
+                        onClick = onMoreClick,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "More options",
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
             }
         }
     }
 }
 
 /**
- * Extract preview image URL from common website patterns
+ * Extract domain name from URL for display
+ */
+fun extractDomain(url: String): String {
+    return try {
+        val domain = url.substringAfter("://").substringBefore("/")
+        domain.removePrefix("www.")
+    } catch (e: Exception) {
+        url
+    }
+}
+
+/**
+ * Extract high-quality preview image URL from various platforms
  */
 fun extractPreviewImage(url: String): String? {
     return when {
-        // YouTube videos
+        // YouTube videos - High quality thumbnails
         url.contains("youtube.com/watch") -> {
             val videoId = url.substringAfter("v=").substringBefore("&")
             "https://img.youtube.com/vi/$videoId/maxresdefault.jpg"
@@ -235,32 +217,68 @@ fun extractPreviewImage(url: String): String? {
             val videoId = url.substringAfter("youtu.be/").substringBefore("?")
             "https://img.youtube.com/vi/$videoId/maxresdefault.jpg"
         }
-        // GitHub repositories
+        
+        // GitHub repositories - OpenGraph images
         url.contains("github.com") && url.count { it == '/' } >= 4 -> {
             "https://opengraph.githubassets.com/1/${url.substringAfter("github.com/")}"
         }
-        // Twitter/X posts
+        
+        // Twitter/X posts - Try to extract actual post preview
         url.contains("twitter.com") || url.contains("x.com") -> {
-            // Use a generic Twitter preview
-            "https://abs.twimg.com/icons/apple-touch-icon-192x192.png"
+            // Use screenshot service for actual tweet content
+            "https://api.microlink.io/?url=${java.net.URLEncoder.encode(url, "UTF-8")}&screenshot=true&meta=false&embed=screenshot.url"
         }
-        // Medium articles
+        
+        // Medium articles - Use screenshot service for actual article
         url.contains("medium.com") -> {
-            // Use Medium's default preview
-            "https://miro.medium.com/v2/1*m-R_BkNf1Qjr1YbyOIJY2w.png"
+            "https://api.microlink.io/?url=${java.net.URLEncoder.encode(url, "UTF-8")}&screenshot=true&meta=false&embed=screenshot.url"
         }
-        // Dribbble shots
+        
+        // LinkedIn posts and articles
+        url.contains("linkedin.com") -> {
+            "https://api.microlink.io/?url=${java.net.URLEncoder.encode(url, "UTF-8")}&screenshot=true&meta=false&embed=screenshot.url"
+        }
+        
+        // Instagram posts
+        url.contains("instagram.com") -> {
+            "https://api.microlink.io/?url=${java.net.URLEncoder.encode(url, "UTF-8")}&screenshot=true&meta=false&embed=screenshot.url"
+        }
+        
+        // Dribbble shots - Actual shot images
         url.contains("dribbble.com/shots") -> {
-            // Use Dribbble's default preview
-            "https://cdn.dribbble.com/assets/dribbble-ball-mark-2bd45f09c2fb58dbbfb44766d5d1d07c5a12972d602ef8b32204d28fa3dda554.svg"
+            "https://api.microlink.io/?url=${java.net.URLEncoder.encode(url, "UTF-8")}&screenshot=true&meta=false&embed=screenshot.url"
         }
-        // For other URLs, try to construct a generic preview
+        
+        // Reddit posts
+        url.contains("reddit.com") -> {
+            "https://api.microlink.io/?url=${java.net.URLEncoder.encode(url, "UTF-8")}&screenshot=true&meta=false&embed=screenshot.url"
+        }
+        
+        // News websites and blogs - Use screenshot service
+        url.contains("techcrunch.com") || url.contains("theverge.com") || 
+        url.contains("arstechnica.com") || url.contains("wired.com") ||
+        url.contains("engadget.com") || url.contains("mashable.com") -> {
+            "https://api.microlink.io/?url=${java.net.URLEncoder.encode(url, "UTF-8")}&screenshot=true&meta=false&embed=screenshot.url"
+        }
+        
+        // Dev.to articles
+        url.contains("dev.to") -> {
+            "https://api.microlink.io/?url=${java.net.URLEncoder.encode(url, "UTF-8")}&screenshot=true&meta=false&embed=screenshot.url"
+        }
+        
+        // Stack Overflow questions
+        url.contains("stackoverflow.com") -> {
+            "https://api.microlink.io/?url=${java.net.URLEncoder.encode(url, "UTF-8")}&screenshot=true&meta=false&embed=screenshot.url"
+        }
+        
+        // For other URLs, use screenshot service for actual content preview
         else -> {
             try {
-                val domain = url.substringAfter("://").substringBefore("/")
-                "https://www.google.com/s2/favicons?domain=$domain&sz=128"
+                "https://api.microlink.io/?url=${java.net.URLEncoder.encode(url, "UTF-8")}&screenshot=true&meta=false&embed=screenshot.url"
             } catch (e: Exception) {
-                null
+                // Fallback to favicon if screenshot service fails
+                val domain = url.substringAfter("://").substringBefore("/")
+                "https://www.google.com/s2/favicons?domain=$domain&sz=256"
             }
         }
     }
@@ -275,7 +293,7 @@ fun BookmarkCardPreview() {
             link = SavedLink(
                 id = 1,
                 title = "Beautiful UI Design Inspiration",
-                url = "https://dribbble.com/shots/example",
+                url = "https://dribbble.com/shots/26163314-Website-Banking-UI-Design",
                 note = "Great examples of modern mobile app design patterns and user interface elements.",
                 tags = "design, ui, inspiration",
                 isPinned = true,
