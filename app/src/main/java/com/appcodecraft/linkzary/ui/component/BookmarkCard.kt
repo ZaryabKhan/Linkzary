@@ -8,18 +8,17 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PushPin
-import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -41,98 +40,118 @@ fun BookmarkCard(
     onCardClick: () -> Unit,
     onMoreClick: () -> Unit
 ) {
+    val domain = extractDomain(link.url)
+    val domainColor = getDomainColor(domain)
+    val headerImageUrl = extractHeaderImage(link.url)
+    
     Card(
         modifier = modifier
             .fillMaxWidth()
             .clickable { onCardClick() },
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        Column(
+            modifier = Modifier.fillMaxWidth()
         ) {
-            // Thumbnail/Preview Image
-            val previewImageUrl = extractPreviewImage(link.url)
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(previewImageUrl)
-                    .crossfade(true)
-                    .build(),
-                contentDescription = "Website preview",
+            // Large header image or domain thumbnail
+            Box(
                 modifier = Modifier
-                    .size(80.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                contentScale = ContentScale.Crop,
-                error = painterResource(id = android.R.drawable.ic_menu_gallery)
-            )
-            
-            // Content Column
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight(),
-                verticalArrangement = Arrangement.SpaceBetween
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .background(domainColor)
             ) {
-                // Top section with title, domain and pin
-                Column {
-                    // Title with pin icon
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.Top
-                    ) {
-                        Text(
-                            text = link.title,
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f),
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        
-                        if (link.isPinned) {
-                            Icon(
-                                imageVector = Icons.Default.PushPin,
-                                contentDescription = "Pinned",
-                                modifier = Modifier.size(14.dp),
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    }
-                    
-                    Spacer(modifier = Modifier.height(4.dp))
-                    
-                    // Domain
-                    Text(
-                        text = extractDomain(link.url),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                if (headerImageUrl != null) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(headerImageUrl)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Website header",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop,
+                        error = painterResource(id = android.R.drawable.ic_menu_gallery),
+                        fallback = painterResource(id = android.R.drawable.ic_menu_gallery)
                     )
-                    
-                    // Note if present
-                    if (link.note.isNotBlank()) {
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text(
-                            text = link.note,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
+                } else {
+                    DomainThumbnail(
+                        domain = domain,
+                        color = domainColor,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+                
+                // Pin indicator overlay
+                if (link.isPinned) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(12.dp)
+                            .background(
+                                MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
+                                CircleShape
+                            )
+                            .padding(6.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PushPin,
+                            contentDescription = "Pinned",
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
+            }
+            
+            // Content section
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                // Title
+                Text(
+                    text = link.title.ifBlank { "Untitled" },
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    fontWeight = FontWeight.SemiBold
+                )
                 
                 Spacer(modifier = Modifier.height(8.dp))
+                
+                // Domain chip
+                Surface(
+                    modifier = Modifier.wrapContentSize(),
+                    shape = RoundedCornerShape(20.dp),
+                    color = domainColor.copy(alpha = 0.1f)
+                ) {
+                    Text(
+                        text = domain,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = domainColor,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+                
+                // Note if present
+                if (link.note.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = link.note,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(16.dp))
                 
                 // Bottom section with collection, date and more button
                 Row(
@@ -142,23 +161,23 @@ fun BookmarkCard(
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         // Collection indicator
                         if (collectionName != null && collectionColor != null) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
                                 Box(
                                     modifier = Modifier
-                                        .size(8.dp)
+                                        .size(10.dp)
                                         .clip(CircleShape)
                                         .background(Color(collectionColor.toColorInt()))
                                 )
                                 Text(
                                     text = collectionName,
-                                    style = MaterialTheme.typography.labelSmall,
+                                    style = MaterialTheme.typography.labelMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     fontWeight = FontWeight.Medium
                                 )
@@ -168,7 +187,7 @@ fun BookmarkCard(
                         // Date
                         Text(
                             text = SimpleDateFormat("MMM dd", Locale.getDefault()).format(link.saveDate),
-                            style = MaterialTheme.typography.labelSmall,
+                            style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                         )
                     }
@@ -176,12 +195,12 @@ fun BookmarkCard(
                     // More button
                     IconButton(
                         onClick = onMoreClick,
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(40.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.MoreVert,
                             contentDescription = "More options",
-                            modifier = Modifier.size(16.dp),
+                            modifier = Modifier.size(20.dp),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -198,88 +217,131 @@ fun extractDomain(url: String): String {
     return try {
         val domain = url.substringAfter("://").substringBefore("/")
         domain.removePrefix("www.")
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         url
     }
 }
 
 /**
- * Extract high-quality preview image URL from various platforms
+ * Extract header image URL for professional look
  */
-fun extractPreviewImage(url: String): String? {
+fun extractHeaderImage(url: String): String? {
+    val domain = extractDomain(url)
+    
     return when {
-        // YouTube videos - High quality thumbnails
-        url.contains("youtube.com/watch") -> {
-            val videoId = url.substringAfter("v=").substringBefore("&")
-            "https://img.youtube.com/vi/$videoId/maxresdefault.jpg"
-        }
-        url.contains("youtu.be/") -> {
-            val videoId = url.substringAfter("youtu.be/").substringBefore("?")
-            "https://img.youtube.com/vi/$videoId/maxresdefault.jpg"
-        }
-        
-        // GitHub repositories - OpenGraph images
-        url.contains("github.com") && url.count { it == '/' } >= 4 -> {
-            "https://opengraph.githubassets.com/1/${url.substringAfter("github.com/")}"
-        }
-        
-        // Twitter/X posts - Try to extract actual post preview
-        url.contains("twitter.com") || url.contains("x.com") -> {
-            // Use screenshot service for actual tweet content
-            "https://api.microlink.io/?url=${java.net.URLEncoder.encode(url, "UTF-8")}&screenshot=true&meta=false&embed=screenshot.url"
-        }
-        
-        // Medium articles - Use screenshot service for actual article
-        url.contains("medium.com") -> {
-            "https://api.microlink.io/?url=${java.net.URLEncoder.encode(url, "UTF-8")}&screenshot=true&meta=false&embed=screenshot.url"
-        }
-        
-        // LinkedIn posts and articles
-        url.contains("linkedin.com") -> {
-            "https://api.microlink.io/?url=${java.net.URLEncoder.encode(url, "UTF-8")}&screenshot=true&meta=false&embed=screenshot.url"
-        }
-        
-        // Instagram posts
-        url.contains("instagram.com") -> {
-            "https://api.microlink.io/?url=${java.net.URLEncoder.encode(url, "UTF-8")}&screenshot=true&meta=false&embed=screenshot.url"
-        }
-        
-        // Dribbble shots - Actual shot images
-        url.contains("dribbble.com/shots") -> {
-            "https://api.microlink.io/?url=${java.net.URLEncoder.encode(url, "UTF-8")}&screenshot=true&meta=false&embed=screenshot.url"
-        }
-        
-        // Reddit posts
-        url.contains("reddit.com") -> {
-            "https://api.microlink.io/?url=${java.net.URLEncoder.encode(url, "UTF-8")}&screenshot=true&meta=false&embed=screenshot.url"
-        }
-        
-        // News websites and blogs - Use screenshot service
-        url.contains("techcrunch.com") || url.contains("theverge.com") || 
-        url.contains("arstechnica.com") || url.contains("wired.com") ||
-        url.contains("engadget.com") || url.contains("mashable.com") -> {
-            "https://api.microlink.io/?url=${java.net.URLEncoder.encode(url, "UTF-8")}&screenshot=true&meta=false&embed=screenshot.url"
-        }
-        
-        // Dev.to articles
-        url.contains("dev.to") -> {
-            "https://api.microlink.io/?url=${java.net.URLEncoder.encode(url, "UTF-8")}&screenshot=true&meta=false&embed=screenshot.url"
-        }
-        
-        // Stack Overflow questions
-        url.contains("stackoverflow.com") -> {
-            "https://api.microlink.io/?url=${java.net.URLEncoder.encode(url, "UTF-8")}&screenshot=true&meta=false&embed=screenshot.url"
-        }
-        
-        // For other URLs, use screenshot service for actual content preview
-        else -> {
-            try {
-                "https://api.microlink.io/?url=${java.net.URLEncoder.encode(url, "UTF-8")}&screenshot=true&meta=false&embed=screenshot.url"
-            } catch (e: Exception) {
-                // Fallback to favicon if screenshot service fails
-                val domain = url.substringAfter("://").substringBefore("/")
-                "https://www.google.com/s2/favicons?domain=$domain&sz=256"
+        // YouTube - use thumbnail
+        domain.contains("youtube.com") || domain.contains("youtu.be") -> {
+            val videoId = when {
+                url.contains("youtube.com/watch?v=") -> url.substringAfter("v=").substringBefore("&")
+                url.contains("youtu.be/") -> url.substringAfter("youtu.be/").substringBefore("?")
+                else -> null
             }
+            videoId?.let { "https://img.youtube.com/vi/$it/maxresdefault.jpg" }
+        }
+        
+        // GitHub - use OpenGraph image
+        domain.contains("github.com") -> {
+            val parts = url.substringAfter("github.com/").split("/")
+            if (parts.size >= 2) {
+                "https://opengraph.githubassets.com/1/${parts[0]}/${parts[1]}"
+            } else null
+        }
+        
+        // Medium - use their header images
+        domain.contains("medium.com") -> {
+            "https://api.microlink.io/screenshot?url=${java.net.URLEncoder.encode(url, "UTF-8")}&viewport.width=1200&viewport.height=400&type=jpeg&overlay.browser=false&element=article"
+        }
+        
+        // News sites - get header/hero images
+        domain.contains("techcrunch.com") ||
+        domain.contains("theverge.com") ||
+        domain.contains("wired.com") ||
+        domain.contains("arstechnica.com") ||
+        domain.contains("engadget.com") -> {
+            "https://api.microlink.io/screenshot?url=${java.net.URLEncoder.encode(url, "UTF-8")}&viewport.width=1200&viewport.height=400&type=jpeg&overlay.browser=false&element=.hero,.header-image,article img:first-of-type"
+        }
+        
+        // For other sites, don't use header images - will fall back to domain thumbnail
+        else -> null
+    }
+}
+
+/**
+ * Get a consistent color for a domain
+ */
+fun getDomainColor(domain: String): Color {
+    val colors = listOf(
+        Color(0xFF6366F1), // Indigo
+        Color(0xFF8B5CF6), // Violet  
+        Color(0xFFEC4899), // Pink
+        Color(0xFFEF4444), // Red
+        Color(0xFFF97316), // Orange
+        Color(0xFFF59E0B), // Amber
+        Color(0xFF10B981), // Emerald
+        Color(0xFF06B6D4), // Cyan
+        Color(0xFF3B82F6), // Blue
+        Color(0xFF8B5CF6), // Purple
+        Color(0xFF84CC16), // Lime
+        Color(0xFFF43F5E), // Rose
+    )
+    
+    val hash = domain.hashCode()
+    val index = kotlin.math.abs(hash) % colors.size
+    return colors[index]
+}
+
+/**
+ * Domain thumbnail composable
+ */
+@Composable
+fun DomainThumbnail(
+    domain: String,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center
+    ) {
+        // Background with gradient
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                        colors = listOf(
+                            color.copy(alpha = 0.8f),
+                            color.copy(alpha = 0.6f)
+                        )
+                    )
+                )
+        )
+        
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            // Domain initial or icon
+            val initial = domain.firstOrNull()?.uppercaseChar()?.toString() ?: "?"
+            
+            Text(
+                text = initial,
+                style = MaterialTheme.typography.displayLarge,
+                color = Color.White,
+                fontWeight = FontWeight.Bold
+            )
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            Text(
+                text = domain,
+                style = MaterialTheme.typography.labelLarge,
+                color = Color.White.copy(alpha = 0.9f),
+                fontWeight = FontWeight.Medium,
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }
