@@ -20,6 +20,9 @@ interface SavedLinkDao {
 
     @Query("SELECT * FROM saved_links WHERE id = :id")
     suspend fun getLinkById(id: Long): SavedLink?
+    
+    @Query("SELECT * FROM saved_links WHERE url = :url LIMIT 1")
+    suspend fun getLinkByUrl(url: String): SavedLink?
 
     @Insert
     suspend fun insertLink(link: SavedLink): Long

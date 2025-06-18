@@ -42,10 +42,10 @@ fun HomeScreen(
     var isGridView by remember { mutableStateOf(true) }
     val uriHandler = LocalUriHandler.current
 
-    // Handle shared URL
+    // Handle shared URL - prevent duplicates
     LaunchedEffect(sharedUrl) {
         if (!sharedUrl.isNullOrBlank()) {
-            viewModel.saveLink(sharedUrl)
+            viewModel.saveSharedLink(sharedUrl)
         }
     }
 

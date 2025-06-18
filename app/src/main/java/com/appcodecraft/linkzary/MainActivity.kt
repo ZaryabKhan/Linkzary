@@ -46,7 +46,7 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         
-        // Handle new shared URL
+        // Handle new shared URL when app is already running
         val sharedUrl = when {
             intent.action == Intent.ACTION_SEND && intent.type == "text/plain" -> {
                 intent.getStringExtra(Intent.EXTRA_TEXT)
@@ -58,8 +58,8 @@ class MainActivity : ComponentActivity() {
         }
         
         if (!sharedUrl.isNullOrBlank()) {
-            // TODO: Handle new shared URL when app is already running
-            // This could involve updating the navigation or showing a dialog
+            // Recreate the activity with the new shared URL
+            recreate()
         }
     }
 }

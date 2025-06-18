@@ -57,7 +57,7 @@ class HomeViewModel @Inject constructor(
         }
         
         HomeUiState(
-            links = links.sortedByDescending { it.saveDate }, // Sort by most recent first
+            links = links, // Keep DAO sorting (pinned first, then by date)
             recentCollections = recentCollections,
             allCollections = allCollections,
             collectionsWithCounts = collectionsWithCounts,
@@ -84,6 +84,37 @@ class HomeViewModel @Inject constructor(
             try {
                 _isLoading.value = true
                 _error.value = null
+                
+                val metadata = urlMetadataExtractor.extractMetadata(url)
+                
+                val link = SavedLink(
+                    title = metadata.title,
+                    url = url,
+                    collectionId = collectionId,
+                    favicon = metadata.favicon
+                )
+                
+                linkRepository.insertLink(link)
+            } catch (e: Exception) {
+                _error.value = "Failed to save link: ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+    
+    fun saveSharedLink(url: String, collectionId: Long? = null) {
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                _error.value = null
+                
+                // Check if link already exists
+                val existingLink = linkRepository.getLinkByUrl(url)
+                if (existingLink != null) {
+                    _error.value = "Link already saved"
+                    return@launch
+                }
                 
                 val metadata = urlMetadataExtractor.extractMetadata(url)
                 

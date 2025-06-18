@@ -20,6 +20,8 @@ class LinkRepository @Inject constructor(
     fun searchLinks(query: String): Flow<List<SavedLink>> = savedLinkDao.searchLinks(query)
 
     suspend fun getLinkById(id: Long): SavedLink? = savedLinkDao.getLinkById(id)
+    
+    suspend fun getLinkByUrl(url: String): SavedLink? = savedLinkDao.getLinkByUrl(url)
 
     suspend fun insertLink(link: SavedLink): Long = savedLinkDao.insertLink(link)
 
