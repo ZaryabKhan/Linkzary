@@ -10,6 +10,7 @@ import com.appcodecraft.linkzary.util.UrlMetadataExtractor
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import java.util.Date
 import javax.inject.Inject
 
 data class HomeUiState(
@@ -170,6 +171,23 @@ class HomeViewModel @Inject constructor(
                 linkRepository.updateLink(link)
             } catch (e: Exception) {
                 _error.value = "Failed to update link: ${e.message}"
+            }
+        }
+    }
+
+    fun createCollection(name: String, color: Int, onCreated: (Long) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val collection = Collection(
+                    name = name.trim(),
+                    color = String.format("#%06X", color and 0xFFFFFF),
+                    createdDate = Date()
+                )
+                
+                val collectionId = collectionRepository.insertCollection(collection)
+                onCreated(collectionId)
+            } catch (e: Exception) {
+                _error.value = "Failed to create collection: ${e.message}"
             }
         }
     }

@@ -15,6 +15,14 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ViewModule
 import androidx.compose.material.icons.filled.ViewList
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.FolderOpen
+import androidx.compose.material.icons.outlined.PushPin
+import androidx.compose.material.icons.filled.CreateNewFolder
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -406,6 +414,7 @@ fun LinkOptionsBottomSheet(
 ) {
     var showEditDialog by remember { mutableStateOf(false) }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
+    var showCollectionDialog by remember { mutableStateOf(false) }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss
@@ -419,38 +428,44 @@ fun LinkOptionsBottomSheet(
                 text = "Link Options",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier.padding(bottom = 24.dp)
             )
 
             // Edit option
-            TextButton(
-                onClick = { showEditDialog = true },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Edit Link")
-            }
+            OptionItem(
+                icon = Icons.Default.Edit,
+                title = "Edit Link",
+                subtitle = "Modify title, URL, or notes",
+                onClick = { showEditDialog = true }
+            )
 
             // Pin/Unpin option
-            TextButton(
+            OptionItem(
+                icon = if (link.isPinned) Icons.Default.PushPin else Icons.Outlined.PushPin,
+                title = if (link.isPinned) "Unpin" else "Pin to Top",
+                subtitle = if (link.isPinned) "Remove from pinned links" else "Keep at the top of your list",
                 onClick = {
                     onTogglePin()
                     onDismiss()
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(if (link.isPinned) "Unpin" else "Pin to Top")
-            }
+                }
+            )
+
+            // Move to Collection option
+            OptionItem(
+                icon = Icons.Default.Folder,
+                title = "Move to Collection",
+                subtitle = "Organize in a collection",
+                onClick = { showCollectionDialog = true }
+            )
 
             // Delete option
-            TextButton(
+            OptionItem(
+                icon = Icons.Default.Delete,
+                title = "Delete",
+                subtitle = "Remove this link permanently",
                 onClick = { showDeleteConfirmation = true },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = "Delete",
-                    color = MaterialTheme.colorScheme.error
-                )
-            }
+                isDestructive = true
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
         }
@@ -464,6 +479,19 @@ fun LinkOptionsBottomSheet(
             onSave = { updatedLink ->
                 onEdit(updatedLink)
                 showEditDialog = false
+                onDismiss()
+            }
+        )
+    }
+
+    // Collection Selection Dialog
+    if (showCollectionDialog) {
+        CollectionSelectionDialog(
+            currentCollectionId = link.collectionId,
+            onDismiss = { showCollectionDialog = false },
+            onCollectionSelected = { collectionId ->
+                onMoveToCollection(collectionId)
+                showCollectionDialog = false
                 onDismiss()
             }
         )
@@ -581,6 +609,286 @@ fun EditLinkDialog(
     )
 }
 
+@Composable
+fun OptionItem(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+    isDestructive: Boolean = false
+) {
+    Surface(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surface
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = title,
+                tint = if (isDestructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.size(24.dp)
+            )
+            
+            Spacer(modifier = Modifier.width(16.dp))
+            
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
+                    color = if (isDestructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (isDestructive) MaterialTheme.colorScheme.error.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CollectionSelectionDialog(
+    currentCollectionId: Long?,
+    onDismiss: () -> Unit,
+    onCollectionSelected: (Long?) -> Unit
+) {
+    val viewModel: HomeViewModel = hiltViewModel()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var showCreateDialog by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { 
+            Text(
+                text = "Move to Collection",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold
+            )
+        },
+        text = {
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // No Collection option
+                item {
+                    CollectionOption(
+                        icon = Icons.Default.FolderOpen,
+                        name = "No Collection",
+                        color = MaterialTheme.colorScheme.outline.value.toInt(),
+                        isSelected = currentCollectionId == null,
+                        onClick = { onCollectionSelected(null) }
+                    )
+                }
+                
+                // Existing collections
+                items(uiState.allCollections) { collection ->
+                    CollectionOption(
+                        icon = Icons.Default.Folder,
+                        name = collection.name,
+                        color = collection.color.removePrefix("#").toLongOrNull(16)?.toInt() ?: 0xFF6366F1.toInt(),
+                        isSelected = currentCollectionId == collection.id,
+                        onClick = { onCollectionSelected(collection.id) }
+                    )
+                }
+                
+                // Create new collection option
+                item {
+                    Surface(
+                        onClick = { showCreateDialog = true },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CreateNewFolder,
+                                contentDescription = "Create new collection",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            
+                            Spacer(modifier = Modifier.width(16.dp))
+                            
+                            Text(
+                                text = "Create New Collection",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+    
+    // Create Collection Dialog
+    if (showCreateDialog) {
+        CreateCollectionDialog(
+            onDismiss = { showCreateDialog = false },
+            onCreate = { name, color ->
+                // Create collection and move link to it
+                viewModel.createCollection(name, color) { collectionId ->
+                    onCollectionSelected(collectionId)
+                }
+                showCreateDialog = false
+            }
+        )
+    }
+}
+
+@Composable
+fun CollectionOption(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    name: String,
+    color: Int,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Surface(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = name,
+                tint = androidx.compose.ui.graphics.Color(color),
+                modifier = Modifier.size(24.dp)
+            )
+            
+            Spacer(modifier = Modifier.width(16.dp))
+            
+            Text(
+                text = name,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f)
+            )
+            
+            if (isSelected) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = "Selected",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CreateCollectionDialog(
+    onDismiss: () -> Unit,
+    onCreate: (String, Int) -> Unit
+) {
+    var name by remember { mutableStateOf("") }
+    var selectedColor by remember { mutableStateOf(0xFF6366F1.toInt()) }
+    
+    val colors = listOf(
+        0xFF6366F1.toInt(), // Indigo
+        0xFFEF4444.toInt(), // Red
+        0xFF10B981.toInt(), // Emerald
+        0xFFF59E0B.toInt(), // Amber
+        0xFF8B5CF6.toInt(), // Violet
+        0xFF06B6D4.toInt(), // Cyan
+        0xFFEC4899.toInt(), // Pink
+        0xFF84CC16.toInt()  // Lime
+    )
+    
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Create Collection") },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Collection Name") },
+                    placeholder = { Text("Enter collection name") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                Text(
+                    text = "Choose Color",
+                    style = MaterialTheme.typography.labelMedium
+                )
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    colors.forEach { color ->
+                        FilterChip(
+                            onClick = { selectedColor = color },
+                            label = { },
+                            selected = selectedColor == color,
+                            modifier = Modifier.size(32.dp),
+                            colors = FilterChipDefaults.filterChipColors(
+                                containerColor = androidx.compose.ui.graphics.Color(color),
+                                selectedContainerColor = androidx.compose.ui.graphics.Color(color)
+                            )
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onCreate(name, selectedColor) },
+                enabled = name.isNotBlank()
+            ) {
+                Text("Create")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
 @Preview
 @Composable
 fun HomeScreenPreview() {
@@ -590,7 +898,7 @@ fun HomeScreenPreview() {
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Text("Home Screen with Fixed Search")
+                Text("Home Screen with Enhanced Link Options")
             }
         }
     }
