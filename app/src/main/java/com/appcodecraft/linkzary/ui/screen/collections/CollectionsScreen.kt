@@ -62,17 +62,58 @@ fun CollectionsScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
-                Text(
-                    text = "Collections",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                if (uiState.collections.isNotEmpty()) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Folder,
+                        contentDescription = "Collections",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(32.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Collections",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.FolderOpen,
+                        contentDescription = "Collections count",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = "${uiState.collections.size} ${if (uiState.collections.size == 1) "collection" else "collections"}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                    if (uiState.collectionsWithCounts.isNotEmpty()) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "•",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            imageVector = Icons.Default.Link,
+                            contentDescription = "Total links",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "${uiState.collectionsWithCounts.values.sum()} total links",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
             
@@ -358,6 +399,7 @@ fun CreateCollectionDialog(
 ) {
     var name by remember { mutableStateOf("") }
     var selectedColor by remember { mutableStateOf(0xFF6366F1.toInt()) }
+    val maxNameLength = 30
     
     val colors = listOf(
         0xFF6366F1.toInt(), // Indigo
@@ -372,16 +414,47 @@ fun CreateCollectionDialog(
     
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Create Collection") },
+        title = { 
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.CreateNewFolder,
+                    contentDescription = "Create collection",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Create Collection")
+            }
+        },
         text = {
             Column {
                 OutlinedTextField(
                     value = name,
-                    onValueChange = { name = it },
+                    onValueChange = { newValue ->
+                        if (newValue.length <= maxNameLength) {
+                            name = newValue
+                        }
+                    },
                     label = { Text("Collection Name") },
                     placeholder = { Text("Enter collection name") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Folder,
+                            contentDescription = "Collection name",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    singleLine = true,
+                    supportingText = {
+                        Text(
+                            text = "${name.length}/$maxNameLength",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (name.length >= maxNameLength) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 )
                 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -401,7 +474,6 @@ fun CreateCollectionDialog(
                             onClick = { selectedColor = color },
                             label = { },
                             selected = selectedColor == color,
-                            enabled = true,
                             modifier = Modifier.size(32.dp),
                             colors = FilterChipDefaults.filterChipColors(
                                 containerColor = androidx.compose.ui.graphics.Color(color),

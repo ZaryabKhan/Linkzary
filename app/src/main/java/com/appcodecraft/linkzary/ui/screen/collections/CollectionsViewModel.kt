@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.appcodecraft.linkzary.data.entity.Collection
 import com.appcodecraft.linkzary.data.repository.CollectionRepository
+import com.appcodecraft.linkzary.data.repository.LinkRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -29,7 +30,8 @@ data class CollectionsUiState(
 
 @HiltViewModel
 class CollectionsViewModel @Inject constructor(
-    private val collectionRepository: CollectionRepository
+    private val collectionRepository: CollectionRepository,
+    private val linkRepository: LinkRepository
 ) : ViewModel() {
     
     private val _searchQuery = MutableStateFlow("")
@@ -48,15 +50,28 @@ class CollectionsViewModel @Inject constructor(
     private val collectionsWithCounts = MutableStateFlow<Map<Long, Int>>(emptyMap())
     
     init {
+        // Observe collections changes
         viewModelScope.launch {
             allCollections.collect { collections ->
-                val counts = mutableMapOf<Long, Int>()
-                collections.forEach { collection ->
-                    counts[collection.id] = collectionRepository.getLinksCountInCollection(collection.id)
-                }
-                collectionsWithCounts.value = counts
+                refreshLinkCounts(collections)
             }
         }
+        
+        // Observe all links changes to update counts in real-time
+        viewModelScope.launch {
+            linkRepository.getAllLinks().collect { _ ->
+                // When any link changes, refresh all collection counts
+                refreshLinkCounts(allCollections.value)
+            }
+        }
+    }
+    
+    private suspend fun refreshLinkCounts(collections: List<Collection>) {
+        val counts = mutableMapOf<Long, Int>()
+        collections.forEach { collection ->
+            counts[collection.id] = collectionRepository.getLinksCountInCollection(collection.id)
+        }
+        collectionsWithCounts.value = counts
     }
     
     private val filteredAndSortedCollections = combine(
@@ -83,6 +98,7 @@ class CollectionsViewModel @Inject constructor(
     
     val uiState: StateFlow<CollectionsUiState> = combine(
         filteredAndSortedCollections,
+        collectionsWithCounts,
         _searchQuery,
         _sortOrder,
         _isLoading,
@@ -90,15 +106,16 @@ class CollectionsViewModel @Inject constructor(
         _error
     ) { flows ->
         val collections = flows[0] as List<Collection>
-        val searchQuery = flows[1] as String
-        val sortOrder = flows[2] as SortOrder
-        val isLoading = flows[3] as Boolean
-        val isRefreshing = flows[4] as Boolean
-        val error = flows[5] as String?
+        val counts = flows[1] as Map<Long, Int>
+        val searchQuery = flows[2] as String
+        val sortOrder = flows[3] as SortOrder
+        val isLoading = flows[4] as Boolean
+        val isRefreshing = flows[5] as Boolean
+        val error = flows[6] as String?
         
         CollectionsUiState(
             collections = collections,
-            collectionsWithCounts = emptyMap(),
+            collectionsWithCounts = counts,
             searchQuery = searchQuery,
             sortOrder = sortOrder,
             isLoading = isLoading,
@@ -125,13 +142,25 @@ class CollectionsViewModel @Inject constructor(
                 _isRefreshing.value = true
                 _error.value = null
                 
-                // Refresh collections data
-                // The Flow will automatically update
+                // Refresh link counts for all collections
+                refreshLinkCounts(allCollections.value)
                 
             } catch (e: Exception) {
                 _error.value = "Failed to refresh collections: ${e.message}"
             } finally {
                 _isRefreshing.value = false
+            }
+        }
+    }
+    
+    fun refreshLinkCountsForCollection(collectionId: Long) {
+        viewModelScope.launch {
+            try {
+                val currentCounts = collectionsWithCounts.value.toMutableMap()
+                currentCounts[collectionId] = collectionRepository.getLinksCountInCollection(collectionId)
+                collectionsWithCounts.value = currentCounts
+            } catch (e: Exception) {
+                _error.value = "Failed to refresh link count: ${e.message}"
             }
         }
     }
