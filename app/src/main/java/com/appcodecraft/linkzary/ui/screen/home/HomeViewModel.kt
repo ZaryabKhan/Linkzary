@@ -14,12 +14,21 @@ import kotlinx.coroutines.launch
 import java.util.Date
 import javax.inject.Inject
 
+enum class LinkSortOrder {
+    DATE_DESC,
+    DATE_ASC,
+    TITLE_ASC,
+    TITLE_DESC,
+    PINNED_FIRST
+}
+
 data class HomeUiState(
     val links: List<SavedLink> = emptyList(),
     val recentCollections: List<Collection> = emptyList(),
     val allCollections: List<Collection> = emptyList(),
     val collectionsWithCounts: Map<Long, Int> = emptyMap(),
     val searchQuery: String = "",
+    val sortOrder: LinkSortOrder = LinkSortOrder.PINNED_FIRST,
     val isLoading: Boolean = false,
     val error: String? = null
 )
@@ -32,6 +41,7 @@ class HomeViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _searchQuery = MutableStateFlow("")
+    private val _sortOrder = MutableStateFlow(LinkSortOrder.PINNED_FIRST)
     private val _isLoading = MutableStateFlow(false)
     private val _error = MutableStateFlow<String?>(null)
 
@@ -46,16 +56,35 @@ class HomeViewModel @Inject constructor(
         },
         collectionRepository.getRecentCollections(),
         collectionRepository.getAllCollections(),
+        _sortOrder,
         _isLoading,
         _error
-    ) { links, recentCollections, allCollections, isLoading, error ->
+    ) { flows ->
+        val links = flows[0] as List<SavedLink>
+        val recentCollections = flows[1] as List<Collection>
+        val allCollections = flows[2] as List<Collection>
+        val sortOrder = flows[3] as LinkSortOrder
+        val isLoading = flows[4] as Boolean
+        val error = flows[5] as String?
+        
+        val sortedLinks = when (sortOrder) {
+            LinkSortOrder.PINNED_FIRST -> links.sortedWith(
+                compareByDescending<SavedLink> { it.isPinned }
+                    .thenByDescending { it.saveDate }
+            )
+            LinkSortOrder.DATE_DESC -> links.sortedByDescending { it.saveDate }
+            LinkSortOrder.DATE_ASC -> links.sortedBy { it.saveDate }
+            LinkSortOrder.TITLE_ASC -> links.sortedBy { it.title.lowercase() }
+            LinkSortOrder.TITLE_DESC -> links.sortedByDescending { it.title.lowercase() }
+        }
         
         HomeUiState(
-            links = links, // Keep DAO sorting (pinned first, then by date)
+            links = sortedLinks,
             recentCollections = recentCollections,
             allCollections = allCollections,
             collectionsWithCounts = emptyMap(), // Will be populated by separate flow
             searchQuery = _searchQuery.value,
+            sortOrder = sortOrder,
             isLoading = isLoading,
             error = error
         )
@@ -104,6 +133,10 @@ class HomeViewModel @Inject constructor(
 
     fun updateSearchQuery(query: String) {
         _searchQuery.value = query
+    }
+    
+    fun setSortOrder(sortOrder: LinkSortOrder) {
+        _sortOrder.value = sortOrder
     }
 
     fun clearError() {

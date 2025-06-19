@@ -31,6 +31,10 @@ import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.automirrored.filled.Sort
+import androidx.compose.material.icons.filled.SortByAlpha
+import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -61,6 +65,7 @@ fun HomeScreen(
     var isGridView by remember { mutableStateOf(true) }
     var showTagFilter by remember { mutableStateOf(false) }
     var selectedTags by remember { mutableStateOf(setOf<String>()) }
+    var showSortMenu by remember { mutableStateOf(false) }
 
     // Local search state to prevent bouncing
     var localSearchQuery by remember { mutableStateOf("") }
@@ -155,6 +160,88 @@ fun HomeScreen(
                             contentDescription = if (isGridView) "List view" else "Grid view",
                             tint = if (isGridView) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+                
+                // Sort menu
+                Box {
+                    Surface(
+                        onClick = { showSortMenu = true },
+                        modifier = Modifier.size(40.dp),
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.surface,
+                        border = BorderStroke(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.outline
+                        )
+                    ) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.Sort,
+                                contentDescription = "Sort links",
+                                tint = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                    
+                    DropdownMenu(
+                        expanded = showSortMenu,
+                        onDismissRequest = { showSortMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Pinned First") },
+                            onClick = {
+                                viewModel.setSortOrder(LinkSortOrder.PINNED_FIRST)
+                                showSortMenu = false
+                            },
+                            leadingIcon = {
+                                Icon(Icons.Default.PushPin, contentDescription = null)
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Newest First") },
+                            onClick = {
+                                viewModel.setSortOrder(LinkSortOrder.DATE_DESC)
+                                showSortMenu = false
+                            },
+                            leadingIcon = {
+                                Icon(Icons.Default.Schedule, contentDescription = null)
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Oldest First") },
+                            onClick = {
+                                viewModel.setSortOrder(LinkSortOrder.DATE_ASC)
+                                showSortMenu = false
+                            },
+                            leadingIcon = {
+                                Icon(Icons.Default.History, contentDescription = null)
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Title A-Z") },
+                            onClick = {
+                                viewModel.setSortOrder(LinkSortOrder.TITLE_ASC)
+                                showSortMenu = false
+                            },
+                            leadingIcon = {
+                                Icon(Icons.Default.SortByAlpha, contentDescription = null)
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Title Z-A") },
+                            onClick = {
+                                viewModel.setSortOrder(LinkSortOrder.TITLE_DESC)
+                                showSortMenu = false
+                            },
+                            leadingIcon = {
+                                Icon(Icons.Default.SortByAlpha, contentDescription = null)
+                            }
                         )
                     }
                 }
