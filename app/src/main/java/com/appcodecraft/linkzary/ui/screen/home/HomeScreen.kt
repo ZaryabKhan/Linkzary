@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.automirrored.filled.DriveFileMove
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.filled.CreateNewFolder
@@ -637,7 +638,7 @@ fun LinkOptionsBottomSheet(
 
             // Move to Collection option
             OptionItem(
-                icon = Icons.Default.Folder,
+                icon = Icons.AutoMirrored.Filled.DriveFileMove,
                 title = "Move to Collection",
                 subtitle = "Organize in a collection",
                 onClick = { showCollectionDialog = true }
