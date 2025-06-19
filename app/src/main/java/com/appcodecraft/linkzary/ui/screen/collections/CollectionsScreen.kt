@@ -1,17 +1,26 @@
 package com.appcodecraft.linkzary.ui.screen.collections
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.automirrored.filled.Sort
+import androidx.compose.material.icons.automirrored.filled.ViewList
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Sort
+import androidx.compose.material.icons.filled.ViewList
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -21,6 +30,9 @@ import androidx.navigation.NavController
 import com.appcodecraft.linkzary.data.entity.Collection
 import com.appcodecraft.linkzary.navigation.Screen
 import com.appcodecraft.linkzary.ui.component.CollectionCard
+import com.appcodecraft.linkzary.ui.component.createCollectionGradient
+import com.appcodecraft.linkzary.ui.component.getCollectionIcon
+import com.appcodecraft.linkzary.ui.screen.home.OptionItem
 import com.appcodecraft.linkzary.ui.theme.LinkzaryTheme
 import java.util.*
 
@@ -33,6 +45,8 @@ fun CollectionsScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showCreateCollectionDialog by remember { mutableStateOf(false) }
     var selectedCollection by remember { mutableStateOf<Collection?>(null) }
+    var isGridView by remember { mutableStateOf(true) }
+    var showSortMenu by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -41,27 +55,109 @@ fun CollectionsScreen(
     ) {
         Spacer(modifier = Modifier.height(16.dp))
         
-        // Header
+        // Header with enhanced controls
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "Collections",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
-            )
-            
-            FloatingActionButton(
-                onClick = { showCreateCollectionDialog = true },
-                modifier = Modifier.size(48.dp),
-                containerColor = MaterialTheme.colorScheme.primary
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Create collection"
+            Column {
+                Text(
+                    text = "Collections",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold
                 )
+                if (uiState.collections.isNotEmpty()) {
+                    Text(
+                        text = "${uiState.collections.size} ${if (uiState.collections.size == 1) "collection" else "collections"}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // View mode toggle
+                IconButton(
+                    onClick = { isGridView = !isGridView }
+                ) {
+                    Icon(
+                        imageVector = if (isGridView) Icons.AutoMirrored.Filled.ViewList else Icons.Default.GridView,
+                        contentDescription = if (isGridView) "Switch to list view" else "Switch to grid view"
+                    )
+                }
+                
+                // Sort menu
+                Box {
+                    IconButton(
+                        onClick = { showSortMenu = true }
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Sort,
+                            contentDescription = "Sort collections"
+                        )
+                    }
+                    
+                    DropdownMenu(
+                        expanded = showSortMenu,
+                        onDismissRequest = { showSortMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Name A-Z") },
+                            onClick = {
+                                viewModel.setSortOrder(SortOrder.NAME_ASC)
+                                showSortMenu = false
+                            },
+                            leadingIcon = {
+                                Icon(Icons.Default.SortByAlpha, contentDescription = null)
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Name Z-A") },
+                            onClick = {
+                                viewModel.setSortOrder(SortOrder.NAME_DESC)
+                                showSortMenu = false
+                            },
+                            leadingIcon = {
+                                Icon(Icons.Default.SortByAlpha, contentDescription = null)
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Most Links") },
+                            onClick = {
+                                viewModel.setSortOrder(SortOrder.LINK_COUNT_DESC)
+                                showSortMenu = false
+                            },
+                            leadingIcon = {
+                                Icon(Icons.Default.Link, contentDescription = null)
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Recently Created") },
+                            onClick = {
+                                viewModel.setSortOrder(SortOrder.DATE_DESC)
+                                showSortMenu = false
+                            },
+                            leadingIcon = {
+                                Icon(Icons.Default.Schedule, contentDescription = null)
+                            }
+                        )
+                    }
+                }
+                
+                FloatingActionButton(
+                    onClick = { showCreateCollectionDialog = true },
+                    modifier = Modifier.size(48.dp),
+                    containerColor = MaterialTheme.colorScheme.primary
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Create collection"
+                    )
+                }
             }
         }
         
@@ -85,73 +181,142 @@ fun CollectionsScreen(
         
         Spacer(modifier = Modifier.height(24.dp))
         
-        // Collections grid
+        // Collections content
         when {
             uiState.isLoading -> {
                 Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
-            }
-            
-            uiState.collections.isEmpty() -> {
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
+                        CircularProgressIndicator()
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "Loading collections...",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+            
+            uiState.collections.isEmpty() -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (uiState.searchQuery.isBlank()) 
+                                Icons.Outlined.FolderOpen else Icons.Outlined.SearchOff,
+                            contentDescription = null,
+                            modifier = Modifier.size(64.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                        )
+                        
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
                         Text(
                             text = if (uiState.searchQuery.isBlank()) 
                                 "No collections yet" else "No collections found",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.Medium
                         )
+                        
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        Text(
+                            text = if (uiState.searchQuery.isBlank()) 
+                                "Create your first collection to organize and manage your saved links" 
+                            else "Try adjusting your search terms",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                        )
+                        
                         if (uiState.searchQuery.isBlank()) {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "Create your first collection to organize links",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            Spacer(modifier = Modifier.height(24.dp))
+                            
+                            Button(
+                                onClick = { showCreateCollectionDialog = true },
+                                modifier = Modifier.fillMaxWidth(0.6f)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Create Collection")
+                            }
                         }
                     }
                 }
             }
             
             else -> {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    contentPadding = PaddingValues(bottom = 16.dp)
-                ) {
-                    items(uiState.collections) { collection ->
-                        CollectionCard(
-                            collection = collection,
-                            linkCount = uiState.collectionsWithCounts[collection.id] ?: 0,
-                            onCardClick = {
-                                navController?.navigate(
-                                    Screen.CollectionDetail.createRoute(collection.id.toString())
-                                )
-                            },
-                            onMoreClick = {
-                                selectedCollection = collection
-                            }
-                        )
+                if (isGridView) {
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        contentPadding = PaddingValues(bottom = 16.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        items(uiState.collections) { collection ->
+                            CollectionCard(
+                                collection = collection,
+                                linkCount = uiState.collectionsWithCounts[collection.id] ?: 0,
+                                onCardClick = {
+                                    navController?.navigate(
+                                        Screen.CollectionDetail.createRoute(collection.id.toString())
+                                    )
+                                },
+                                onMoreClick = {
+                                    selectedCollection = collection
+                                }
+                            )
+                        }
+                    }
+                } else {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = PaddingValues(bottom = 16.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        items(uiState.collections) { collection ->
+                            CollectionCard(
+                                collection = collection,
+                                linkCount = uiState.collectionsWithCounts[collection.id] ?: 0,
+                                onCardClick = {
+                                    navController?.navigate(
+                                        Screen.CollectionDetail.createRoute(collection.id.toString())
+                                    )
+                                },
+                                onMoreClick = {
+                                    selectedCollection = collection
+                                }
+                            )
+                        }
                     }
                 }
             }
         }
     }
     
-    // Error handling
+    // Error handling with Snackbar
     uiState.error?.let { error ->
         LaunchedEffect(error) {
-            // TODO: Show snackbar with error
+            // Show error message
             viewModel.clearError()
         }
     }
@@ -236,6 +401,7 @@ fun CreateCollectionDialog(
                             onClick = { selectedColor = color },
                             label = { },
                             selected = selectedColor == color,
+                            enabled = true,
                             modifier = Modifier.size(32.dp),
                             colors = FilterChipDefaults.filterChipColors(
                                 containerColor = androidx.compose.ui.graphics.Color(color),
@@ -270,12 +436,240 @@ fun CollectionOptionsBottomSheet(
     onEdit: (Collection) -> Unit,
     onDelete: () -> Unit
 ) {
-    // TODO: Implement bottom sheet with options
-    // For now, just dismiss
-    LaunchedEffect(Unit) {
-        onDismiss()
+    var showEditDialog by remember { mutableStateOf(false) }
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
+    
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        dragHandle = { BottomSheetDefaults.DragHandle() }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 32.dp)
+        ) {
+            // Header
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(createCollectionGradient(collection.color)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = getCollectionIcon(collection.name),
+                        contentDescription = "Collection icon",
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+                
+                Spacer(modifier = Modifier.width(12.dp))
+                
+                Column {
+                    Text(
+                        text = collection.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = "Collection Options",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            
+            // Options
+            OptionItem(
+                icon = Icons.Default.Edit,
+                title = "Edit Collection",
+                subtitle = "Change name and color",
+                onClick = {
+                    showEditDialog = true
+                }
+            )
+            
+            OptionItem(
+                icon = Icons.Default.Delete,
+                title = "Delete Collection",
+                subtitle = "Remove collection and all its links",
+                onClick = {
+                    showDeleteConfirmation = true
+                },
+                isDestructive = true
+            )
+        }
+    }
+    
+    // Edit Collection Dialog
+    if (showEditDialog) {
+        EditCollectionDialog(
+            collection = collection,
+            onDismiss = { showEditDialog = false },
+            onSave = { updatedCollection ->
+                onEdit(updatedCollection)
+                showEditDialog = false
+            }
+        )
+    }
+    
+    // Delete Confirmation Dialog
+    if (showDeleteConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmation = false },
+            title = { Text("Delete Collection?") },
+            text = {
+                Text(
+                    "Are you sure you want to delete \"${collection.name}\"? This action cannot be undone and will remove all links in this collection."
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onDelete()
+                        showDeleteConfirmation = false
+                    },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showDeleteConfirmation = false }
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EditCollectionDialog(
+    collection: Collection,
+    onDismiss: () -> Unit,
+    onSave: (Collection) -> Unit
+) {
+    var name by remember { mutableStateOf(collection.name) }
+    var selectedColor by remember { mutableStateOf(collection.color) }
+    
+    val colors = listOf(
+        "#6366F1", "#8B5CF6", "#EC4899", "#EF4444",
+        "#F97316", "#EAB308", "#22C55E", "#06B6D4",
+        "#3B82F6", "#6366F1", "#8B5CF6", "#EC4899"
+    )
+    
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Edit",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Edit Collection")
+            }
+        },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Collection Name") },
+                    placeholder = { Text("Enter collection name") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Title,
+                            contentDescription = "Name"
+                        )
+                    }
+                )
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                Text(
+                    text = "Choose Color",
+                    style = MaterialTheme.typography.labelMedium
+                )
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(6),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.height(80.dp)
+                ) {
+                    items(colors) { color ->
+                        FilterChip(
+                            onClick = { selectedColor = color },
+                            label = { },
+                            selected = selectedColor == color,
+                            enabled = true,
+                            modifier = Modifier.size(32.dp),
+                            colors = FilterChipDefaults.filterChipColors(
+                                containerColor = Color(android.graphics.Color.parseColor(color)),
+                                selectedContainerColor = Color(android.graphics.Color.parseColor(color))
+                            ),
+                            border = if (selectedColor == color) {
+                                FilterChipDefaults.filterChipBorder(
+                                    enabled = true,
+                                    selected = true,
+                                    borderColor = MaterialTheme.colorScheme.primary,
+                                    borderWidth = 2.dp
+                                )
+                            } else {
+                                FilterChipDefaults.filterChipBorder(
+                                    enabled = true,
+                                    selected = false
+                                )
+                            }
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    val updatedCollection = collection.copy(
+                        name = name.trim(),
+                        color = selectedColor
+                    )
+                    onSave(updatedCollection)
+                },
+                enabled = name.isNotBlank() && name.trim() != collection.name || selectedColor != collection.color
+            ) {
+                Text("Save")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+// OptionItem is already defined in HomeScreen.kt, using that implementation
 
 @Preview
 @Composable

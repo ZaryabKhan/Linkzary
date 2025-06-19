@@ -10,12 +10,21 @@ import kotlinx.coroutines.launch
 import java.util.*
 import javax.inject.Inject
 
+enum class SortOrder {
+    NAME_ASC,
+    NAME_DESC,
+    LINK_COUNT_DESC,
+    DATE_DESC
+}
+
 data class CollectionsUiState(
     val collections: List<Collection> = emptyList(),
     val collectionsWithCounts: Map<Long, Int> = emptyMap(),
     val searchQuery: String = "",
+    val sortOrder: SortOrder = SortOrder.NAME_ASC,
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val isRefreshing: Boolean = false
 )
 
 @HiltViewModel
@@ -24,7 +33,9 @@ class CollectionsViewModel @Inject constructor(
 ) : ViewModel() {
     
     private val _searchQuery = MutableStateFlow("")
+    private val _sortOrder = MutableStateFlow(SortOrder.NAME_ASC)
     private val _isLoading = MutableStateFlow(false)
+    private val _isRefreshing = MutableStateFlow(false)
     private val _error = MutableStateFlow<String?>(null)
     
     private val allCollections = collectionRepository.getAllCollections()
@@ -48,31 +59,50 @@ class CollectionsViewModel @Inject constructor(
         }
     }
     
-    private val filteredCollections = combine(
+    private val filteredAndSortedCollections = combine(
         allCollections,
-        _searchQuery
-    ) { collections, query ->
-        if (query.isBlank()) {
+        collectionsWithCounts,
+        _searchQuery,
+        _sortOrder
+    ) { collections, counts, query, sortOrder ->
+        val filtered = if (query.isBlank()) {
             collections
         } else {
             collections.filter { collection ->
                 collection.name.contains(query, ignoreCase = true)
             }
         }
+        
+        when (sortOrder) {
+            SortOrder.NAME_ASC -> filtered.sortedBy { it.name.lowercase() }
+            SortOrder.NAME_DESC -> filtered.sortedByDescending { it.name.lowercase() }
+            SortOrder.LINK_COUNT_DESC -> filtered.sortedByDescending { counts[it.id] ?: 0 }
+            SortOrder.DATE_DESC -> filtered.sortedByDescending { it.createdDate }
+        }
     }
     
     val uiState: StateFlow<CollectionsUiState> = combine(
-        filteredCollections,
-        collectionsWithCounts,
+        filteredAndSortedCollections,
         _searchQuery,
+        _sortOrder,
         _isLoading,
+        _isRefreshing,
         _error
-    ) { collections, counts, searchQuery, isLoading, error ->
+    ) { flows ->
+        val collections = flows[0] as List<Collection>
+        val searchQuery = flows[1] as String
+        val sortOrder = flows[2] as SortOrder
+        val isLoading = flows[3] as Boolean
+        val isRefreshing = flows[4] as Boolean
+        val error = flows[5] as String?
+        
         CollectionsUiState(
             collections = collections,
-            collectionsWithCounts = counts,
+            collectionsWithCounts = emptyMap(),
             searchQuery = searchQuery,
+            sortOrder = sortOrder,
             isLoading = isLoading,
+            isRefreshing = isRefreshing,
             error = error
         )
     }.stateIn(
@@ -83,6 +113,27 @@ class CollectionsViewModel @Inject constructor(
     
     fun updateSearchQuery(query: String) {
         _searchQuery.value = query
+    }
+    
+    fun setSortOrder(sortOrder: SortOrder) {
+        _sortOrder.value = sortOrder
+    }
+    
+    fun refreshCollections() {
+        viewModelScope.launch {
+            try {
+                _isRefreshing.value = true
+                _error.value = null
+                
+                // Refresh collections data
+                // The Flow will automatically update
+                
+            } catch (e: Exception) {
+                _error.value = "Failed to refresh collections: ${e.message}"
+            } finally {
+                _isRefreshing.value = false
+            }
+        }
     }
     
     fun createCollection(name: String, color: Int) {
