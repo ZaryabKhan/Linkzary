@@ -1,5 +1,7 @@
 package com.appcodecraft.linkzary.ui.screen.home
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -490,18 +492,46 @@ fun HomeScreen(
 
             else -> {
                 if (isGridView) {
-                    // Grid view - using Column with Rows for scrollable grid
+                    // Grid view - using Column with Rows for scrollable grid with animations
                     val chunkedLinks = filteredLinks.chunked(2)
                     Column(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        chunkedLinks.forEach { rowLinks ->
+                        chunkedLinks.forEachIndexed { rowIndex, rowLinks ->
                             Row(
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .animateContentSize(
+                                        animationSpec = spring(
+                                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                                            stiffness = Spring.StiffnessLow
+                                        )
+                                    ),
                                 horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-                                rowLinks.forEach { link ->
-                                    Box(
+                                rowLinks.forEachIndexed { cardIndex, link ->
+                                    val animationDelay = (rowIndex * 2 + cardIndex) * 50
+                                    var isVisible by remember { mutableStateOf(false) }
+                                    
+                                    LaunchedEffect(link.id) {
+                                        kotlinx.coroutines.delay(animationDelay.toLong())
+                                        isVisible = true
+                                    }
+                                    
+                                    AnimatedVisibility(
+                                        visible = isVisible,
+                                        enter = slideInVertically(
+                                            initialOffsetY = { it / 2 },
+                                            animationSpec = spring(
+                                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                                stiffness = Spring.StiffnessLow
+                                            )
+                                        ) + fadeIn(
+                                            animationSpec = tween(
+                                                durationMillis = 300,
+                                                delayMillis = animationDelay
+                                            )
+                                        ),
                                         modifier = Modifier.weight(1f)
                                     ) {
                                         BookmarkCard(
@@ -529,26 +559,56 @@ fun HomeScreen(
                         }
                     }
                 } else {
-                    // List view
+                    // List view with animations
                     Column(
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        filteredLinks.forEach { link ->
-                            BookmarkCard(
-                                link = link,
-                                collectionName = uiState.allCollections.find { it.id == link.collectionId }?.name,
-                                collectionColor = uiState.allCollections.find { it.id == link.collectionId }?.color,
-                                onCardClick = {
-                                    try {
-                                        uriHandler.openUri(link.url)
-                                    } catch (_: Exception) {
-                                        // Handle error - could show a snack bar
-                                    }
-                                },
-                                onMoreClick = {
-                                    selectedLink = link
-                                }
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier.animateContentSize(
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                stiffness = Spring.StiffnessLow
                             )
+                        )
+                    ) {
+                        filteredLinks.forEachIndexed { index, link ->
+                            val animationDelay = index * 75
+                            var isVisible by remember { mutableStateOf(false) }
+                            
+                            LaunchedEffect(link.id) {
+                                kotlinx.coroutines.delay(animationDelay.toLong())
+                                isVisible = true
+                            }
+                            
+                            AnimatedVisibility(
+                                visible = isVisible,
+                                enter = slideInHorizontally(
+                                    initialOffsetX = { it / 3 },
+                                    animationSpec = spring(
+                                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                                        stiffness = Spring.StiffnessLow
+                                    )
+                                ) + fadeIn(
+                                    animationSpec = tween(
+                                        durationMillis = 400,
+                                        delayMillis = animationDelay
+                                    )
+                                )
+                            ) {
+                                BookmarkCard(
+                                    link = link,
+                                    collectionName = uiState.allCollections.find { it.id == link.collectionId }?.name,
+                                    collectionColor = uiState.allCollections.find { it.id == link.collectionId }?.color,
+                                    onCardClick = {
+                                        try {
+                                            uriHandler.openUri(link.url)
+                                        } catch (_: Exception) {
+                                            // Handle error - could show a snack bar
+                                        }
+                                    },
+                                    onMoreClick = {
+                                        selectedLink = link
+                                    }
+                                )
+                            }
                         }
                     }
                 }

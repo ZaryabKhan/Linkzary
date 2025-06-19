@@ -1,6 +1,9 @@
 package com.appcodecraft.linkzary.ui.screen.collections
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import kotlinx.coroutines.delay
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -12,8 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.filled.Sort
-import androidx.compose.material.icons.filled.ViewList
+
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -24,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.toColorInt
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -54,7 +57,7 @@ fun CollectionsScreen(
             .padding(horizontal = 16.dp)
     ) {
         Spacer(modifier = Modifier.height(16.dp))
-        
+
         // Header with enhanced controls
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -116,7 +119,7 @@ fun CollectionsScreen(
                     }
                 }
             }
-            
+
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -130,7 +133,7 @@ fun CollectionsScreen(
                         contentDescription = if (isGridView) "Switch to list view" else "Switch to grid view"
                     )
                 }
-                
+
                 // Sort menu
                 Box {
                     IconButton(
@@ -141,7 +144,7 @@ fun CollectionsScreen(
                             contentDescription = "Sort collections"
                         )
                     }
-                    
+
                     DropdownMenu(
                         expanded = showSortMenu,
                         onDismissRequest = { showSortMenu = false }
@@ -188,7 +191,7 @@ fun CollectionsScreen(
                         )
                     }
                 }
-                
+
                 FloatingActionButton(
                     onClick = { showCreateCollectionDialog = true },
                     modifier = Modifier.size(48.dp),
@@ -201,9 +204,9 @@ fun CollectionsScreen(
                 }
             }
         }
-        
+
         Spacer(modifier = Modifier.height(24.dp))
-        
+
         // Search bar
         OutlinedTextField(
             value = uiState.searchQuery,
@@ -219,9 +222,9 @@ fun CollectionsScreen(
             shape = RoundedCornerShape(12.dp),
             singleLine = true
         )
-        
+
         Spacer(modifier = Modifier.height(24.dp))
-        
+
         // Collections content
         when {
             uiState.isLoading -> {
@@ -244,7 +247,7 @@ fun CollectionsScreen(
                     }
                 }
             }
-            
+
             uiState.collections.isEmpty() -> {
                 Box(
                     modifier = Modifier
@@ -257,36 +260,36 @@ fun CollectionsScreen(
                         modifier = Modifier.padding(32.dp)
                     ) {
                         Icon(
-                            imageVector = if (uiState.searchQuery.isBlank()) 
+                            imageVector = if (uiState.searchQuery.isBlank())
                                 Icons.Outlined.FolderOpen else Icons.Outlined.SearchOff,
                             contentDescription = null,
                             modifier = Modifier.size(64.dp),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                         )
-                        
+
                         Spacer(modifier = Modifier.height(16.dp))
-                        
+
                         Text(
-                            text = if (uiState.searchQuery.isBlank()) 
+                            text = if (uiState.searchQuery.isBlank())
                                 "No collections yet" else "No collections found",
                             style = MaterialTheme.typography.headlineSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = FontWeight.Medium
                         )
-                        
+
                         Spacer(modifier = Modifier.height(8.dp))
-                        
+
                         Text(
-                            text = if (uiState.searchQuery.isBlank()) 
-                                "Create your first collection to organize and manage your saved links" 
+                            text = if (uiState.searchQuery.isBlank())
+                                "Create your first collection to organize and manage your saved links"
                             else "Try adjusting your search terms",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                         )
-                        
+
                         if (uiState.searchQuery.isBlank()) {
                             Spacer(modifier = Modifier.height(24.dp))
-                            
+
                             Button(
                                 onClick = { showCreateCollectionDialog = true },
                                 modifier = Modifier.fillMaxWidth(0.6f)
@@ -303,7 +306,7 @@ fun CollectionsScreen(
                     }
                 }
             }
-            
+
             else -> {
                 if (isGridView) {
                     LazyVerticalGrid(
@@ -314,18 +317,40 @@ fun CollectionsScreen(
                         modifier = Modifier.weight(1f)
                     ) {
                         items(uiState.collections) { collection ->
-                            CollectionCard(
-                                collection = collection,
-                                linkCount = uiState.collectionsWithCounts[collection.id] ?: 0,
-                                onCardClick = {
-                                    navController?.navigate(
-                                        Screen.CollectionDetail.createRoute(collection.id.toString())
-                                    )
-                                },
-                                onMoreClick = {
-                                    selectedCollection = collection
-                                }
-                            )
+                            var isVisible by remember { mutableStateOf(false) }
+                            val index = uiState.collections.indexOf(collection)
+                            val animationDelay = (index * 50).coerceAtMost(300)
+
+                            LaunchedEffect(collection.id) {
+                                delay(animationDelay.toLong())
+                                isVisible = true
+                            }
+
+                            AnimatedVisibility(
+                                visible = isVisible,
+                                enter = slideInVertically(
+                                    animationSpec = spring(
+                                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                                        stiffness = Spring.StiffnessLow
+                                    ),
+                                    initialOffsetY = { it / 3 }
+                                ) + fadeIn(
+                                    animationSpec = tween(300)
+                                )
+                            ) {
+                                CollectionCard(
+                                    collection = collection,
+                                    linkCount = uiState.collectionsWithCounts[collection.id] ?: 0,
+                                    onCardClick = {
+                                        navController?.navigate(
+                                            Screen.CollectionDetail.createRoute(collection.id.toString())
+                                        )
+                                    },
+                                    onMoreClick = {
+                                        selectedCollection = collection
+                                    }
+                                )
+                            }
                         }
                     }
                 } else {
@@ -335,51 +360,73 @@ fun CollectionsScreen(
                         modifier = Modifier.weight(1f)
                     ) {
                         items(uiState.collections) { collection ->
-                            CollectionCard(
-                                collection = collection,
-                                linkCount = uiState.collectionsWithCounts[collection.id] ?: 0,
-                                onCardClick = {
-                                    navController?.navigate(
-                                        Screen.CollectionDetail.createRoute(collection.id.toString())
-                                    )
-                                },
-                                onMoreClick = {
-                                    selectedCollection = collection
-                                }
-                            )
+                            var isVisible by remember { mutableStateOf(false) }
+                            val index = uiState.collections.indexOf(collection)
+                            val animationDelay = (index * 50).coerceAtMost(300)
+
+                            LaunchedEffect(collection.id) {
+                                delay(animationDelay.toLong())
+                                isVisible = true
+                            }
+
+                            AnimatedVisibility(
+                                visible = isVisible,
+                                enter = slideInHorizontally(
+                                    animationSpec = spring(
+                                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                                        stiffness = Spring.StiffnessLow
+                                    ),
+                                    initialOffsetX = { -it / 2 }
+                                ) + fadeIn(
+                                    animationSpec = tween(300)
+                                )
+                            ) {
+                                CollectionCard(
+                                    collection = collection,
+                                    linkCount = uiState.collectionsWithCounts[collection.id] ?: 0,
+                                    onCardClick = {
+                                        navController?.navigate(
+                                            Screen.CollectionDetail.createRoute(collection.id.toString())
+                                        )
+                                    },
+                                    onMoreClick = {
+                                        selectedCollection = collection
+                                    }
+                                )
+                            }
                         }
                     }
                 }
             }
         }
-    }
-    
-    // Error handling with Snackbar
-    uiState.error?.let { error ->
-        LaunchedEffect(error) {
-            // Show error message
-            viewModel.clearError()
+
+        // Error handling with Snackbar
+        uiState.error?.let { error ->
+            LaunchedEffect(error) {
+                // Show error message
+                viewModel.clearError()
+            }
         }
     }
-    
+
     // Create Collection Dialog
     if (showCreateCollectionDialog) {
-        CreateCollectionDialog(
+        CollectionsCreateCollectionDialog(
             onDismiss = { showCreateCollectionDialog = false },
             onCreate = { name: String, color: String ->
-                val colorInt = android.graphics.Color.parseColor(color)
+                val colorInt = color.toColorInt()
                 viewModel.createCollection(name, colorInt)
                 showCreateCollectionDialog = false
             }
         )
     }
-    
+
     // Collection Options Bottom Sheet
     selectedCollection?.let { collection ->
         CollectionOptionsBottomSheet(
             collection = collection,
             onDismiss = { selectedCollection = null },
-            onEdit = { updatedCollection ->
+            onEdit = { updatedCollection: Collection ->
                 viewModel.updateCollection(updatedCollection)
                 selectedCollection = null
             },
@@ -393,28 +440,28 @@ fun CollectionsScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreateCollectionDialog(
+fun CollectionsCreateCollectionDialog(
     onDismiss: () -> Unit,
-    onCreate: (String, Int) -> Unit
+    onCreate: (String, String) -> Unit
 ) {
     var name by remember { mutableStateOf("") }
-    var selectedColor by remember { mutableStateOf(0xFF6366F1.toInt()) }
+    var selectedColor by remember { mutableStateOf("#6366F1") }
     val maxNameLength = 30
-    
+
     val colors = listOf(
-        0xFF6366F1.toInt(), // Indigo
-        0xFFEF4444.toInt(), // Red
-        0xFF10B981.toInt(), // Emerald
-        0xFFF59E0B.toInt(), // Amber
-        0xFF8B5CF6.toInt(), // Violet
-        0xFF06B6D4.toInt(), // Cyan
-        0xFFEC4899.toInt(), // Pink
-        0xFF84CC16.toInt()  // Lime
+        "#6366F1", // Indigo
+        "#EF4444", // Red
+        "#10B981", // Emerald
+        "#F59E0B", // Amber
+        "#8B5CF6", // Violet
+        "#06B6D4", // Cyan
+        "#EC4899", // Pink
+        "#84CC16"  // Lime
     )
-    
+
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { 
+        title = {
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -456,16 +503,16 @@ fun CreateCollectionDialog(
                         )
                     }
                 )
-                
+
                 Spacer(modifier = Modifier.height(16.dp))
-                
+
                 Text(
                     text = "Choose Color",
                     style = MaterialTheme.typography.labelMedium
                 )
-                
+
                 Spacer(modifier = Modifier.height(8.dp))
-                
+
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
@@ -476,8 +523,8 @@ fun CreateCollectionDialog(
                             selected = selectedColor == color,
                             modifier = Modifier.size(32.dp),
                             colors = FilterChipDefaults.filterChipColors(
-                                containerColor = androidx.compose.ui.graphics.Color(color),
-                                selectedContainerColor = androidx.compose.ui.graphics.Color(color)
+                                containerColor = Color(color.toColorInt()),
+                                selectedContainerColor = Color(color.toColorInt())
                             )
                         )
                     }
@@ -510,7 +557,7 @@ fun CollectionOptionsBottomSheet(
 ) {
     var showEditDialog by remember { mutableStateOf(false) }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
-    
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         dragHandle = { BottomSheetDefaults.DragHandle() }
@@ -542,9 +589,9 @@ fun CollectionOptionsBottomSheet(
                         modifier = Modifier.size(20.dp)
                     )
                 }
-                
+
                 Spacer(modifier = Modifier.width(12.dp))
-                
+
                 Column {
                     Text(
                         text = collection.name,
@@ -558,7 +605,7 @@ fun CollectionOptionsBottomSheet(
                     )
                 }
             }
-            
+
             // Options
             OptionItem(
                 icon = Icons.Default.Edit,
@@ -568,7 +615,7 @@ fun CollectionOptionsBottomSheet(
                     showEditDialog = true
                 }
             )
-            
+
             OptionItem(
                 icon = Icons.Default.Delete,
                 title = "Delete Collection",
@@ -580,19 +627,19 @@ fun CollectionOptionsBottomSheet(
             )
         }
     }
-    
+
     // Edit Collection Dialog
     if (showEditDialog) {
         EditCollectionDialog(
             collection = collection,
             onDismiss = { showEditDialog = false },
-            onSave = { updatedCollection ->
+            onSave = { updatedCollection: Collection ->
                 onEdit(updatedCollection)
                 showEditDialog = false
             }
         )
     }
-    
+
     // Delete Confirmation Dialog
     if (showDeleteConfirmation) {
         AlertDialog(
@@ -636,13 +683,13 @@ fun EditCollectionDialog(
 ) {
     var name by remember { mutableStateOf(collection.name) }
     var selectedColor by remember { mutableStateOf(collection.color) }
-    
+
     val colors = listOf(
         "#6366F1", "#8B5CF6", "#EC4899", "#EF4444",
         "#F97316", "#EAB308", "#22C55E", "#06B6D4",
         "#3B82F6", "#6366F1", "#8B5CF6", "#EC4899"
     )
-    
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
@@ -674,16 +721,16 @@ fun EditCollectionDialog(
                         )
                     }
                 )
-                
+
                 Spacer(modifier = Modifier.height(16.dp))
-                
+
                 Text(
                     text = "Choose Color",
                     style = MaterialTheme.typography.labelMedium
                 )
-                
+
                 Spacer(modifier = Modifier.height(8.dp))
-                
+
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(6),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -698,8 +745,8 @@ fun EditCollectionDialog(
                             enabled = true,
                             modifier = Modifier.size(32.dp),
                             colors = FilterChipDefaults.filterChipColors(
-                                containerColor = Color(android.graphics.Color.parseColor(color)),
-                                selectedContainerColor = Color(android.graphics.Color.parseColor(color))
+                                containerColor = Color(color.toColorInt()),
+                                selectedContainerColor = Color(color.toColorInt())
                             ),
                             border = if (selectedColor == color) {
                                 FilterChipDefaults.filterChipBorder(
@@ -728,7 +775,7 @@ fun EditCollectionDialog(
                     )
                     onSave(updatedCollection)
                 },
-                enabled = name.isNotBlank() && name.trim() != collection.name || selectedColor != collection.color
+                enabled = name.isNotBlank() && (name.trim() != collection.name || selectedColor != collection.color)
             ) {
                 Text("Save")
             }
@@ -740,8 +787,6 @@ fun EditCollectionDialog(
         }
     )
 }
-
-// OptionItem is already defined in HomeScreen.kt, using that implementation
 
 @Preview
 @Composable

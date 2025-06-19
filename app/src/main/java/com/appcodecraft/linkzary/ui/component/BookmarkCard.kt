@@ -1,7 +1,12 @@
 package com.appcodecraft.linkzary.ui.component
 
+import androidx.compose.animation.core.*
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -10,12 +15,14 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -42,6 +49,38 @@ fun BookmarkCard(
     onCardClick: () -> Unit,
     onMoreClick: () -> Unit
 ) {
+    // Animation states
+    val interactionSource = remember { MutableInteractionSource() }
+    val isHovered by interactionSource.collectIsHoveredAsState()
+    val isPressed by interactionSource.collectIsPressedAsState()
+    
+    // Animated values
+    val scale by animateFloatAsState(
+        targetValue = when {
+            isPressed -> 0.96f
+            isHovered -> 1.02f
+            else -> 1f
+        },
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "card_scale"
+    )
+    
+    val elevation by animateDpAsState(
+        targetValue = when {
+            isPressed -> 0.dp
+            isHovered -> 4.dp
+            else -> 1.dp
+        },
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "card_elevation"
+    )
+    
     // Generate subtle background color based on card ID
     val backgroundColors = listOf(
         Color(0xFFF8F9FF), // Soft blue
@@ -57,19 +96,35 @@ fun BookmarkCard(
     )
 
     val cardBackgroundColor = backgroundColors[link.id.toInt() % backgroundColors.size]
+    
+    val animatedBackgroundColor by animateColorAsState(
+        targetValue = if (isHovered) 
+            cardBackgroundColor.copy(alpha = 0.9f) 
+        else 
+            cardBackgroundColor,
+        animationSpec = tween(durationMillis = 200),
+        label = "background_color"
+    )
 
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .clickable { onCardClick() }
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null
+            ) { onCardClick() }
             .shadow(
-                elevation = 1.dp,
+                elevation = elevation,
                 shape = RoundedCornerShape(16.dp),
-                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
             ),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = cardBackgroundColor
+            containerColor = animatedBackgroundColor
         ),
         border = null
     ) {
