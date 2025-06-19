@@ -98,6 +98,36 @@ class CollectionDetailViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(error = null)
     }
     
+    fun editLink(updatedLink: SavedLink) {
+        viewModelScope.launch {
+            try {
+                linkRepository.updateLink(updatedLink)
+                // UI will update automatically via Flow collection
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = e.message ?: "Failed to update link"
+                )
+            }
+        }
+    }
+    
+    fun moveToCollection(linkId: Long, newCollectionId: Long?) {
+        viewModelScope.launch {
+            try {
+                val linkToMove = _uiState.value.links.find { it.id == linkId }
+                linkToMove?.let { link ->
+                    val updatedLink = link.copy(collectionId = newCollectionId)
+                    linkRepository.updateLink(updatedLink)
+                    // UI will update automatically via Flow collection
+                }
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = e.message ?: "Failed to move link"
+                )
+            }
+        }
+    }
+    
     fun clearError() {
         _uiState.value = _uiState.value.copy(error = null)
     }

@@ -160,8 +160,9 @@ fun CollectionsScreen(
     if (showCreateCollectionDialog) {
         CreateCollectionDialog(
             onDismiss = { showCreateCollectionDialog = false },
-            onCreate = { name, color ->
-                viewModel.createCollection(name, color)
+            onCreate = { name: String, color: String ->
+                val colorInt = android.graphics.Color.parseColor(color)
+                viewModel.createCollection(name, colorInt)
                 showCreateCollectionDialog = false
             }
         )
