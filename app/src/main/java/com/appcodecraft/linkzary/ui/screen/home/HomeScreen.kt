@@ -54,6 +54,8 @@ fun HomeScreen(
     var showAddLinkDialog by remember { mutableStateOf(false) }
     var selectedLink by remember { mutableStateOf<SavedLink?>(null) }
     var isGridView by remember { mutableStateOf(true) }
+    var showTagFilter by remember { mutableStateOf(false) }
+    var selectedTags by remember { mutableStateOf(setOf<String>()) }
 
     // Local search state to prevent bouncing
     var localSearchQuery by remember { mutableStateOf("") }
@@ -204,6 +206,70 @@ fun HomeScreen(
             singleLine = true
         )
 
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Tag filter section
+        val allTags = remember(uiState.links) {
+            uiState.links.flatMap { link ->
+                link.tags.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+            }.distinct().sorted()
+        }
+
+        if (allTags.isNotEmpty()) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Filter by Tags",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                
+                if (selectedTags.isNotEmpty()) {
+                    TextButton(
+                        onClick = { selectedTags = setOf() }
+                    ) {
+                        Text(
+                            text = "Clear (${selectedTags.size})",
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(horizontal = 4.dp)
+            ) {
+                items(allTags) { tag ->
+                    FilterChip(
+                        onClick = {
+                            selectedTags = if (selectedTags.contains(tag)) {
+                                selectedTags - tag
+                            } else {
+                                selectedTags + tag
+                            }
+                        },
+                        label = { Text(tag) },
+                        selected = selectedTags.contains(tag),
+                        leadingIcon = if (selectedTags.contains(tag)) {
+                            {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "Selected",
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        } else null
+                    )
+                }
+            }
+        }
+
         Spacer(modifier = Modifier.height(24.dp))
 
         // Recent Collections section
@@ -274,6 +340,18 @@ fun HomeScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
+        // Filter links by selected tags
+        val filteredLinks = remember(uiState.links, selectedTags) {
+            if (selectedTags.isEmpty()) {
+                uiState.links
+            } else {
+                uiState.links.filter { link ->
+                    val linkTags = link.tags.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+                    selectedTags.any { selectedTag -> linkTags.contains(selectedTag) }
+                }
+            }
+        }
+
         // Bookmarks list
         when {
             uiState.isLoading -> {
@@ -287,7 +365,7 @@ fun HomeScreen(
                 }
             }
 
-            uiState.links.isEmpty() -> {
+            filteredLinks.isEmpty() -> {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -298,12 +376,15 @@ fun HomeScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = if (localSearchQuery.isBlank())
-                                "No bookmarks yet" else "No results found",
+                            text = when {
+                                selectedTags.isNotEmpty() -> "No bookmarks with selected tags"
+                                localSearchQuery.isNotBlank() -> "No results found"
+                                else -> "No bookmarks yet"
+                            },
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        if (localSearchQuery.isBlank()) {
+                        if (localSearchQuery.isBlank() && selectedTags.isEmpty()) {
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 text = "Start saving your favorite links",
@@ -318,7 +399,7 @@ fun HomeScreen(
             else -> {
                 if (isGridView) {
                     // Grid view - using Column with Rows for scrollable grid
-                    val chunkedLinks = uiState.links.chunked(2)
+                    val chunkedLinks = filteredLinks.chunked(2)
                     Column(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
@@ -360,7 +441,7 @@ fun HomeScreen(
                     Column(
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        uiState.links.forEach { link ->
+                        filteredLinks.forEach { link ->
                             BookmarkCard(
                                 link = link,
                                 collectionName = uiState.allCollections.find { it.id == link.collectionId }?.name,
