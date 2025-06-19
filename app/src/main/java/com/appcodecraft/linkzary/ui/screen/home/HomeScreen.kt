@@ -18,6 +18,10 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.automirrored.filled.DriveFileMove
+import androidx.compose.material.icons.filled.Title
+import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.automirrored.filled.Notes
+import androidx.compose.material.icons.filled.Tag
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.filled.CreateNewFolder
@@ -735,6 +739,13 @@ fun EditLinkDialog(
                     value = title,
                     onValueChange = { title = it },
                     label = { Text("Title") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Title,
+                            contentDescription = "Title",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
@@ -745,6 +756,13 @@ fun EditLinkDialog(
                     value = url,
                     onValueChange = { url = it },
                     label = { Text("URL") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Link,
+                            contentDescription = "URL",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
@@ -755,6 +773,13 @@ fun EditLinkDialog(
                     value = note,
                     onValueChange = { note = it },
                     label = { Text("Note (optional)") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Notes,
+                            contentDescription = "Note",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     maxLines = 3
                 )
@@ -765,6 +790,13 @@ fun EditLinkDialog(
                     value = tags,
                     onValueChange = { tags = it },
                     label = { Text("Tags (comma separated)") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Tag,
+                            contentDescription = "Tags",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
