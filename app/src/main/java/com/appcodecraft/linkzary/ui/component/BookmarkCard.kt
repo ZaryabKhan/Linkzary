@@ -8,14 +8,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PushPin
-import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.graphics.toColorInt
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -41,192 +42,215 @@ fun BookmarkCard(
     onCardClick: () -> Unit,
     onMoreClick: () -> Unit
 ) {
+    // Generate subtle background color based on card ID
+    val backgroundColors = listOf(
+        Color(0xFFF8F9FF), // Soft blue
+        Color(0xFFFFF8F8), // Soft pink
+        Color(0xFFF8FFF8), // Soft green
+        Color(0xFFFFFDF8), // Soft yellow
+        Color(0xFFF8FFFD), // Soft mint
+        Color(0xFFFDF8FF), // Soft purple
+        Color(0xFFFFF8FC), // Soft peach
+        Color(0xFFF8FCFF), // Soft cyan
+        Color(0xFFFCF8FF), // Soft lavender
+        Color(0xFFFFFCF8)  // Soft cream
+    )
+
+    val cardBackgroundColor = backgroundColors[link.id.toInt() % backgroundColors.size]
+
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .clickable { onCardClick() },
+            .clickable { onCardClick() }
+            .shadow(
+                elevation = 1.dp,
+                shape = RoundedCornerShape(16.dp),
+                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+            ),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = cardBackgroundColor
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        border = null
     ) {
         Column(
-            modifier = Modifier.padding(20.dp)
+            modifier = Modifier.padding(16.dp)
         ) {
-            // Website preview image with better aspect ratio
-            val previewImageUrl = extractPreviewImage(link.url)
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(previewImageUrl)
-                    .crossfade(true)
-                    .build(),
-                contentDescription = "Website preview",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                contentScale = ContentScale.Crop,
-                error = painterResource(id = android.R.drawable.ic_menu_gallery)
-            )
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            // Header row with favicon, title, and more button
+            // Header with collection badge and more button
             Row(
                 modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Top
             ) {
-                // Favicon with better styling
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(link.favicon)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = "Favicon",
-                    modifier = Modifier
-                        .size(28.dp)
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                    contentScale = ContentScale.Crop
-                )
-                
-                Spacer(modifier = Modifier.width(12.dp))
-                
-                // Title and URL with better spacing
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
+                // Collection badge
+                if (collectionName != null && collectionColor != null) {
                     Row(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color(collectionColor.toColorInt()).copy(alpha = 0.15f))
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                            .weight(1f, fill = false),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = link.title,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f),
-                            lineHeight = MaterialTheme.typography.titleMedium.lineHeight * 1.2
+                        Box(
+                            modifier = Modifier
+                                .size(6.dp)
+                                .clip(CircleShape)
+                                .background(Color(collectionColor.toColorInt()))
                         )
-                        
-                        if (link.isPinned) {
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Icon(
-                                imageVector = Icons.Default.PushPin,
-                                contentDescription = "Pinned",
-                                modifier = Modifier.size(18.dp),
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = collectionName,
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                fontWeight = FontWeight.SemiBold,
+                                letterSpacing = 0.1.sp
+                            ),
+                            color = Color(collectionColor.toColorInt()),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
                     }
-                    
-                    Spacer(modifier = Modifier.height(4.dp))
-                    
+                } else {
+                    Spacer(modifier = Modifier.weight(1f))
+                }
+
+                // More button and pin indicator
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (link.isPinned) {
+                        Icon(
+                            imageVector = Icons.Default.PushPin,
+                            contentDescription = "Pinned",
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                    }
+
+                    IconButton(
+                        onClick = onMoreClick,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "More options",
+                            modifier = Modifier.size(18.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Domain thumbnail preview - compact version with complementary background
+            val thumbnailBackgroundColor = when (link.id.toInt() % 10) {
+                0 -> Color(0xFFE8EEFF) // Deeper blue
+                1 -> Color(0xFFFFE8E8) // Deeper pink
+                2 -> Color(0xFFE8FFE8) // Deeper green
+                3 -> Color(0xFFFFF5E8) // Deeper yellow
+                4 -> Color(0xFFE8FFF5) // Deeper mint
+                5 -> Color(0xFFF5E8FF) // Deeper purple
+                6 -> Color(0xFFFFE8F5) // Deeper peach
+                7 -> Color(0xFFE8F5FF) // Deeper cyan
+                8 -> Color(0xFFF5E8FF) // Deeper lavender
+                else -> Color(0xFFFFF5E8) // Deeper cream
+            }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(thumbnailBackgroundColor),
+                contentAlignment = Alignment.Center
+            ) {
+                // Generate a simple domain preview
+                val domain = extractDomain(link.url)
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
                     Text(
-                        text = extractDomain(link.url),
-                        style = MaterialTheme.typography.bodyMedium,
+                        text = domain.take(2).uppercase(),
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            fontWeight = FontWeight.Bold
+                        ),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = domain,
+                        style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
-                
-                // More button with better positioning
-                IconButton(
-                    onClick = onMoreClick,
-                    modifier = Modifier
-                        .size(44.dp)
-                        .padding(6.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = "More options",
-                        modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
             }
-            
-            // Note if present with better styling
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Title with compact styling
+            Text(
+                text = link.title,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.SemiBold,
+                    lineHeight = 20.sp
+                ),
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            // Note if present - very compact
             if (link.note.isNotBlank()) {
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = link.note,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                    lineHeight = MaterialTheme.typography.bodyMedium.lineHeight * 1.3
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
-            
-            // Tags with improved layout
+
+            // Tags - compact horizontal scrolling
             if (link.tags.isNotBlank()) {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    link.tags.split(",").take(3).forEach { tag ->
+                    link.tags.split(",").take(2).forEach { tag ->
                         if (tag.isNotBlank()) {
-                            AssistChip(
-                                onClick = { },
-                                label = {
-                                    Text(
-                                        text = tag.trim(),
-                                        style = MaterialTheme.typography.labelMedium
-                                    )
-                                },
-                                colors = AssistChipDefaults.assistChipColors(
-                                    containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f)
-                                )
+                            Text(
+                                text = "#${tag.trim()}",
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontWeight = FontWeight.Medium
+                                ),
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f))
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
                             )
                         }
                     }
                 }
             }
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            // Footer with collection and date - improved spacing
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Collection indicator with better styling
-                if (collectionName != null && collectionColor != null) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(10.dp)
-                                .clip(CircleShape)
-                                .background(Color(collectionColor.toColorInt()))
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = collectionName,
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-                } else {
-                    Spacer(modifier = Modifier.width(1.dp))
-                }
-                
-                // Save date with better styling
-                Text(
-                    text = SimpleDateFormat("MMM dd", Locale.getDefault()).format(link.saveDate),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Compact footer with date only
+            Text(
+                text = SimpleDateFormat("MMM dd", Locale.getDefault()).format(link.saveDate),
+                style = MaterialTheme.typography.labelSmall.copy(
                     fontWeight = FontWeight.Medium
-                )
-            }
+                ),
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+            )
         }
     }
 }
@@ -243,106 +267,94 @@ fun extractDomain(url: String): String {
     }
 }
 
-/**
- * Extract high-quality preview image URL from various platforms
- */
-fun extractPreviewImage(url: String): String? {
-    return when {
-        // YouTube videos - High quality thumbnails
-        url.contains("youtube.com/watch") -> {
-            val videoId = url.substringAfter("v=").substringBefore("&")
-            "https://img.youtube.com/vi/$videoId/maxresdefault.jpg"
-        }
-        url.contains("youtu.be/") -> {
-            val videoId = url.substringAfter("youtu.be/").substringBefore("?")
-            "https://img.youtube.com/vi/$videoId/maxresdefault.jpg"
-        }
-        
-        // GitHub repositories - OpenGraph images
-        url.contains("github.com") && url.count { it == '/' } >= 4 -> {
-            "https://opengraph.githubassets.com/1/${url.substringAfter("github.com/")}"
-        }
-        
-        // Twitter/X posts - Try to extract actual post preview
-        url.contains("twitter.com") || url.contains("x.com") -> {
-            // Use screenshot service for actual tweet content
-            "https://api.microlink.io/?url=${java.net.URLEncoder.encode(url, "UTF-8")}&screenshot=true&meta=false&embed=screenshot.url"
-        }
-        
-        // Medium articles - Use screenshot service for actual article
-        url.contains("medium.com") -> {
-            "https://api.microlink.io/?url=${java.net.URLEncoder.encode(url, "UTF-8")}&screenshot=true&meta=false&embed=screenshot.url"
-        }
-        
-        // LinkedIn posts and articles
-        url.contains("linkedin.com") -> {
-            "https://api.microlink.io/?url=${java.net.URLEncoder.encode(url, "UTF-8")}&screenshot=true&meta=false&embed=screenshot.url"
-        }
-        
-        // Instagram posts
-        url.contains("instagram.com") -> {
-            "https://api.microlink.io/?url=${java.net.URLEncoder.encode(url, "UTF-8")}&screenshot=true&meta=false&embed=screenshot.url"
-        }
-        
-        // Dribbble shots - Actual shot images
-        url.contains("dribbble.com/shots") -> {
-            "https://api.microlink.io/?url=${java.net.URLEncoder.encode(url, "UTF-8")}&screenshot=true&meta=false&embed=screenshot.url"
-        }
-        
-        // Reddit posts
-        url.contains("reddit.com") -> {
-            "https://api.microlink.io/?url=${java.net.URLEncoder.encode(url, "UTF-8")}&screenshot=true&meta=false&embed=screenshot.url"
-        }
-        
-        // News websites and blogs - Use screenshot service
-        url.contains("techcrunch.com") || url.contains("theverge.com") || 
-        url.contains("arstechnica.com") || url.contains("wired.com") ||
-        url.contains("engadget.com") || url.contains("mashable.com") -> {
-            "https://api.microlink.io/?url=${java.net.URLEncoder.encode(url, "UTF-8")}&screenshot=true&meta=false&embed=screenshot.url"
-        }
-        
-        // Dev.to articles
-        url.contains("dev.to") -> {
-            "https://api.microlink.io/?url=${java.net.URLEncoder.encode(url, "UTF-8")}&screenshot=true&meta=false&embed=screenshot.url"
-        }
-        
-        // Stack Overflow questions
-        url.contains("stackoverflow.com") -> {
-            "https://api.microlink.io/?url=${java.net.URLEncoder.encode(url, "UTF-8")}&screenshot=true&meta=false&embed=screenshot.url"
-        }
-        
-        // For other URLs, use screenshot service for actual content preview
-        else -> {
-            try {
-                "https://api.microlink.io/?url=${java.net.URLEncoder.encode(url, "UTF-8")}&screenshot=true&meta=false&embed=screenshot.url"
-            } catch (e: Exception) {
-                // Fallback to favicon if screenshot service fails
-                val domain = url.substringAfter("://").substringBefore("/")
-                "https://www.google.com/s2/favicons?domain=$domain&sz=256"
-            }
-        }
-    }
-}
-
 @Preview
 @Composable
 fun BookmarkCardPreview() {
     LinkzaryTheme {
-        BookmarkCard(
-            modifier = Modifier.padding(16.dp),
-            link = SavedLink(
-                id = 1,
-                title = "Beautiful UI Design Inspiration",
-                url = "https://dribbble.com/shots/example",
-                note = "Great examples of modern mobile app design patterns and user interface elements.",
-                tags = "design, ui, inspiration",
-                isPinned = true,
-                saveDate = Date()
-            ),
-            collectionName = "Design",
-            collectionColor = "#FF6B6B",
-            onCardClick = { },
-            onMoreClick = { }
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // 2x2 Grid simulation
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                BookmarkCard(
+                    modifier = Modifier.weight(1f),
+                    link = SavedLink(
+                        id = 1,
+                        title = "Beautiful UI Design Inspiration",
+                        url = "https://dribbble.com/shots/example",
+                        note = "Great examples of modern design",
+                        tags = "design, ui",
+                        isPinned = true,
+                        saveDate = Date()
+                    ),
+                    collectionName = "Design",
+                    collectionColor = "#FF6B6B",
+                    onCardClick = { },
+                    onMoreClick = { }
+                )
+
+                BookmarkCard(
+                    modifier = Modifier.weight(1f),
+                    link = SavedLink(
+                        id = 2,
+                        title = "Advanced React Patterns",
+                        url = "https://github.com/react-patterns",
+                        note = "",
+                        tags = "react, programming",
+                        isPinned = false,
+                        saveDate = Date()
+                    ),
+                    collectionName = "Development",
+                    collectionColor = "#4ECDC4",
+                    onCardClick = { },
+                    onMoreClick = { }
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                BookmarkCard(
+                    modifier = Modifier.weight(1f),
+                    link = SavedLink(
+                        id = 3,
+                        title = "Color Theory Guide",
+                        url = "https://colorhunt.co/guide",
+                        note = "Essential color combinations",
+                        tags = "colors, theory",
+                        isPinned = false,
+                        saveDate = Date()
+                    ),
+                    collectionName = "Resources",
+                    collectionColor = "#95E1D3",
+                    onCardClick = { },
+                    onMoreClick = { }
+                )
+
+                BookmarkCard(
+                    modifier = Modifier.weight(1f),
+                    link = SavedLink(
+                        id = 4,
+                        title = "Typography Best Practices",
+                        url = "https://fonts.google.com/knowledge",
+                        note = "",
+                        tags = "fonts, typography",
+                        isPinned = true,
+                        saveDate = Date()
+                    ),
+                    collectionName = "Learning",
+                    collectionColor = "#F38BA8",
+                    onCardClick = { },
+                    onMoreClick = { }
+                )
+            }
+        }
     }
 }
