@@ -1,26 +1,85 @@
 package com.appcodecraft.linkzary.ui.screen.settings
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.appcodecraft.linkzary.ui.theme.LinkzaryTheme
+import com.appcodecraft.linkzary.ui.screen.settings.SettingsViewModel
+import com.appcodecraft.linkzary.ui.screen.settings.ImportExportViewModel
+import com.appcodecraft.linkzary.data.model.ImportMode
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen() {
+fun SettingsScreen(
+    viewModel: SettingsViewModel = hiltViewModel(),
+    importExportViewModel: ImportExportViewModel = hiltViewModel()
+) {
+    val context = LocalContext.current
+    
     var showAboutDialog by remember { mutableStateOf(false) }
+    var showLanguageDialog by remember { mutableStateOf(false) }
+    var showClearDataDialog by remember { mutableStateOf(false) }
+    var showDonationDialog by remember { mutableStateOf(false) }
     var showExportDialog by remember { mutableStateOf(false) }
     var showImportDialog by remember { mutableStateOf(false) }
+    
+    val importExportUiState by importExportViewModel.uiState.collectAsState()
+    val importProgress by importExportViewModel.importProgress.collectAsState()
+    val importResult by importExportViewModel.importResult.collectAsState()
+    val importPreview by importExportViewModel.importPreview.collectAsState()
+    
+    val jsonExportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        uri?.let { 
+            importExportViewModel.exportToJson(context, it)
+        }
+    }
+    
+    val csvExportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("text/csv")
+    ) { uri ->
+        uri?.let { 
+            importExportViewModel.exportToCsv(context, it)
+        }
+    }
+    
+    var selectedImportUri by remember { mutableStateOf<Uri?>(null) }
+    
+    val importLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let { 
+            selectedImportUri = it
+            importExportViewModel.previewImport(context, it)
+        }
+    }
     
     Column(
         modifier = Modifier
@@ -29,18 +88,20 @@ fun SettingsScreen() {
     ) {
         Spacer(modifier = Modifier.height(16.dp))
         
-        // Header
-        Text(
-            text = "Settings",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
-        )
-        
-        Spacer(modifier = Modifier.height(24.dp))
-        
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            // Donation Header
+            item {
+                DonationHeader(
+                onDonateClick = { showDonationDialog = true }
+            )
+            }
+            
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+            
             // General Section
             item {
                 SettingsSectionHeader("General")
@@ -52,7 +113,7 @@ fun SettingsScreen() {
                     title = "Theme",
                     subtitle = "System default",
                     onClick = {
-                        // TODO: Implement theme selection
+                        // Theme selection will be implemented later
                     }
                 )
             }
@@ -63,18 +124,7 @@ fun SettingsScreen() {
                     title = "Language",
                     subtitle = "English",
                     onClick = {
-                        // TODO: Implement language selection
-                    }
-                )
-            }
-            
-            item {
-                SettingsItem(
-                    icon = Icons.Default.Notifications,
-                    title = "Notifications",
-                    subtitle = "Manage notification preferences",
-                    onClick = {
-                        // TODO: Implement notification settings
+                        showLanguageDialog = true
                     }
                 )
             }
@@ -102,18 +152,7 @@ fun SettingsScreen() {
                     title = "Import Data",
                     subtitle = "Import bookmarks from file",
                     onClick = {
-                        showImportDialog = true
-                    }
-                )
-            }
-            
-            item {
-                SettingsItem(
-                    icon = Icons.Default.CloudSync,
-                    title = "Sync",
-                    subtitle = "Backup and sync across devices",
-                    onClick = {
-                        // TODO: Implement sync settings
+                        importLauncher.launch(arrayOf("application/json", "text/csv"))
                     }
                 )
             }
@@ -130,7 +169,7 @@ fun SettingsScreen() {
                     title = "Privacy Policy",
                     subtitle = "View our privacy policy",
                     onClick = {
-                        // TODO: Open privacy policy
+                        openPrivacyPolicy(context)
                     }
                 )
             }
@@ -141,7 +180,7 @@ fun SettingsScreen() {
                     title = "Clear All Data",
                     subtitle = "Delete all bookmarks and collections",
                     onClick = {
-                        // TODO: Implement clear data with confirmation
+                        showClearDataDialog = true
                     },
                     isDestructive = true
                 )
@@ -170,7 +209,7 @@ fun SettingsScreen() {
                     title = "Rate App",
                     subtitle = "Rate us on Google Play",
                     onClick = {
-                        // TODO: Open Play Store rating
+                        openLinkzaryInPlayStore(context)
                     }
                 )
             }
@@ -181,7 +220,18 @@ fun SettingsScreen() {
                     title = "Send Feedback",
                     subtitle = "Help us improve the app",
                     onClick = {
-                        // TODO: Open feedback form
+                        sendFeedbackEmail(context)
+                    }
+                )
+            }
+            
+            item {
+                SettingsItem(
+                    icon = Icons.Default.Person,
+                    title = "Visit Developer Profile",
+                    subtitle = "More apps by AppCodeCraft",
+                    onClick = {
+                        openDeveloperProfile(context)
                     }
                 )
             }
@@ -191,6 +241,28 @@ fun SettingsScreen() {
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
+    }
+    
+    // Language Dialog
+    if (showLanguageDialog) {
+        LanguageSelectionDialog(
+            onDismiss = { showLanguageDialog = false },
+            onLanguageSelected = { language ->
+                // Language selection will be implemented later
+                showLanguageDialog = false
+            }
+        )
+    }
+    
+    // Clear Data Dialog
+    if (showClearDataDialog) {
+        ClearDataConfirmationDialog(
+            onDismiss = { showClearDataDialog = false },
+            onConfirm = {
+                viewModel.clearAllData()
+                showClearDataDialog = false
+            }
+        )
     }
     
     // About Dialog
@@ -204,22 +276,168 @@ fun SettingsScreen() {
     if (showExportDialog) {
         ExportDataDialog(
             onDismiss = { showExportDialog = false },
-            onExport = {
-                // TODO: Implement export
+            onExportJson = {
+                jsonExportLauncher.launch("linkzary_backup_${System.currentTimeMillis()}.json")
+                showExportDialog = false
+            },
+            onExportCsv = {
+                csvExportLauncher.launch("linkzary_backup_${System.currentTimeMillis()}.csv")
                 showExportDialog = false
             }
         )
     }
     
-    // Import Dialog
-    if (showImportDialog) {
-        ImportDataDialog(
-            onDismiss = { showImportDialog = false },
-            onImport = {
-                // TODO: Implement import
-                showImportDialog = false
+    // Import Preview Dialog
+    importPreview?.let { preview ->
+        ImportPreviewDialog(
+            preview = preview,
+            onDismiss = {
+                importExportViewModel.clearImportState()
+                selectedImportUri = null
+            },
+            onConfirmImport = { mode ->
+                selectedImportUri?.let { uri ->
+                    importExportViewModel.importData(context, uri, mode)
+                }
             }
         )
+    }
+    
+    // Import Progress Dialog
+    importProgress?.let { progress ->
+        ImportProgressDialog(
+            progress = progress,
+            onDismiss = {
+                importExportViewModel.clearImportState()
+            }
+        )
+    }
+    
+    // Import Result Dialog
+    importResult?.let { result ->
+        ImportResultDialog(
+            result = result,
+            onDismiss = {
+                importExportViewModel.clearImportState()
+            }
+        )
+    }
+    
+    // Handle export success/error
+    LaunchedEffect(importExportUiState.exportSuccess, importExportUiState.exportError) {
+        if (importExportUiState.exportSuccess) {
+            // Show success message
+            importExportViewModel.clearExportState()
+        }
+        if (importExportUiState.exportError != null) {
+            // Show error message
+            importExportViewModel.clearExportState()
+        }
+    }
+    
+    // Handle preview error
+    importExportUiState.previewError?.let { error ->
+        LaunchedEffect(error) {
+            // Show error message
+            importExportViewModel.clearPreviewError()
+        }
+    }
+    
+    // Donation Dialog
+    if (showDonationDialog) {
+        DonationDialog(
+            onDismiss = { showDonationDialog = false }
+        )
+    }
+}
+
+// Donation Header Component
+@Composable
+fun DonationHeader(
+    onDonateClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onDonateClick() },
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        )
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                            MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f)
+                        )
+                    )
+                )
+                .padding(20.dp)
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Favorite,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(32.dp)
+                )
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                Text(
+                    text = "Support Linkzary",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    textAlign = TextAlign.Center
+                )
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                Text(
+                    text = "Help us keep Linkzary free and ad-free! Your support means the world to us.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
+                    textAlign = TextAlign.Center
+                )
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                Button(
+                    onClick = onDonateClick,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.VolunteerActivism,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Donate Now",
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                Text(
+                    text = "Donations are voluntary and don't unlock features",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f),
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
     }
 }
 
@@ -299,75 +517,362 @@ fun SettingsItem(
     }
 }
 
+// Language Selection Dialog
+@Composable
+fun LanguageSelectionDialog(
+    onDismiss: () -> Unit,
+    onLanguageSelected: (String) -> Unit
+) {
+    val languages = listOf(
+        "English" to "en",
+        "Français" to "fr",
+        "Português (Brasil)" to "pt-br",
+        "Español" to "es",
+        "Deutsch" to "de",
+        "Italiano" to "it",
+        "日本語" to "ja",
+        "한국어" to "ko",
+        "中文" to "zh"
+    )
+    
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "Select Language",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            LazyColumn {
+                items(languages) { (name, code) ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                            .clickable {
+                                onLanguageSelected(code)
+                            },
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                        )
+                    ) {
+                        Text(
+                            text = name,
+                            modifier = Modifier.padding(16.dp),
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+// Clear Data Confirmation Dialog
+@Composable
+fun ClearDataConfirmationDialog(
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = {
+            Icon(
+                imageVector = Icons.Default.Warning,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.error,
+                modifier = Modifier.size(32.dp)
+            )
+        },
+        title = {
+            Text(
+                text = "Clear All Data?",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.error
+            )
+        },
+        text = {
+            Column {
+                Text(
+                    text = "This action will permanently delete:",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("• All saved links and bookmarks")
+                Text("• All collections and their contents")
+                Text("• All tags and notes")
+                Text("• All app preferences")
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = "This action cannot be undone!",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error
+                )
+            ) {
+                Text("Clear All Data")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+// Enhanced About Dialog
 @Composable
 fun AboutDialog(
     onDismiss: () -> Unit
 ) {
+    val context = LocalContext.current
+    
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("About Linkzary") },
+        title = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Bookmark,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(32.dp)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = "About Linkzary",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        },
         text = {
-            Column {
-                Text("Linkzary is a modern bookmark manager that helps you organize and save your favorite links.")
-                Spacer(modifier = Modifier.height(8.dp))
-                Text("Version: 1.0.0")
-                Text("Built with ❤️ using Jetpack Compose")
+            LazyColumn {
+                item {
+                    Column {
+                        Text(
+                            text = "Linkzary is a beautiful, minimal link saver that helps you organize and manage your favorite bookmarks with ease.",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                        
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        // App Info
+                        InfoRow("Version", "1.0.0")
+                        InfoRow("Developer", "AppCodeCraft")
+                        InfoRow("Built with", "Jetpack Compose & Kotlin")
+                        
+                        Spacer(modifier = Modifier.height(20.dp))
+                        
+                        // More Apps Section
+                        Text(
+                            text = "More Apps from Developer",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        
+                        Spacer(modifier = Modifier.height(12.dp))
+                        
+                        // App Cards
+                        AppCard(
+                            name = "CurioShuffle",
+                            description = "Discover amazing content with smart shuffling",
+                            icon = Icons.Default.Shuffle,
+                            onClick = {
+                                openAppInPlayStore(context, "com.appcodecraft.curioshuffle")
+                            }
+                        )
+                        
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        AppCard(
+                            name = "CurioMate",
+                            description = "Your intelligent companion for curiosity",
+                            icon = Icons.Default.Psychology,
+                            onClick = {
+                                openAppInPlayStore(context, "com.appcodecraft.curiomate")
+                            }
+                        )
+                    }
+                }
             }
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("OK")
+                Text("Close")
             }
         }
     )
 }
 
 @Composable
-fun ExportDataDialog(
-    onDismiss: () -> Unit,
-    onExport: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Export Data") },
-        text = {
-            Text("Export all your bookmarks and collections to a JSON file. This file can be used to backup your data or import it on another device.")
-        },
-        confirmButton = {
-            TextButton(onClick = onExport) {
-                Text("Export")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
-        }
-    )
+fun InfoRow(label: String, value: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Medium
+        )
+    }
 }
 
 @Composable
-fun ImportDataDialog(
-    onDismiss: () -> Unit,
-    onImport: () -> Unit
+fun AppCard(
+    name: String,
+    description: String,
+    icon: ImageVector,
+    onClick: () -> Unit
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Import Data") },
-        text = {
-            Text("Import bookmarks and collections from a JSON file. This will add to your existing data without removing anything.")
-        },
-        confirmButton = {
-            TextButton(onClick = onImport) {
-                Text("Import")
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+        ),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
+            )
+            
+            Spacer(modifier = Modifier.width(12.dp))
+            
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = name,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium
+                )
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
+            
+            Icon(
+                imageVector = Icons.Default.OpenInNew,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(16.dp)
+            )
         }
-    )
+    }
+}
+
+
+
+// Helper Functions
+fun openAppInPlayStore(context: Context, packageName: String) {
+    try {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName"))
+        context.startActivity(intent)
+    } catch (e: Exception) {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$packageName"))
+        context.startActivity(intent)
+    }
+}
+
+fun openLinkzaryInPlayStore(context: Context) {
+    try {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.appcodecraft.linkzary"))
+        context.startActivity(intent)
+    } catch (e: Exception) {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=com.appcodecraft.linkzary"))
+        context.startActivity(intent)
+    }
+}
+
+fun sendFeedbackEmail(context: Context) {
+    val appVersion = try {
+        context.packageManager.getPackageInfo(context.packageName, 0).versionName
+    } catch (e: Exception) {
+        "Unknown"
+    }
+    
+    val deviceInfo = "\n\n--- Device Info ---\n" +
+            "App Version: $appVersion\n" +
+            "Android Version: ${android.os.Build.VERSION.RELEASE}\n" +
+            "Device Model: ${android.os.Build.MODEL}\n" +
+            "Device Manufacturer: ${android.os.Build.MANUFACTURER}"
+    
+    val intent = Intent(Intent.ACTION_SENDTO).apply {
+        data = Uri.parse("mailto:")
+        putExtra(Intent.EXTRA_EMAIL, arrayOf("appcodecraft@gmail.com"))
+        putExtra(Intent.EXTRA_SUBJECT, "Linkzary Feedback")
+        putExtra(Intent.EXTRA_TEXT, "Hi AppCodeCraft team,\n\nI would like to share my feedback about Linkzary:\n\n[Please write your feedback here]$deviceInfo")
+    }
+    
+    try {
+        context.startActivity(intent)
+    } catch (e: Exception) {
+        // Fallback to generic intent if no email app is available
+        val fallbackIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_EMAIL, arrayOf("appcodecraft@gmail.com"))
+            putExtra(Intent.EXTRA_SUBJECT, "Linkzary Feedback")
+            putExtra(Intent.EXTRA_TEXT, "Hi AppCodeCraft team,\n\nI would like to share my feedback about Linkzary:\n\n[Please write your feedback here]$deviceInfo")
+        }
+        context.startActivity(Intent.createChooser(fallbackIntent, "Send Feedback"))
+    }
+}
+
+fun openPrivacyPolicy(context: Context) {
+    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://example.com"))
+    context.startActivity(intent)
+}
+
+fun openDeveloperProfile(context: Context) {
+    try {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://dev?id=AppCodeCraft"))
+        context.startActivity(intent)
+    } catch (e: Exception) {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/dev?id=AppCodeCraft"))
+        context.startActivity(intent)
+    }
 }
 
 @Preview

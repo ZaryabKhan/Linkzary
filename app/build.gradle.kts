@@ -90,6 +90,9 @@ dependencies {
     // Image loading
     implementation(libs.coil.compose)
     
+    // Play Billing
+    implementation(libs.billing.ktx)
+    
     // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

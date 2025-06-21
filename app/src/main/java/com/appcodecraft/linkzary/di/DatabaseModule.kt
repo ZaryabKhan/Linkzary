@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.appcodecraft.linkzary.data.dao.CollectionDao
 import com.appcodecraft.linkzary.data.dao.SavedLinkDao
 import com.appcodecraft.linkzary.data.database.LinkzaryDatabase
+import com.appcodecraft.linkzary.data.service.ImportExportService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -34,5 +35,11 @@ object DatabaseModule {
     @Provides
     fun provideCollectionDao(database: LinkzaryDatabase): CollectionDao {
         return database.collectionDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideImportExportService(): ImportExportService {
+        return ImportExportService()
     }
 }
