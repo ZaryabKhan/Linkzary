@@ -201,13 +201,28 @@ class ImportExportService @Inject constructor() {
     // Private helper methods
     
     private fun readFileContent(context: Context, uri: Uri): String {
-        return context.contentResolver.openInputStream(uri)?.use { inputStream ->
-            inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
-        } ?: throw IOException("Cannot open file for reading")
+        return try {
+            context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                inputStream.bufferedReader(Charsets.UTF_8).use { reader ->
+                    val content = reader.readText()
+                    if (content.isBlank()) {
+                        throw IOException("File is empty or contains only whitespace")
+                    }
+                    content
+                }
+            } ?: throw IOException("Cannot open file for reading - file may be corrupted or inaccessible")
+        } catch (e: Exception) {
+            when (e) {
+                is IOException -> throw e
+                is SecurityException -> throw IOException("Permission denied: Cannot access the selected file")
+                else -> throw IOException("Failed to read file: ${e.message}", e)
+            }
+        }
     }
     
     private fun isJsonFormat(content: String): Boolean {
-        return content.trim().startsWith("{")
+        val trimmed = content.trim()
+        return trimmed.startsWith("{") && trimmed.endsWith("}")
     }
     
     private fun parseJsonPreview(content: String, existingCollections: List<Collection>): ImportPreview {
@@ -235,6 +250,19 @@ class ImportExportService @Inject constructor() {
     private fun parseCsvPreview(content: String, existingCollections: List<Collection>): ImportPreview {
         val lines = content.lines().filter { it.isNotBlank() }
         if (lines.isEmpty()) throw IOException("File is empty")
+        
+        // Validate CSV header
+        val headerLine = lines.first()
+        val expectedHeaders = listOf("title", "url", "description", "collection")
+        val actualHeaders = parseCsvLine(headerLine).map { it.trim().removeSurrounding("\"").lowercase() }
+        
+        val missingHeaders = expectedHeaders.filter { expected ->
+            !actualHeaders.any { actual -> actual.contains(expected) }
+        }
+        
+        if (missingHeaders.isNotEmpty()) {
+            throw IOException("Invalid CSV format. Missing required columns: ${missingHeaders.joinToString(", ")}")
+        }
         
         val dataLines = lines.drop(1) // Skip header
         if (dataLines.isEmpty()) throw IOException("No data rows found in CSV")

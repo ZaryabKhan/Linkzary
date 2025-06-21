@@ -29,7 +29,11 @@ class LinkRepository @Inject constructor(
 
     suspend fun deleteLink(link: SavedLink) = savedLinkDao.deleteLink(link)
 
-    suspend fun deleteAllLinks() = savedLinkDao.deleteAllLinks()
+    suspend fun deleteAllLinks() = savedLinkDao.deleteAllLinksWithTransaction()
+    
+    suspend fun insertLinks(links: List<SavedLink>) = savedLinkDao.insertLinks(links)
+    
+    suspend fun deleteLinksByIds(linkIds: List<Long>) = savedLinkDao.deleteLinksByIds(linkIds)
 
     suspend fun moveToCollection(linkId: Long, collectionId: Long?) =
         savedLinkDao.moveToCollection(linkId, collectionId)

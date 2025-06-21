@@ -22,7 +22,11 @@ class CollectionRepository @Inject constructor(
 
     suspend fun deleteCollection(collection: Collection) = collectionDao.deleteCollection(collection)
 
-    suspend fun deleteAllCollections() = collectionDao.deleteAllCollections()
+    suspend fun deleteAllCollections() = collectionDao.deleteAllCollectionsWithTransaction()
+    
+    suspend fun insertCollections(collections: List<Collection>) = collectionDao.insertCollections(collections)
+    
+    suspend fun deleteCollectionsByIds(collectionIds: List<Long>) = collectionDao.deleteCollectionsByIds(collectionIds)
 
     suspend fun getLinksCountInCollection(collectionId: Long): Int =
         collectionDao.getLinksCountInCollection(collectionId)

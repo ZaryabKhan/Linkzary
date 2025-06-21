@@ -27,14 +27,28 @@ interface SavedLinkDao {
     @Insert
     suspend fun insertLink(link: SavedLink): Long
 
+    @Insert
+    suspend fun insertLinks(links: List<SavedLink>): List<Long>
+
     @Update
     suspend fun updateLink(link: SavedLink)
 
     @Delete
     suspend fun deleteLink(link: SavedLink)
 
+    @Delete
+    suspend fun deleteLinks(links: List<SavedLink>)
+
     @Query("DELETE FROM saved_links")
     suspend fun deleteAllLinks()
+
+    @Transaction
+    suspend fun deleteAllLinksWithTransaction() {
+        deleteAllLinks()
+    }
+
+    @Query("DELETE FROM saved_links WHERE id IN (:linkIds)")
+    suspend fun deleteLinksByIds(linkIds: List<Long>)
 
     @Query("UPDATE saved_links SET collectionId = :collectionId WHERE id = :linkId")
     suspend fun moveToCollection(linkId: Long, collectionId: Long?)

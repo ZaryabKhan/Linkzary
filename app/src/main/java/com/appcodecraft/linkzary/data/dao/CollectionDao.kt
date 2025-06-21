@@ -18,14 +18,28 @@ interface CollectionDao {
     @Insert
     suspend fun insertCollection(collection: Collection): Long
 
+    @Insert
+    suspend fun insertCollections(collections: List<Collection>): List<Long>
+
     @Update
     suspend fun updateCollection(collection: Collection)
 
     @Delete
     suspend fun deleteCollection(collection: Collection)
 
+    @Delete
+    suspend fun deleteCollections(collections: List<Collection>)
+
     @Query("DELETE FROM collections")
     suspend fun deleteAllCollections()
+
+    @Transaction
+    suspend fun deleteAllCollectionsWithTransaction() {
+        deleteAllCollections()
+    }
+
+    @Query("DELETE FROM collections WHERE id IN (:collectionIds)")
+    suspend fun deleteCollectionsByIds(collectionIds: List<Long>)
 
     @Query("SELECT COUNT(*) FROM saved_links WHERE collectionId = :collectionId")
     suspend fun getLinksCountInCollection(collectionId: Long): Int
