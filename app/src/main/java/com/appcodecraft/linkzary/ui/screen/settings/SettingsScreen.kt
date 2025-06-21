@@ -708,8 +708,8 @@ fun AboutDialog(
                         
                         AppCard(
                             name = "CurioMate",
-                            description = "Your intelligent companion for curiosity",
-                            icon = Icons.Default.Psychology,
+                            description = "CurioMate offers a collection of utility tools to assist with everyday tasks.",
+                            icon = Icons.Default.Construction,
                             onClick = {
                                 openAppInPlayStore(context, "com.appcodecraft.curiomate")
                             }
@@ -861,7 +861,7 @@ fun sendFeedbackEmail(context: Context) {
 }
 
 fun openPrivacyPolicy(context: Context) {
-    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://example.com"))
+    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.appcodecraft.com/p/privacy-policy.html"))
     context.startActivity(intent)
 }
 
@@ -870,7 +870,7 @@ fun openDeveloperProfile(context: Context) {
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://dev?id=AppCodeCraft"))
         context.startActivity(intent)
     } catch (e: Exception) {
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/dev?id=AppCodeCraft"))
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/dev?id=6994476958831569782"))
         context.startActivity(intent)
     }
 }
