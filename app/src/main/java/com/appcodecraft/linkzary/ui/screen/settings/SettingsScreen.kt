@@ -152,7 +152,7 @@ fun SettingsScreen(
                     title = "Import Data",
                     subtitle = "Import bookmarks from file",
                     onClick = {
-                        importLauncher.launch(arrayOf("application/json", "text/csv"))
+                        importLauncher.launch(arrayOf("application/json", "text/csv", "text/plain", "*/*"))
                     }
                 )
             }
