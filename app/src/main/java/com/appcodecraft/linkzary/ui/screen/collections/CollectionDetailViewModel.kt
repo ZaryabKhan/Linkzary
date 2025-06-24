@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.appcodecraft.linkzary.data.entity.Collection
 import com.appcodecraft.linkzary.data.entity.SavedLink
+import com.appcodecraft.linkzary.data.preferences.UserPreferencesManager
 import com.appcodecraft.linkzary.data.repository.CollectionRepository
 import com.appcodecraft.linkzary.data.repository.LinkRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,11 +24,14 @@ data class CollectionDetailUiState(
 @HiltViewModel
 class CollectionDetailViewModel @Inject constructor(
     private val collectionRepository: CollectionRepository,
-    private val linkRepository: LinkRepository
+    private val linkRepository: LinkRepository,
+    private val userPreferencesManager: UserPreferencesManager
 ) : ViewModel() {
     
     private val _uiState = MutableStateFlow(CollectionDetailUiState())
     val uiState: StateFlow<CollectionDetailUiState> = _uiState.asStateFlow()
+
+    val isGridView: StateFlow<Boolean> = userPreferencesManager.isCollectionDetailGridView
     
     fun loadCollectionDetails(collectionId: String) {
         viewModelScope.launch {
@@ -130,5 +134,9 @@ class CollectionDetailViewModel @Inject constructor(
     
     fun clearError() {
         _uiState.value = _uiState.value.copy(error = null)
+    }
+
+    fun toggleGridView() {
+        userPreferencesManager.setCollectionDetailGridView(!isGridView.value)
     }
 }

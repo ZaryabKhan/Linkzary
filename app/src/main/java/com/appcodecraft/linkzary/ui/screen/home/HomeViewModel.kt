@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.appcodecraft.linkzary.data.entity.Collection
 import com.appcodecraft.linkzary.data.entity.SavedLink
+import com.appcodecraft.linkzary.data.preferences.UserPreferencesManager
 import com.appcodecraft.linkzary.data.repository.CollectionRepository
 import com.appcodecraft.linkzary.data.repository.LinkRepository
 import com.appcodecraft.linkzary.util.UrlMetadataExtractor
@@ -37,13 +38,18 @@ data class HomeUiState(
 class HomeViewModel @Inject constructor(
     private val linkRepository: LinkRepository,
     private val collectionRepository: CollectionRepository,
-    private val urlMetadataExtractor: UrlMetadataExtractor
+    private val urlMetadataExtractor: UrlMetadataExtractor,
+    private val userPreferencesManager: UserPreferencesManager
 ) : ViewModel() {
 
     private val _searchQuery = MutableStateFlow("")
-    private val _sortOrder = MutableStateFlow(LinkSortOrder.PINNED_FIRST)
+    private val _sortOrder = MutableStateFlow(
+        LinkSortOrder.valueOf(userPreferencesManager.getHomeSortOrder())
+    )
     private val _isLoading = MutableStateFlow(false)
     private val _error = MutableStateFlow<String?>(null)
+
+    val isGridView: StateFlow<Boolean> = userPreferencesManager.isHomeGridView
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<HomeUiState> = combine(
@@ -137,6 +143,11 @@ class HomeViewModel @Inject constructor(
     
     fun setSortOrder(sortOrder: LinkSortOrder) {
         _sortOrder.value = sortOrder
+        userPreferencesManager.setHomeSortOrder(sortOrder.name)
+    }
+
+    fun toggleGridView() {
+        userPreferencesManager.setHomeGridView(!isGridView.value)
     }
 
     fun clearError() {

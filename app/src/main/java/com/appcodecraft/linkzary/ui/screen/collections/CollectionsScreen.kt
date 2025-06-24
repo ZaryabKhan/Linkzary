@@ -47,7 +47,7 @@ fun CollectionsScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showCreateCollectionDialog by remember { mutableStateOf(false) }
     var selectedCollection by remember { mutableStateOf<Collection?>(null) }
-    var isGridView by remember { mutableStateOf(true) }
+    val isGridView by viewModel.isGridView.collectAsState()
     var showSortMenu by remember { mutableStateOf(false) }
 
     Column(
@@ -125,7 +125,7 @@ fun CollectionsScreen(
             ) {
                 // Enhanced view mode toggle
                 IconButton(
-                    onClick = { isGridView = !isGridView },
+                            onClick = { viewModel.toggleGridView() },
                     modifier = Modifier
                         .size(48.dp)
                         .background(
@@ -427,7 +427,15 @@ fun CollectionsCreateCollectionDialog(
         "#8B5CF6", // Violet
         "#06B6D4", // Cyan
         "#EC4899", // Pink
-        "#84CC16"  // Lime
+        "#84CC16", // Lime
+        "#F97316", // Orange
+        "#EAB308", // Yellow
+        "#22C55E", // Green
+        "#3B82F6", // Blue
+        "#A855F7", // Purple
+        "#E11D48", // Rose
+        "#0EA5E9", // Sky
+        "#64748B"  // Slate
     )
 
     AlertDialog(
@@ -484,10 +492,13 @@ fun CollectionsCreateCollectionDialog(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(8),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.height(120.dp)
                 ) {
-                    colors.forEach { color ->
+                    items(colors) { color ->
                         FilterChip(
                             onClick = { selectedColor = color },
                             label = { },
@@ -496,7 +507,20 @@ fun CollectionsCreateCollectionDialog(
                             colors = FilterChipDefaults.filterChipColors(
                                 containerColor = Color(color.toColorInt()),
                                 selectedContainerColor = Color(color.toColorInt())
-                            )
+                            ),
+                            border = if (selectedColor == color) {
+                                FilterChipDefaults.filterChipBorder(
+                                    enabled = true,
+                                    selected = true,
+                                    borderColor = MaterialTheme.colorScheme.primary,
+                                    borderWidth = 2.dp
+                                )
+                            } else {
+                                FilterChipDefaults.filterChipBorder(
+                                    enabled = true,
+                                    selected = false
+                                )
+                            }
                         )
                     }
                 }
@@ -654,11 +678,25 @@ fun EditCollectionDialog(
 ) {
     var name by remember { mutableStateOf(collection.name) }
     var selectedColor by remember { mutableStateOf(collection.color) }
+    val maxNameLength = 30
 
     val colors = listOf(
-        "#6366F1", "#8B5CF6", "#EC4899", "#EF4444",
-        "#F97316", "#EAB308", "#22C55E", "#06B6D4",
-        "#3B82F6", "#6366F1", "#8B5CF6", "#EC4899"
+        "#6366F1", // Indigo
+        "#EF4444", // Red
+        "#10B981", // Emerald
+        "#F59E0B", // Amber
+        "#8B5CF6", // Violet
+        "#06B6D4", // Cyan
+        "#EC4899", // Pink
+        "#84CC16", // Lime
+        "#F97316", // Orange
+        "#EAB308", // Yellow
+        "#22C55E", // Green
+        "#3B82F6", // Blue
+        "#A855F7", // Purple
+        "#E11D48", // Rose
+        "#0EA5E9", // Sky
+        "#64748B"  // Slate
     )
 
     AlertDialog(
@@ -669,8 +707,9 @@ fun EditCollectionDialog(
             ) {
                 Icon(
                     imageVector = Icons.Default.Edit,
-                    contentDescription = "Edit",
-                    tint = MaterialTheme.colorScheme.primary
+                    contentDescription = "Edit collection",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Edit Collection")
@@ -680,15 +719,27 @@ fun EditCollectionDialog(
             Column {
                 OutlinedTextField(
                     value = name,
-                    onValueChange = { name = it },
+                    onValueChange = { newValue ->
+                        if (newValue.length <= maxNameLength) {
+                            name = newValue
+                        }
+                    },
                     label = { Text("Collection Name") },
                     placeholder = { Text("Enter collection name") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
                     leadingIcon = {
                         Icon(
-                            imageVector = Icons.Default.Title,
-                            contentDescription = "Name"
+                            imageVector = Icons.Default.Folder,
+                            contentDescription = "Collection name",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    supportingText = {
+                        Text(
+                            text = "${name.length}/$maxNameLength",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (name.length >= maxNameLength) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 )
@@ -703,17 +754,16 @@ fun EditCollectionDialog(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 LazyVerticalGrid(
-                    columns = GridCells.Fixed(6),
+                    columns = GridCells.Fixed(8),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.height(80.dp)
+                    modifier = Modifier.height(120.dp)
                 ) {
                     items(colors) { color ->
                         FilterChip(
                             onClick = { selectedColor = color },
                             label = { },
                             selected = selectedColor == color,
-                            enabled = true,
                             modifier = Modifier.size(32.dp),
                             colors = FilterChipDefaults.filterChipColors(
                                 containerColor = Color(color.toColorInt()),

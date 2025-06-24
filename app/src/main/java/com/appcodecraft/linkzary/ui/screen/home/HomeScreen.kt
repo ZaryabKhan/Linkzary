@@ -65,7 +65,7 @@ fun HomeScreen(
     val uiState by viewModel.combinedUiState.collectAsStateWithLifecycle()
     var showAddLinkDialog by remember { mutableStateOf(false) }
     var selectedLink by remember { mutableStateOf<SavedLink?>(null) }
-    var isGridView by remember { mutableStateOf(true) }
+    val isGridView by viewModel.isGridView.collectAsState()
     var showTagFilter by remember { mutableStateOf(false) }
     var selectedTags by remember { mutableStateOf(setOf<String>()) }
     var showSortMenu by remember { mutableStateOf(false) }
@@ -145,7 +145,7 @@ fun HomeScreen(
             ) {
                 // Enhanced view toggle button
                 IconButton(
-                    onClick = { isGridView = !isGridView },
+                            onClick = { viewModel.toggleGridView() },
                     modifier = Modifier
                         .size(48.dp)
                         .background(

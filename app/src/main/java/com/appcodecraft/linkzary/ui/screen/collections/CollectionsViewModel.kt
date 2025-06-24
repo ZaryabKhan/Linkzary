@@ -3,6 +3,7 @@ package com.appcodecraft.linkzary.ui.screen.collections
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.appcodecraft.linkzary.data.entity.Collection
+import com.appcodecraft.linkzary.data.preferences.UserPreferencesManager
 import com.appcodecraft.linkzary.data.repository.CollectionRepository
 import com.appcodecraft.linkzary.data.repository.LinkRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -31,14 +32,19 @@ data class CollectionsUiState(
 @HiltViewModel
 class CollectionsViewModel @Inject constructor(
     private val collectionRepository: CollectionRepository,
-    private val linkRepository: LinkRepository
+    private val linkRepository: LinkRepository,
+    private val userPreferencesManager: UserPreferencesManager
 ) : ViewModel() {
     
     private val _searchQuery = MutableStateFlow("")
-    private val _sortOrder = MutableStateFlow(SortOrder.NAME_ASC)
+    private val _sortOrder = MutableStateFlow(
+        SortOrder.valueOf(userPreferencesManager.getCollectionsSortOrder())
+    )
     private val _isLoading = MutableStateFlow(false)
     private val _isRefreshing = MutableStateFlow(false)
     private val _error = MutableStateFlow<String?>(null)
+
+    val isGridView: StateFlow<Boolean> = userPreferencesManager.isCollectionsGridView
     
     private val allCollections = collectionRepository.getAllCollections()
         .stateIn(
@@ -134,6 +140,11 @@ class CollectionsViewModel @Inject constructor(
     
     fun setSortOrder(sortOrder: SortOrder) {
         _sortOrder.value = sortOrder
+        userPreferencesManager.setCollectionsSortOrder(sortOrder.name)
+    }
+
+    fun toggleGridView() {
+        userPreferencesManager.setCollectionsGridView(!isGridView.value)
     }
     
     fun refreshCollections() {

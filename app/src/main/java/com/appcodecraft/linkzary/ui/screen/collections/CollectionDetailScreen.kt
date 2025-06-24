@@ -49,7 +49,7 @@ fun CollectionDetailScreen(
 
     var selectedLink by remember { mutableStateOf<SavedLink?>(null) }
     var searchQuery by remember { mutableStateOf("") }
-    var isGridView by remember { mutableStateOf(false) }
+    val isGridView by viewModel.isGridView.collectAsState()
 
     LaunchedEffect(collectionId) {
         viewModel.loadCollectionDetails(collectionId)
@@ -101,7 +101,7 @@ fun CollectionDetailScreen(
 
             // Enhanced view toggle button
             IconButton(
-                onClick = { isGridView = !isGridView },
+                onClick = { viewModel.toggleGridView() },
                 modifier = Modifier
                     .size(48.dp)
                     .background(
