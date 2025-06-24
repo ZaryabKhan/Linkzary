@@ -2,10 +2,10 @@ package com.appcodecraft.linkzary.ui.component
 
 // Animation imports removed for better performance
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.outlined.Bookmark
+import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.*
@@ -34,8 +34,8 @@ val bottomNavItems = listOf(
     ),
     BottomNavItem(
         screen = Screen.Collections,
-        selectedIcon = Icons.Filled.Bookmark,
-        unselectedIcon = Icons.Outlined.Bookmark
+        selectedIcon = Icons.Filled.Folder,
+        unselectedIcon = Icons.Outlined.Folder
     ),
     BottomNavItem(
         screen = Screen.Settings,

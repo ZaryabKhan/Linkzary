@@ -7,6 +7,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -1124,7 +1127,15 @@ fun CreateCollectionDialog(
         0xFF8B5CF6.toInt(), // Violet
         0xFF06B6D4.toInt(), // Cyan
         0xFFEC4899.toInt(), // Pink
-        0xFF84CC16.toInt()  // Lime
+        0xFF84CC16.toInt(), // Lime
+        0xFFF97316.toInt(), // Orange
+        0xFFEAB308.toInt(), // Yellow
+        0xFF22C55E.toInt(), // Green
+        0xFF3B82F6.toInt(), // Blue
+        0xFFA855F7.toInt(), // Purple
+        0xFFE11D48.toInt(), // Rose
+        0xFF0EA5E9.toInt(), // Sky
+        0xFF64748B.toInt()  // Slate
     )
     
     AlertDialog(
@@ -1181,10 +1192,13 @@ fun CreateCollectionDialog(
                 
                 Spacer(modifier = Modifier.height(8.dp))
                 
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(8),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.height(120.dp)
                 ) {
-                    colors.forEach { color ->
+                    items(colors) { color ->
                         FilterChip(
                             onClick = { selectedColor = color },
                             label = { },
@@ -1193,7 +1207,20 @@ fun CreateCollectionDialog(
                             colors = FilterChipDefaults.filterChipColors(
                                 containerColor = androidx.compose.ui.graphics.Color(color),
                                 selectedContainerColor = androidx.compose.ui.graphics.Color(color)
-                            )
+                            ),
+                            border = if (selectedColor == color) {
+                                FilterChipDefaults.filterChipBorder(
+                                    enabled = true,
+                                    selected = true,
+                                    borderColor = MaterialTheme.colorScheme.primary,
+                                    borderWidth = 2.dp
+                                )
+                            } else {
+                                FilterChipDefaults.filterChipBorder(
+                                    enabled = true,
+                                    selected = false
+                                )
+                            }
                         )
                     }
                 }
