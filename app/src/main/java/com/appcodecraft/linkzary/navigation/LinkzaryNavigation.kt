@@ -9,8 +9,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.appcodecraft.linkzary.data.preferences.UserPreferencesManager
-import com.appcodecraft.linkzary.ui.screen.collections.CollectionsScreen
 import com.appcodecraft.linkzary.ui.screen.collections.CollectionDetailScreen
+import com.appcodecraft.linkzary.ui.screen.collections.CollectionsScreen
 import com.appcodecraft.linkzary.ui.screen.home.HomeScreen
 import com.appcodecraft.linkzary.ui.screen.settings.SettingsScreen
 

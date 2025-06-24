@@ -4,12 +4,18 @@ import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.appcodecraft.linkzary.data.model.*
+import com.appcodecraft.linkzary.data.model.ImportMode
+import com.appcodecraft.linkzary.data.model.ImportPreview
+import com.appcodecraft.linkzary.data.model.ImportProgress
+import com.appcodecraft.linkzary.data.model.ImportResult
 import com.appcodecraft.linkzary.data.repository.CollectionRepository
 import com.appcodecraft.linkzary.data.repository.LinkRepository
 import com.appcodecraft.linkzary.data.service.ImportExportService
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 

@@ -16,7 +16,6 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.appcodecraft.linkzary.data.preferences.ThemeMode
 import com.appcodecraft.linkzary.data.preferences.UserPreferencesManager
 

@@ -1,10 +1,8 @@
 package com.appcodecraft.linkzary.data.database
 
 import androidx.room.Database
-import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import android.content.Context
 import com.appcodecraft.linkzary.data.converter.DateConverter
 import com.appcodecraft.linkzary.data.dao.CollectionDao
 import com.appcodecraft.linkzary.data.dao.SavedLinkDao

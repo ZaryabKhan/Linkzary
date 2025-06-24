@@ -2,8 +2,8 @@ package com.appcodecraft.linkzary.ui.screen.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.appcodecraft.linkzary.data.repository.LinkRepository
 import com.appcodecraft.linkzary.data.repository.CollectionRepository
+import com.appcodecraft.linkzary.data.repository.LinkRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
