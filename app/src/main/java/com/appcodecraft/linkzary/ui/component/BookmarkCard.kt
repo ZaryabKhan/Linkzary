@@ -2,6 +2,7 @@ package com.appcodecraft.linkzary.ui.component
 
 // Animation imports removed for better performance
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
@@ -54,24 +55,8 @@ fun BookmarkCard(
     // Static values for better performance
     val elevation = 1.dp
     
-    // Generate subtle background color based on card ID
-    val backgroundColors = listOf(
-        Color(0xFFF8F9FF), // Soft blue
-        Color(0xFFFFF8F8), // Soft pink
-        Color(0xFFF8FFF8), // Soft green
-        Color(0xFFFFFDF8), // Soft yellow
-        Color(0xFFF8FFFD), // Soft mint
-        Color(0xFFFDF8FF), // Soft purple
-        Color(0xFFFFF8FC), // Soft peach
-        Color(0xFFF8FCFF), // Soft cyan
-        Color(0xFFFCF8FF), // Soft lavender
-        Color(0xFFFFFCF8)  // Soft cream
-    )
-
-    val cardBackgroundColor = backgroundColors[link.id.toInt() % backgroundColors.size]
-    
-    // Static background color
-    val staticBackgroundColor = cardBackgroundColor
+    // Enhanced card background with theme awareness
+    val cardBackgroundColor = MaterialTheme.colorScheme.surface
 
     Card(
         modifier = modifier
@@ -79,17 +64,20 @@ fun BookmarkCard(
             .clickable(
                 interactionSource = interactionSource,
                 indication = null
-            ) { onCardClick() }
-            .shadow(
-                elevation = elevation,
-                shape = RoundedCornerShape(16.dp),
-                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-            ),
+            ) { onCardClick() },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = staticBackgroundColor
+            containerColor = cardBackgroundColor
         ),
-        border = null
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 4.dp,
+            pressedElevation = 8.dp,
+            hoveredElevation = 6.dp
+        ),
+        border = BorderStroke(
+            width = 1.dp,
+            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
+        )
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -100,32 +88,23 @@ fun BookmarkCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Top
             ) {
-                // Collection badge
+                // Enhanced collection badge with better contrast
                 if (collectionName != null && collectionColor != null) {
-                    Row(
+                    Box(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(Color(collectionColor.toColorInt()).copy(alpha = 0.15f))
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                            .weight(1f, fill = false),
-                        verticalAlignment = Alignment.CenterVertically
+                            .background(
+                                color = Color(collectionColor.toColorInt()).copy(alpha = 0.9f),
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                            .padding(horizontal = 12.dp, vertical = 6.dp)
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(6.dp)
-                                .clip(CircleShape)
-                                .background(Color(collectionColor.toColorInt()))
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = collectionName,
-                            style = MaterialTheme.typography.labelMedium.copy(
-                                fontWeight = FontWeight.SemiBold,
-                                letterSpacing = 0.1.sp
-                            ),
-                            color = Color(collectionColor.toColorInt()),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = Color.White,
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                            overflow = TextOverflow.Ellipsis,
+                            fontWeight = FontWeight.Medium
                         )
                     }
                 } else {
@@ -162,18 +141,13 @@ fun BookmarkCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Domain thumbnail preview - compact version with complementary background
-            val thumbnailBackgroundColor = when (link.id.toInt() % 10) {
-                0 -> Color(0xFFE8EEFF) // Deeper blue
-                1 -> Color(0xFFFFE8E8) // Deeper pink
-                2 -> Color(0xFFE8FFE8) // Deeper green
-                3 -> Color(0xFFFFF5E8) // Deeper yellow
-                4 -> Color(0xFFE8FFF5) // Deeper mint
-                5 -> Color(0xFFF5E8FF) // Deeper purple
-                6 -> Color(0xFFFFE8F5) // Deeper peach
-                7 -> Color(0xFFE8F5FF) // Deeper cyan
-                8 -> Color(0xFFF5E8FF) // Deeper lavender
-                else -> Color(0xFFFFF5E8) // Deeper cream
+            // Enhanced domain thumbnail with theme-aware background
+            val thumbnailBackgroundColor = when (link.id.toInt() % 5) {
+                0 -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                1 -> MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)
+                2 -> MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f)
+                3 -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                else -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
             }
 
             Box(
