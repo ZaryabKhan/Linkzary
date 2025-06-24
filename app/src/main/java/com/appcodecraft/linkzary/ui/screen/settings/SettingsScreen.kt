@@ -1,5 +1,6 @@
 package com.appcodecraft.linkzary.ui.screen.settings
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -70,6 +71,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.res.stringResource
 import com.appcodecraft.linkzary.R
+import com.appcodecraft.linkzary.utils.LocaleHelper
 import com.appcodecraft.linkzary.data.preferences.ThemeMode
 import com.appcodecraft.linkzary.data.preferences.UserPreferencesManager
 import com.appcodecraft.linkzary.ui.theme.LinkzaryTheme
@@ -97,6 +99,7 @@ fun SettingsScreen(
     val importPreview by importExportViewModel.importPreview.collectAsState()
     
     val currentThemeMode by userPreferencesManager.themeMode.collectAsState()
+    val currentLanguage by userPreferencesManager.currentLanguage.collectAsState()
     
     val jsonExportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json")
@@ -170,7 +173,7 @@ fun SettingsScreen(
                 SettingsItem(
                     icon = Icons.Default.Language,
                     title = stringResource(R.string.settings_language),
-                    subtitle = stringResource(R.string.settings_language_english),
+                    subtitle = LocaleHelper.getLanguageDisplayName(currentLanguage),
                     onClick = {
                         showLanguageDialog = true
                     }
@@ -295,9 +298,15 @@ fun SettingsScreen(
     if (showLanguageDialog) {
         LanguageSelectionDialog(
             onDismiss = { showLanguageDialog = false },
-            onLanguageSelected = { language ->
-                // Language selection will be implemented later
+            onLanguageSelected = { languageCode ->
+                userPreferencesManager.setCurrentLanguage(languageCode)
+                LocaleHelper.setLocale(context, languageCode)
                 showLanguageDialog = false
+                
+                // Restart activity to apply language changes
+                (context as? Activity)?.let { activity ->
+                    LocaleHelper.restartActivity(activity)
+                }
             }
         )
     }

@@ -1,5 +1,6 @@
 package com.appcodecraft.linkzary
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.WindowManager
@@ -19,6 +20,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.appcodecraft.linkzary.data.preferences.UserPreferencesManager
 import com.appcodecraft.linkzary.navigation.LinkzaryNavigation
+import com.appcodecraft.linkzary.utils.LocaleHelper
 import com.appcodecraft.linkzary.ui.component.LinkzaryBottomNavigationBar
 import com.appcodecraft.linkzary.ui.theme.LinkzaryTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -26,21 +28,21 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    
+
     @Inject
     lateinit var userPreferencesManager: UserPreferencesManager
-    
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        
+
         // Performance optimizations
         WindowCompat.setDecorFitsSystemWindows(window, false)
         window.setFlags(
             WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
             WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED
         )
-        
+
         // Handle shared URL from intent
         val sharedUrl = when {
             intent.action == Intent.ACTION_SEND && intent.type == "text/plain" -> {
@@ -51,7 +53,7 @@ class MainActivity : ComponentActivity() {
             }
             else -> null
         }
-        
+
         setContent {
             LinkzaryTheme(userPreferencesManager = userPreferencesManager) {
                 LinkzaryApp(
@@ -61,11 +63,11 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-    
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        
+
         // Handle new shared URL when app is already running
         val sharedUrl = when {
             intent.action == Intent.ACTION_SEND && intent.type == "text/plain" -> {
@@ -76,11 +78,19 @@ class MainActivity : ComponentActivity() {
             }
             else -> null
         }
-        
+
         if (!sharedUrl.isNullOrBlank()) {
             // Recreate the activity with the new shared URL
             recreate()
         }
+    }
+
+    override fun attachBaseContext(newBase: Context?) {
+        super.attachBaseContext(newBase?.let { context ->
+            val userPreferencesManager = UserPreferencesManager(context)
+            val savedLanguage = userPreferencesManager.getCurrentLanguage()
+            LocaleHelper.setLocale(context, savedLanguage)
+        })
     }
 }
 
@@ -93,7 +103,7 @@ fun LinkzaryApp(
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {

@@ -30,6 +30,10 @@ class UserPreferencesManager(context: Context) {
     private val _themeMode = MutableStateFlow(getThemeMode())
     val themeMode: StateFlow<ThemeMode> = _themeMode.asStateFlow()
     
+    // Language preferences
+    private val _currentLanguage = MutableStateFlow(getCurrentLanguage())
+    val currentLanguage: StateFlow<String> = _currentLanguage.asStateFlow()
+    
     // View state preferences
     private val _isHomeGridView = MutableStateFlow(getHomeGridView())
     val isHomeGridView: StateFlow<Boolean> = _isHomeGridView.asStateFlow()
@@ -110,8 +114,21 @@ class UserPreferencesManager(context: Context) {
         return ThemeMode.fromString(themeName)
     }
     
+    // Language preferences
+    fun setCurrentLanguage(languageCode: String) {
+        sharedPreferences.edit()
+            .putString(KEY_CURRENT_LANGUAGE, languageCode)
+            .apply()
+        _currentLanguage.value = languageCode
+    }
+    
+    fun getCurrentLanguage(): String {
+        return sharedPreferences.getString(KEY_CURRENT_LANGUAGE, "en") ?: "en"
+    }
+    
     companion object {
         private const val KEY_THEME_MODE = "theme_mode"
+        private const val KEY_CURRENT_LANGUAGE = "current_language"
         private const val KEY_HOME_GRID_VIEW = "home_grid_view"
         private const val KEY_COLLECTIONS_GRID_VIEW = "collections_grid_view"
         private const val KEY_COLLECTION_DETAIL_GRID_VIEW = "collection_detail_grid_view"
