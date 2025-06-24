@@ -120,27 +120,43 @@ fun CollectionsScreen(
             }
 
             Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // View mode toggle
+                // Enhanced view mode toggle
                 IconButton(
-                    onClick = { isGridView = !isGridView }
+                    onClick = { isGridView = !isGridView },
+                    modifier = Modifier
+                        .size(48.dp)
+                        .background(
+                            color = if (isGridView) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f) else Color.Transparent,
+                            shape = RoundedCornerShape(12.dp)
+                        )
                 ) {
                     Icon(
                         imageVector = if (isGridView) Icons.AutoMirrored.Filled.ViewList else Icons.Default.GridView,
-                        contentDescription = if (isGridView) "Switch to list view" else "Switch to grid view"
+                        contentDescription = if (isGridView) "Switch to list view" else "Switch to grid view",
+                        tint = if (isGridView) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(24.dp)
                     )
                 }
 
-                // Sort menu
+                // Enhanced sort menu
                 Box {
                     IconButton(
-                        onClick = { showSortMenu = true }
+                        onClick = { showSortMenu = true },
+                        modifier = Modifier
+                            .size(48.dp)
+                            .background(
+                                color = if (showSortMenu) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.8f) else Color.Transparent,
+                                shape = RoundedCornerShape(12.dp)
+                            )
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Sort,
-                            contentDescription = "Sort collections"
+                            contentDescription = "Sort options",
+                            tint = if (showSortMenu) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(24.dp)
                         )
                     }
 

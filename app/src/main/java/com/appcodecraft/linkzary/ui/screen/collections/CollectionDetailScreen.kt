@@ -99,27 +99,22 @@ fun CollectionDetailScreen(
                 )
             }
 
-            Surface(
+            // Enhanced view toggle button
+            IconButton(
                 onClick = { isGridView = !isGridView },
-                modifier = Modifier.size(40.dp),
-                shape = RoundedCornerShape(8.dp),
-                color = if (isGridView) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
-                border = BorderStroke(
-                    width = 1.dp,
-                    color = if (isGridView) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
-                )
-            ) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    Icon(
-                        imageVector = if (isGridView) Icons.AutoMirrored.Filled.ViewList else Icons.Default.GridView,
-                        contentDescription = if (isGridView) "List view" else "Grid view",
-                        tint = if (isGridView) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.size(20.dp)
+                modifier = Modifier
+                    .size(48.dp)
+                    .background(
+                        color = if (isGridView) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f) else Color.Transparent,
+                        shape = RoundedCornerShape(12.dp)
                     )
-                }
+            ) {
+                Icon(
+                    imageVector = if (isGridView) Icons.AutoMirrored.Filled.ViewList else Icons.Default.GridView,
+                    contentDescription = if (isGridView) "Switch to list view" else "Switch to grid view",
+                    tint = if (isGridView) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(24.dp)
+                )
             }
         }
 

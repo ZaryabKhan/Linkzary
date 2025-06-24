@@ -2,6 +2,7 @@ package com.appcodecraft.linkzary.ui.screen.home
 
 // Animation imports removed for better performance
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -40,6 +41,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -139,55 +141,43 @@ fun HomeScreen(
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                // View toggle button
-                Surface(
+                // Enhanced view toggle button
+                IconButton(
                     onClick = { isGridView = !isGridView },
-                    modifier = Modifier.size(40.dp),
-                    shape = RoundedCornerShape(8.dp),
-                    color = if (isGridView) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
-                    border = BorderStroke(
-                        width = 1.dp,
-                        color = if (isGridView) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
-                    )
-                ) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        Icon(
-                            imageVector = if (isGridView) Icons.AutoMirrored.Filled.ViewList else Icons.Default.GridView,
-                            contentDescription = if (isGridView) "List view" else "Grid view",
-                            tint = if (isGridView) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.size(20.dp)
+                    modifier = Modifier
+                        .size(48.dp)
+                        .background(
+                            color = if (isGridView) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f) else Color.Transparent,
+                            shape = RoundedCornerShape(12.dp)
                         )
-                    }
+                ) {
+                    Icon(
+                        imageVector = if (isGridView) Icons.AutoMirrored.Filled.ViewList else Icons.Default.GridView,
+                        contentDescription = if (isGridView) "Switch to list view" else "Switch to grid view",
+                        tint = if (isGridView) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(24.dp)
+                    )
                 }
                 
-                // Sort menu
+                // Enhanced sort menu
                 Box {
-                    Surface(
+                    IconButton(
                         onClick = { showSortMenu = true },
-                        modifier = Modifier.size(40.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        color = MaterialTheme.colorScheme.surface,
-                        border = BorderStroke(
-                            width = 1.dp,
-                            color = MaterialTheme.colorScheme.outline
-                        )
-                    ) {
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier.fillMaxSize()
-                        ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.Sort,
-                                contentDescription = "Sort links",
-                                tint = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.size(20.dp)
+                        modifier = Modifier
+                            .size(48.dp)
+                            .background(
+                                color = if (showSortMenu) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.8f) else Color.Transparent,
+                                shape = RoundedCornerShape(12.dp)
                             )
-                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Sort,
+                            contentDescription = "Sort options",
+                            tint = if (showSortMenu) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(24.dp)
+                        )
                     }
                     
                     DropdownMenu(
