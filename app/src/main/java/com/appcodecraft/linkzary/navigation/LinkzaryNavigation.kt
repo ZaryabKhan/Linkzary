@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.appcodecraft.linkzary.data.preferences.UserPreferencesManager
 import com.appcodecraft.linkzary.ui.screen.collections.CollectionsScreen
 import com.appcodecraft.linkzary.ui.screen.collections.CollectionDetailScreen
 import com.appcodecraft.linkzary.ui.screen.home.HomeScreen
@@ -17,7 +18,8 @@ import com.appcodecraft.linkzary.ui.screen.settings.SettingsScreen
 fun LinkzaryNavigation(
     navController: NavHostController,
     sharedUrl: String? = null,
-    modifier: Modifier
+    modifier: Modifier,
+    userPreferencesManager: UserPreferencesManager
 ) {
     NavHost(
         navController = navController,
@@ -62,7 +64,7 @@ fun LinkzaryNavigation(
             enterTransition = { fadeIn(animationSpec = tween(200)) },
             exitTransition = { fadeOut(animationSpec = tween(200)) }
         ) {
-            SettingsScreen()
+            SettingsScreen(userPreferencesManager = userPreferencesManager)
         }
     }
 }

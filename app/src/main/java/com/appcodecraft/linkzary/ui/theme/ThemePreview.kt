@@ -242,7 +242,7 @@ val colorPalette = listOf(
 @Preview(name = "Light Theme")
 @Composable
 fun ThemeShowcaseLightPreview() {
-    LinkzaryTheme(darkTheme = false, dynamicColor = false) {
+    LinkzaryTheme(userPreferencesManager = null, dynamicColor = false) {
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
@@ -255,7 +255,7 @@ fun ThemeShowcaseLightPreview() {
 @Preview(name = "Dark Theme")
 @Composable
 fun ThemeShowcaseDarkPreview() {
-    LinkzaryTheme(darkTheme = true, dynamicColor = false) {
+    LinkzaryTheme(userPreferencesManager = null, dynamicColor = false) {
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background

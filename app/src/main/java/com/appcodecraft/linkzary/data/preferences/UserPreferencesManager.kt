@@ -6,12 +6,30 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
+enum class ThemeMode {
+    LIGHT, DARK, SYSTEM;
+    
+    companion object {
+        fun fromString(value: String): ThemeMode {
+            return when (value) {
+                "LIGHT" -> LIGHT
+                "DARK" -> DARK
+                else -> SYSTEM
+            }
+        }
+    }
+}
+
 class UserPreferencesManager(context: Context) {
     private val sharedPreferences: SharedPreferences = context.getSharedPreferences(
         "linkzary_preferences",
         Context.MODE_PRIVATE
     )
 
+    // Theme preferences
+    private val _themeMode = MutableStateFlow(getThemeMode())
+    val themeMode: StateFlow<ThemeMode> = _themeMode.asStateFlow()
+    
     // View state preferences
     private val _isHomeGridView = MutableStateFlow(getHomeGridView())
     val isHomeGridView: StateFlow<Boolean> = _isHomeGridView.asStateFlow()
@@ -79,7 +97,21 @@ class UserPreferencesManager(context: Context) {
         return sharedPreferences.getString(KEY_COLLECTIONS_SORT_ORDER, "DATE_DESC") ?: "DATE_DESC"
     }
 
+    // Theme preferences
+    fun setThemeMode(mode: ThemeMode) {
+        sharedPreferences.edit()
+            .putString(KEY_THEME_MODE, mode.name)
+            .apply()
+        _themeMode.value = mode
+    }
+    
+    private fun getThemeMode(): ThemeMode {
+        val themeName = sharedPreferences.getString(KEY_THEME_MODE, ThemeMode.SYSTEM.name) ?: ThemeMode.SYSTEM.name
+        return ThemeMode.fromString(themeName)
+    }
+    
     companion object {
+        private const val KEY_THEME_MODE = "theme_mode"
         private const val KEY_HOME_GRID_VIEW = "home_grid_view"
         private const val KEY_COLLECTIONS_GRID_VIEW = "collections_grid_view"
         private const val KEY_COLLECTION_DETAIL_GRID_VIEW = "collection_detail_grid_view"

@@ -14,13 +14,18 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.appcodecraft.linkzary.data.preferences.UserPreferencesManager
 import com.appcodecraft.linkzary.navigation.LinkzaryNavigation
 import com.appcodecraft.linkzary.ui.component.LinkzaryBottomNavigationBar
 import com.appcodecraft.linkzary.ui.theme.LinkzaryTheme
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    
+    @Inject
+    lateinit var userPreferencesManager: UserPreferencesManager
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,8 +50,11 @@ class MainActivity : ComponentActivity() {
         }
         
         setContent {
-            LinkzaryTheme {
-                LinkzaryApp(sharedUrl = sharedUrl)
+            LinkzaryTheme(userPreferencesManager = userPreferencesManager) {
+                LinkzaryApp(
+                    sharedUrl = sharedUrl,
+                    userPreferencesManager = userPreferencesManager
+                )
             }
         }
     }
@@ -76,7 +84,8 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LinkzaryApp(
-    sharedUrl: String? = null
+    sharedUrl: String? = null,
+    userPreferencesManager: UserPreferencesManager
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -95,7 +104,8 @@ fun LinkzaryApp(
         LinkzaryNavigation(
             navController = navController,
             sharedUrl = sharedUrl,
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(innerPadding),
+            userPreferencesManager = userPreferencesManager
         )
     }
 }

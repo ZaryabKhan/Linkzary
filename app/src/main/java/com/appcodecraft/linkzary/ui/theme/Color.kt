@@ -53,14 +53,14 @@ val DarkOnError = Color(0xFF7F1D1D)
 val DarkErrorContainer = Color(0xFFDC2626)
 val DarkOnErrorContainer = Color(0xFFFEE2E2)
 
-val DarkBackground = Color(0xFF0F172A) // Deep slate
-val DarkOnBackground = Color(0xFFF1F5F9)
-val DarkSurface = Color(0xFF1E293B) // Slate surface
-val DarkOnSurface = Color(0xFFF1F5F9)
-val DarkSurfaceVariant = Color(0xFF334155)
-val DarkOnSurfaceVariant = Color(0xFF94A3B8)
-val DarkOutline = Color(0xFF475569)
-val DarkOutlineVariant = Color(0xFF64748B)
+val DarkBackground = Color(0xFF121212) // Material Design dark background
+val DarkOnBackground = Color(0xFFE3E3E3)
+val DarkSurface = Color(0xFF1E1E1E) // Elevated surface
+val DarkOnSurface = Color(0xFFE3E3E3)
+val DarkSurfaceVariant = Color(0xFF2C2C2C)
+val DarkOnSurfaceVariant = Color(0xFFB3B3B3)
+val DarkOutline = Color(0xFF404040)
+val DarkOutlineVariant = Color(0xFF525252)
 
 // Legacy colors for backward compatibility
 val Purple80 = DarkPrimary

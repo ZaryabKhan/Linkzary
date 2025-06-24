@@ -33,17 +33,22 @@ import com.appcodecraft.linkzary.ui.theme.LinkzaryTheme
 import com.appcodecraft.linkzary.ui.screen.settings.SettingsViewModel
 import com.appcodecraft.linkzary.ui.screen.settings.ImportExportViewModel
 import com.appcodecraft.linkzary.data.model.ImportMode
+import com.appcodecraft.linkzary.data.preferences.ThemeMode
+import com.appcodecraft.linkzary.data.preferences.UserPreferencesManager
+import javax.inject.Inject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
-    importExportViewModel: ImportExportViewModel = hiltViewModel()
+    importExportViewModel: ImportExportViewModel = hiltViewModel(),
+    userPreferencesManager: UserPreferencesManager
 ) {
     val context = LocalContext.current
     
     var showAboutDialog by remember { mutableStateOf(false) }
     var showLanguageDialog by remember { mutableStateOf(false) }
+    var showThemeDialog by remember { mutableStateOf(false) }
     var showClearDataDialog by remember { mutableStateOf(false) }
     var showDonationDialog by remember { mutableStateOf(false) }
     var showExportDialog by remember { mutableStateOf(false) }
@@ -53,6 +58,8 @@ fun SettingsScreen(
     val importProgress by importExportViewModel.importProgress.collectAsState()
     val importResult by importExportViewModel.importResult.collectAsState()
     val importPreview by importExportViewModel.importPreview.collectAsState()
+    
+    val currentThemeMode by userPreferencesManager.themeMode.collectAsState()
     
     val jsonExportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json")
@@ -111,9 +118,13 @@ fun SettingsScreen(
                 SettingsItem(
                     icon = Icons.Default.Palette,
                     title = "Theme",
-                    subtitle = "System default",
+                    subtitle = when (currentThemeMode) {
+                        ThemeMode.LIGHT -> "Light"
+                        ThemeMode.DARK -> "Dark"
+                        ThemeMode.SYSTEM -> "System default"
+                    },
                     onClick = {
-                        // Theme selection will be implemented later
+                        showThemeDialog = true
                     }
                 )
             }
@@ -250,6 +261,18 @@ fun SettingsScreen(
             onLanguageSelected = { language ->
                 // Language selection will be implemented later
                 showLanguageDialog = false
+            }
+        )
+    }
+    
+    // Theme Dialog
+    if (showThemeDialog) {
+        ThemeSelectionDialog(
+            currentTheme = currentThemeMode,
+            onDismiss = { showThemeDialog = false },
+            onThemeSelected = { theme ->
+                userPreferencesManager.setThemeMode(theme)
+                showThemeDialog = false
             }
         )
     }
@@ -878,9 +901,13 @@ fun openDeveloperProfile(context: Context) {
 @Preview
 @Composable
 fun SettingsScreenPreview() {
+    val context = LocalContext.current
     LinkzaryTheme {
         Surface {
-            SettingsScreen()
+            // Create a real instance for preview
+            SettingsScreen(
+                userPreferencesManager = UserPreferencesManager(context)
+            )
         }
     }
 }
