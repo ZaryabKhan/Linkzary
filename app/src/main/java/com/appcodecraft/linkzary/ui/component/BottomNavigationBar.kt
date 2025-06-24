@@ -1,7 +1,6 @@
 package com.appcodecraft.linkzary.ui.component
 
-import androidx.compose.animation.core.*
-import androidx.compose.animation.animateColorAsState
+// Animation imports removed for better performance
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Home
@@ -13,7 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
+// Scale import removed
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
@@ -54,20 +53,8 @@ fun LinkzaryBottomNavigationBar(
         bottomNavItems.forEach { item ->
             val isSelected = currentRoute == item.screen.route
             
-            val iconScale by animateFloatAsState(
-                targetValue = if (isSelected) 1.1f else 1.0f,
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessMedium
-                ),
-                label = "iconScale"
-            )
-            
-            val iconTint by animateColorAsState(
-                targetValue = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                animationSpec = tween(200),
-                label = "iconTint"
-            )
+            // Static values for better performance
+            val iconTint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
             
             NavigationBarItem(
                 icon = {
@@ -75,7 +62,7 @@ fun LinkzaryBottomNavigationBar(
                         imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
                         contentDescription = item.screen.title,
                         tint = iconTint,
-                        modifier = Modifier.scale(iconScale)
+                        // Scale modifier removed for better performance
                     )
                 },
                 label = { Text(item.screen.title) },

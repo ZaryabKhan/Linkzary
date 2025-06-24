@@ -1,9 +1,8 @@
 package com.appcodecraft.linkzary.ui.screen.collections
 
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
+// Animation imports removed for better performance
 import androidx.compose.foundation.background
-import kotlinx.coroutines.delay
+// Delay import removed
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -317,40 +316,18 @@ fun CollectionsScreen(
                         modifier = Modifier.weight(1f)
                     ) {
                         items(uiState.collections) { collection ->
-                            var isVisible by remember { mutableStateOf(false) }
-                            val index = uiState.collections.indexOf(collection)
-                            val animationDelay = (index * 50).coerceAtMost(300)
-
-                            LaunchedEffect(collection.id) {
-                                delay(animationDelay.toLong())
-                                isVisible = true
-                            }
-
-                            AnimatedVisibility(
-                                visible = isVisible,
-                                enter = slideInVertically(
-                                    animationSpec = spring(
-                                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                                        stiffness = Spring.StiffnessLow
-                                    ),
-                                    initialOffsetY = { it / 3 }
-                                ) + fadeIn(
-                                    animationSpec = tween(300)
-                                )
-                            ) {
-                                CollectionCard(
-                                    collection = collection,
-                                    linkCount = uiState.collectionsWithCounts[collection.id] ?: 0,
-                                    onCardClick = {
-                                        navController?.navigate(
-                                            Screen.CollectionDetail.createRoute(collection.id.toString())
-                                        )
-                                    },
-                                    onMoreClick = {
-                                        selectedCollection = collection
-                                    }
-                                )
-                            }
+                            CollectionCard(
+                                collection = collection,
+                                linkCount = uiState.collectionsWithCounts[collection.id] ?: 0,
+                                onCardClick = {
+                                    navController?.navigate(
+                                        Screen.CollectionDetail.createRoute(collection.id.toString())
+                                    )
+                                },
+                                onMoreClick = {
+                                    selectedCollection = collection
+                                }
+                            )
                         }
                     }
                 } else {
@@ -360,40 +337,18 @@ fun CollectionsScreen(
                         modifier = Modifier.weight(1f)
                     ) {
                         items(uiState.collections) { collection ->
-                            var isVisible by remember { mutableStateOf(false) }
-                            val index = uiState.collections.indexOf(collection)
-                            val animationDelay = (index * 50).coerceAtMost(300)
-
-                            LaunchedEffect(collection.id) {
-                                delay(animationDelay.toLong())
-                                isVisible = true
-                            }
-
-                            AnimatedVisibility(
-                                visible = isVisible,
-                                enter = slideInHorizontally(
-                                    animationSpec = spring(
-                                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                                        stiffness = Spring.StiffnessLow
-                                    ),
-                                    initialOffsetX = { -it / 2 }
-                                ) + fadeIn(
-                                    animationSpec = tween(300)
-                                )
-                            ) {
-                                CollectionCard(
-                                    collection = collection,
-                                    linkCount = uiState.collectionsWithCounts[collection.id] ?: 0,
-                                    onCardClick = {
-                                        navController?.navigate(
-                                            Screen.CollectionDetail.createRoute(collection.id.toString())
-                                        )
-                                    },
-                                    onMoreClick = {
-                                        selectedCollection = collection
-                                    }
-                                )
-                            }
+                            CollectionCard(
+                                collection = collection,
+                                linkCount = uiState.collectionsWithCounts[collection.id] ?: 0,
+                                onCardClick = {
+                                    navController?.navigate(
+                                        Screen.CollectionDetail.createRoute(collection.id.toString())
+                                    )
+                                },
+                                onMoreClick = {
+                                    selectedCollection = collection
+                                }
+                            )
                         }
                     }
                 }

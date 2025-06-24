@@ -1,7 +1,6 @@
 package com.appcodecraft.linkzary.ui.component
 
-import androidx.compose.animation.core.*
-import androidx.compose.animation.animateColorAsState
+// Animation imports removed for better performance
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -65,54 +64,16 @@ fun CollectionCard(
     onMoreClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Animation states
+    // Static interaction source for click handling only
     val interactionSource = remember { MutableInteractionSource() }
-    val isHovered by interactionSource.collectIsHoveredAsState()
-    val isPressed by interactionSource.collectIsPressedAsState()
     
-    // Animated values
-    val scale by animateFloatAsState(
-        targetValue = when {
-            isPressed -> 0.97f
-            isHovered -> 1.02f
-            else -> 1f
-        },
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "collection_card_scale"
-    )
-    
-    val elevation by animateDpAsState(
-        targetValue = when {
-            isPressed -> 1.dp
-            isHovered -> 6.dp
-            else -> 2.dp
-        },
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
-        ),
-        label = "collection_card_elevation"
-    )
-    
-    val containerColor by animateColorAsState(
-        targetValue = if (isHovered) 
-            MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
-        else 
-            MaterialTheme.colorScheme.surface,
-        animationSpec = tween(durationMillis = 200),
-        label = "collection_container_color"
-    )
+    // Static values for better performance
+    val elevation = 2.dp
+    val containerColor = MaterialTheme.colorScheme.surface
 
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-            }
             .clickable(
                 interactionSource = interactionSource,
                 indication = null
