@@ -2,6 +2,7 @@ package com.appcodecraft.linkzary.di
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.RoomDatabase
 import com.appcodecraft.linkzary.data.dao.CollectionDao
 import com.appcodecraft.linkzary.data.dao.SavedLinkDao
 import com.appcodecraft.linkzary.data.database.LinkzaryDatabase
@@ -24,7 +25,11 @@ object DatabaseModule {
             context,
             LinkzaryDatabase::class.java,
             LinkzaryDatabase.DATABASE_NAME
-        ).build()
+        )
+            .setJournalMode(RoomDatabase.JournalMode.WRITE_AHEAD_LOGGING)
+            .setQueryExecutor(java.util.concurrent.Executors.newFixedThreadPool(4))
+            .enableMultiInstanceInvalidation()
+            .build()
     }
 
     @Provides
