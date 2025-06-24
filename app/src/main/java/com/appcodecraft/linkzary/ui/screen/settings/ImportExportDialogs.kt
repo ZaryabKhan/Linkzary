@@ -42,6 +42,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.appcodecraft.linkzary.R
 import com.appcodecraft.linkzary.data.model.ImportMode
 import com.appcodecraft.linkzary.data.model.ImportPreview
 import com.appcodecraft.linkzary.data.model.ImportProgress
@@ -124,7 +126,7 @@ fun ExportDataDialog(
                             },
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("Export as JSON")
+                            Text(stringResource(R.string.settings_export_as_json))
                         }
                     }
                 }
@@ -172,7 +174,7 @@ fun ExportDataDialog(
                             },
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("Export as CSV")
+                            Text(stringResource(R.string.settings_export_as_csv))
                         }
                     }
                 }
@@ -181,7 +183,7 @@ fun ExportDataDialog(
         confirmButton = {},
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.common_cancel))
             }
         }
     )
@@ -281,12 +283,12 @@ fun ImportDataDialog(
                     onDismiss()
                 }
             ) {
-                Text("Select File")
+                Text(stringResource(R.string.settings_select_file))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.common_cancel))
             }
         }
     )
@@ -526,12 +528,12 @@ fun ImportPreviewDialog(
             Button(
                 onClick = { onConfirmImport(selectedMode) }
             ) {
-                Text("Import")
+                Text(stringResource(R.string.settings_import))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.common_cancel))
             }
         }
     )
@@ -602,7 +604,7 @@ fun ImportProgressDialog(
         confirmButton = {
             if (progress.currentStep == ImportStep.COMPLETED) {
                 Button(onClick = onDismiss) {
-                    Text("Done")
+                    Text(stringResource(R.string.common_done))
                 }
             }
         }
@@ -660,13 +662,13 @@ fun ImportResultDialog(
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             
-                            Text("• ${result.importedLinks} links imported")
-                            Text("• ${result.importedCollections} collections imported")
+                            Text(stringResource(R.string.settings_import_links_imported, result.importedLinks))
+                            Text(stringResource(R.string.settings_import_collections_imported, result.importedCollections))
                             if (result.skippedLinks > 0) {
-                                Text("• ${result.skippedLinks} duplicate links skipped")
+                                Text(stringResource(R.string.settings_import_links_skipped, result.skippedLinks))
                             }
                             if (result.renamedCollections.isNotEmpty()) {
-                                Text("• ${result.renamedCollections.size} collections renamed")
+                                Text(stringResource(R.string.settings_import_collections_renamed, result.renamedCollections.size))
                                 result.renamedCollections.forEach { rename ->
                                     Text(
                                         text = "  - $rename",
@@ -695,7 +697,7 @@ fun ImportResultDialog(
         },
         confirmButton = {
             Button(onClick = onDismiss) {
-                Text("OK")
+                Text(stringResource(R.string.common_ok))
             }
         }
     )

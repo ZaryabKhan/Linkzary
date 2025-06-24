@@ -78,8 +78,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.appcodecraft.linkzary.R
 import com.appcodecraft.linkzary.data.entity.SavedLink
 import com.appcodecraft.linkzary.navigation.Screen
 import com.appcodecraft.linkzary.ui.component.BookmarkCard
@@ -141,13 +143,13 @@ fun HomeScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Bookmark,
-                        contentDescription = "Linkzary",
+                        contentDescription = stringResource(R.string.home_linkzary_title),
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(32.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Linkzary",
+                        text = stringResource(R.string.home_linkzary_title),
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold
                     )
@@ -157,13 +159,13 @@ fun HomeScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Link,
-                        contentDescription = "Links count",
+                        contentDescription = stringResource(R.string.collections_count),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "${uiState.links.size} saved links",
+                        text = stringResource(R.string.home_saved_links, uiState.links.size),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -186,7 +188,7 @@ fun HomeScreen(
                 ) {
                     Icon(
                         imageVector = if (isGridView) Icons.AutoMirrored.Filled.ViewList else Icons.Default.GridView,
-                        contentDescription = if (isGridView) "Switch to list view" else "Switch to grid view",
+                        contentDescription = if (isGridView) stringResource(R.string.home_switch_to_list_view) else stringResource(R.string.home_switch_to_grid_view),
                         tint = if (isGridView) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(24.dp)
                     )
@@ -205,7 +207,7 @@ fun HomeScreen(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Sort,
-                            contentDescription = "Sort options",
+                            contentDescription = stringResource(R.string.home_sort_options),
                             tint = if (showSortMenu) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(24.dp)
                         )
@@ -216,7 +218,7 @@ fun HomeScreen(
                         onDismissRequest = { showSortMenu = false }
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Pinned First") },
+                            text = { Text(stringResource(R.string.home_pinned_first)) },
                             onClick = {
                                 viewModel.setSortOrder(LinkSortOrder.PINNED_FIRST)
                                 showSortMenu = false
@@ -226,7 +228,7 @@ fun HomeScreen(
                             }
                         )
                         DropdownMenuItem(
-                            text = { Text("Newest First") },
+                            text = { Text(stringResource(R.string.home_newest_first)) },
                             onClick = {
                                 viewModel.setSortOrder(LinkSortOrder.DATE_DESC)
                                 showSortMenu = false
@@ -236,7 +238,7 @@ fun HomeScreen(
                             }
                         )
                         DropdownMenuItem(
-                            text = { Text("Oldest First") },
+                            text = { Text(stringResource(R.string.home_oldest_first)) },
                             onClick = {
                                 viewModel.setSortOrder(LinkSortOrder.DATE_ASC)
                                 showSortMenu = false
@@ -246,7 +248,7 @@ fun HomeScreen(
                             }
                         )
                         DropdownMenuItem(
-                            text = { Text("Title A-Z") },
+                            text = { Text(stringResource(R.string.home_title_a_z)) },
                             onClick = {
                                 viewModel.setSortOrder(LinkSortOrder.TITLE_ASC)
                                 showSortMenu = false
@@ -256,7 +258,7 @@ fun HomeScreen(
                             }
                         )
                         DropdownMenuItem(
-                            text = { Text("Title Z-A") },
+                            text = { Text(stringResource(R.string.home_title_z_a)) },
                             onClick = {
                                 viewModel.setSortOrder(LinkSortOrder.TITLE_DESC)
                                 showSortMenu = false
@@ -275,7 +277,7 @@ fun HomeScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
-                        contentDescription = "Add link"
+                        contentDescription = stringResource(R.string.home_add_link)
                     )
                 }
             }
@@ -292,11 +294,11 @@ fun HomeScreen(
                 viewModel.updateSearchQuery(newQuery)
             },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Search bookmarks...") },
+            placeholder = { Text(stringResource(R.string.home_search_bookmarks)) },
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Search,
-                    contentDescription = "Search",
+                    contentDescription = stringResource(R.string.home_search),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },
@@ -310,7 +312,7 @@ fun HomeScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Clear,
-                            contentDescription = "Clear search",
+                            contentDescription = stringResource(R.string.home_clear_search),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -336,7 +338,7 @@ fun HomeScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Filter by Tags",
+                    text = stringResource(R.string.home_filter_by_tags),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -346,7 +348,7 @@ fun HomeScreen(
                         onClick = { selectedTags = setOf() }
                     ) {
                         Text(
-                            text = "Clear (${selectedTags.size})",
+                            text = stringResource(R.string.home_clear_tags, selectedTags.size),
                             style = MaterialTheme.typography.labelSmall
                         )
                     }
@@ -374,7 +376,7 @@ fun HomeScreen(
                             {
                                 Icon(
                                     imageVector = Icons.Default.Check,
-                                    contentDescription = "Selected",
+                                    contentDescription = stringResource(R.string.home_selected),
                                     modifier = Modifier.size(16.dp)
                                 )
                             }
@@ -393,13 +395,13 @@ fun HomeScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.Folder,
-                    contentDescription = "Collections",
+                    contentDescription = stringResource(R.string.nav_collections),
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Recent Collections",
+                    text = stringResource(R.string.home_recent_collections),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -439,13 +441,13 @@ fun HomeScreen(
             ) {
                 Icon(
                     imageVector = if (localSearchQuery.isBlank()) Icons.Default.History else Icons.Default.Search,
-                    contentDescription = if (localSearchQuery.isBlank()) "Recent" else "Search",
+                    contentDescription = if (localSearchQuery.isBlank()) stringResource(R.string.home_recent) else stringResource(R.string.home_search),
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = if (localSearchQuery.isBlank()) "Recent Bookmarks" else "Search Results (${uiState.links.size})",
+                    text = if (localSearchQuery.isBlank()) stringResource(R.string.home_recent_bookmarks) else stringResource(R.string.home_search_results, uiState.links.size),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -491,9 +493,9 @@ fun HomeScreen(
                     ) {
                         Text(
                             text = when {
-                                selectedTags.isNotEmpty() -> "No bookmarks with selected tags"
-                                localSearchQuery.isNotBlank() -> "No results found"
-                                else -> "No bookmarks yet"
+                                selectedTags.isNotEmpty() -> stringResource(R.string.home_no_bookmarks_tags)
+                localSearchQuery.isNotBlank() -> stringResource(R.string.home_no_results_found)
+                else -> stringResource(R.string.home_no_bookmarks_yet)
                             },
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -501,7 +503,7 @@ fun HomeScreen(
                         if (localSearchQuery.isBlank() && selectedTags.isEmpty()) {
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "Start saving your favorite links",
+                                text = stringResource(R.string.home_start_saving_links),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -634,10 +636,10 @@ fun AddLinkDialog(
     
     fun validateUrl(input: String): Boolean {
         return input.isNotBlank() && (
-            input.startsWith("http://") || 
-            input.startsWith("https://") ||
-            input.startsWith("www.") ||
-            input.contains(".") && input.length > 3
+            input.startsWith("http://") ||
+                input.startsWith("https://") ||
+                input.startsWith("www.") ||
+                input.contains(".") && input.length > 3
         )
     }
 
@@ -649,12 +651,12 @@ fun AddLinkDialog(
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "Add link",
+                    contentDescription = stringResource(R.string.add_link_title),
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Add Link")
+                Text(stringResource(R.string.add_link_title))
             }
         },
         text = {
@@ -665,12 +667,12 @@ fun AddLinkDialog(
                         url = it
                         isValidUrl = validateUrl(it)
                     },
-                    label = { Text("URL") },
-                    placeholder = { Text("https://example.com") },
+                    label = { Text(stringResource(R.string.add_link_url_label)) },
+            placeholder = { Text(stringResource(R.string.add_link_url_placeholder)) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Link,
-                            contentDescription = "URL",
+                            contentDescription = stringResource(R.string.add_link_url_hint),
                             tint = if (isValidUrl || url.isEmpty()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error
                         )
                     },
@@ -678,7 +680,7 @@ fun AddLinkDialog(
                     singleLine = true,
                     isError = !isValidUrl && url.isNotEmpty(),
                     supportingText = if (!isValidUrl && url.isNotEmpty()) {
-                        { Text("Please enter a valid URL", color = MaterialTheme.colorScheme.error) }
+                        { Text(stringResource(R.string.add_link_invalid_url), color = MaterialTheme.colorScheme.error) }
                     } else null
                 )
             }
@@ -688,12 +690,12 @@ fun AddLinkDialog(
                 onClick = { onSave(url) },
                 enabled = url.isNotBlank() && isValidUrl
             ) {
-                Text("Save")
+                Text(stringResource(R.string.add_link_save))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.add_link_cancel))
             }
         }
     )
@@ -722,7 +724,7 @@ fun LinkOptionsBottomSheet(
                 .padding(16.dp)
         ) {
             Text(
-                text = "Link Options",
+                text = stringResource(R.string.link_options_title),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.padding(bottom = 24.dp)
@@ -731,16 +733,16 @@ fun LinkOptionsBottomSheet(
             // Edit option
             OptionItem(
                 icon = Icons.Default.Edit,
-                title = "Edit Link",
-                subtitle = "Modify title, URL, or notes",
+                title = stringResource(R.string.link_edit_title),
+            subtitle = stringResource(R.string.link_edit_subtitle),
                 onClick = { showEditDialog = true }
             )
 
             // Pin/Unpin option
             OptionItem(
                 icon = if (link.isPinned) Icons.Default.PushPin else Icons.Outlined.PushPin,
-                title = if (link.isPinned) "Unpin" else "Pin to Top",
-                subtitle = if (link.isPinned) "Remove from pinned links" else "Keep at the top of your list",
+                title = if (link.isPinned) stringResource(R.string.link_unpin_title) else stringResource(R.string.link_pin_title),
+            subtitle = if (link.isPinned) stringResource(R.string.link_unpin_subtitle) else stringResource(R.string.link_pin_subtitle),
                 onClick = {
                     onTogglePin()
                     onDismiss()
@@ -750,16 +752,16 @@ fun LinkOptionsBottomSheet(
             // Move to Collection option
             OptionItem(
                 icon = Icons.AutoMirrored.Filled.DriveFileMove,
-                title = "Move to Collection",
-                subtitle = "Organize in a collection",
+                title = stringResource(R.string.link_move_title),
+            subtitle = stringResource(R.string.link_move_subtitle),
                 onClick = { showCollectionDialog = true }
             )
 
             // Delete option
             OptionItem(
                 icon = Icons.Default.Delete,
-                title = "Delete",
-                subtitle = "Remove this link permanently",
+                title = stringResource(R.string.link_delete_title),
+            subtitle = stringResource(R.string.link_delete_subtitle),
                 onClick = { showDeleteConfirmation = true },
                 isDestructive = true
             )
@@ -798,8 +800,8 @@ fun LinkOptionsBottomSheet(
     if (showDeleteConfirmation) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirmation = false },
-            title = { Text("Delete Link") },
-            text = { Text("Are you sure you want to delete this link? This action cannot be undone.") },
+            title = { Text(stringResource(R.string.delete_link_title)) },
+        text = { Text(stringResource(R.string.delete_link_message)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -809,7 +811,7 @@ fun LinkOptionsBottomSheet(
                     }
                 ) {
                     Text(
-                        text = "Delete",
+                        text = stringResource(R.string.delete_link_confirm),
                         color = MaterialTheme.colorScheme.error
                     )
                 }
@@ -818,7 +820,7 @@ fun LinkOptionsBottomSheet(
                 TextButton(
                     onClick = { showDeleteConfirmation = false }
                 ) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.delete_link_cancel))
                 }
             }
         )
@@ -839,17 +841,17 @@ fun EditLinkDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Edit Link") },
+        title = { Text(stringResource(R.string.edit_link_title)) },
         text = {
             Column {
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text("Title") },
+                    label = { Text(stringResource(R.string.edit_link_title_label)) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Title,
-                            contentDescription = "Title",
+                            contentDescription = stringResource(R.string.edit_link_title_label),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     },
@@ -862,11 +864,11 @@ fun EditLinkDialog(
                 OutlinedTextField(
                     value = url,
                     onValueChange = { url = it },
-                    label = { Text("URL") },
+                    label = { Text(stringResource(R.string.edit_link_url_label)) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Link,
-                            contentDescription = "URL",
+                            contentDescription = stringResource(R.string.edit_link_url_label),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     },
@@ -879,11 +881,11 @@ fun EditLinkDialog(
                 OutlinedTextField(
                     value = note,
                     onValueChange = { note = it },
-                    label = { Text("Note (optional)") },
+                    label = { Text(stringResource(R.string.edit_link_note_label)) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Notes,
-                            contentDescription = "Note",
+                            contentDescription = stringResource(R.string.edit_link_note_label),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     },
@@ -896,11 +898,11 @@ fun EditLinkDialog(
                 OutlinedTextField(
                     value = tags,
                     onValueChange = { tags = it },
-                    label = { Text("Tags (comma separated)") },
+                    label = { Text(stringResource(R.string.edit_link_tags_label)) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Tag,
-                            contentDescription = "Tags",
+                            contentDescription = stringResource(R.string.edit_link_tags_label),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     },
@@ -923,12 +925,12 @@ fun EditLinkDialog(
                 },
                 enabled = title.isNotBlank() && url.isNotBlank()
             ) {
-                Text("Save")
+                Text(stringResource(R.string.edit_link_save))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.edit_link_cancel))
             }
         }
     )
@@ -999,7 +1001,7 @@ fun CollectionSelectionDialog(
         onDismissRequest = onDismiss,
         title = { 
             Text(
-                text = "Move to Collection",
+                text = stringResource(R.string.move_link_title),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold
             )
@@ -1013,7 +1015,7 @@ fun CollectionSelectionDialog(
                 item {
                     CollectionOption(
                         icon = Icons.Default.FolderOpen,
-                        name = "No Collection",
+                        name = stringResource(R.string.move_link_no_collection),
                         color = MaterialTheme.colorScheme.outline.value.toInt(),
                         isSelected = currentCollectionId == null,
                         onClick = { onCollectionSelected(null) }
@@ -1047,7 +1049,7 @@ fun CollectionSelectionDialog(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.CreateNewFolder,
-                                contentDescription = "Create new collection",
+                                contentDescription = stringResource(R.string.cd_create_new_collection),
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(24.dp)
                             )
@@ -1055,7 +1057,7 @@ fun CollectionSelectionDialog(
                             Spacer(modifier = Modifier.width(16.dp))
                             
                             Text(
-                                text = "Create New Collection",
+                                text = stringResource(R.string.move_link_create_new),
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.Medium,
                                 color = MaterialTheme.colorScheme.primary
@@ -1068,7 +1070,7 @@ fun CollectionSelectionDialog(
         confirmButton = {},
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.move_link_cancel))
             }
         }
     )
@@ -1128,7 +1130,7 @@ fun CollectionOption(
             if (isSelected) {
                 Icon(
                     imageVector = Icons.Default.Check,
-                    contentDescription = "Selected",
+                    contentDescription = stringResource(R.string.cd_selected),
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(20.dp)
                 )
@@ -1174,12 +1176,12 @@ fun CreateCollectionDialog(
             ) {
                 Icon(
                     imageVector = Icons.Default.CreateNewFolder,
-                    contentDescription = "Create collection",
+                    contentDescription = stringResource(R.string.cd_create_collection),
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Create Collection")
+                Text(stringResource(R.string.create_collection_title))
             }
         },
         text = {
@@ -1191,12 +1193,12 @@ fun CreateCollectionDialog(
                             name = newValue
                         }
                     },
-                    label = { Text("Collection Name") },
-                    placeholder = { Text("Enter collection name") },
+                    label = { Text(stringResource(R.string.create_collection_name_label)) },
+            placeholder = { Text(stringResource(R.string.create_collection_name_placeholder)) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Folder,
-                            contentDescription = "Collection name",
+                            contentDescription = stringResource(R.string.create_collection_name_hint),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     },
@@ -1214,7 +1216,7 @@ fun CreateCollectionDialog(
                 Spacer(modifier = Modifier.height(16.dp))
                 
                 Text(
-                    text = "Choose Color",
+                    text = stringResource(R.string.create_collection_choose_color),
                     style = MaterialTheme.typography.labelMedium
                 )
                 
@@ -1259,12 +1261,12 @@ fun CreateCollectionDialog(
                 onClick = { onCreate(name, selectedColor) },
                 enabled = name.isNotBlank()
             ) {
-                Text("Create")
+                Text(stringResource(R.string.create_collection_create))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.create_collection_cancel))
             }
         }
     )
@@ -1279,7 +1281,7 @@ fun HomeScreenPreview() {
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Text("Home Screen with Enhanced Link Options")
+                Text(stringResource(R.string.home_screen_preview))
             }
         }
     }

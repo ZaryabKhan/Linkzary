@@ -29,6 +29,8 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import com.appcodecraft.linkzary.R
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -95,7 +97,7 @@ fun ThemeShowcase() {
                 modifier = Modifier.size(18.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Text("Add Bookmark")
+            Text(stringResource(R.string.home_add_bookmark))
         }
         
         // Outlined button
@@ -109,7 +111,7 @@ fun ThemeShowcase() {
                 modifier = Modifier.size(18.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Text("View Collections")
+            Text(stringResource(R.string.home_view_collections))
         }
         
         // Cards showcase

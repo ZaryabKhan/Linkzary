@@ -68,6 +68,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.res.stringResource
+import com.appcodecraft.linkzary.R
 import com.appcodecraft.linkzary.data.preferences.ThemeMode
 import com.appcodecraft.linkzary.data.preferences.UserPreferencesManager
 import com.appcodecraft.linkzary.ui.theme.LinkzaryTheme
@@ -146,17 +148,17 @@ fun SettingsScreen(
             
             // General Section
             item {
-                SettingsSectionHeader("General")
+                SettingsSectionHeader(stringResource(R.string.settings_general))
             }
             
             item {
                 SettingsItem(
                     icon = Icons.Default.Palette,
-                    title = "Theme",
+                    title = stringResource(R.string.settings_theme),
                     subtitle = when (currentThemeMode) {
-                        ThemeMode.LIGHT -> "Light"
-                        ThemeMode.DARK -> "Dark"
-                        ThemeMode.SYSTEM -> "System default"
+                        ThemeMode.LIGHT -> stringResource(R.string.settings_theme_light)
+                        ThemeMode.DARK -> stringResource(R.string.settings_theme_dark)
+                        ThemeMode.SYSTEM -> stringResource(R.string.settings_theme_system)
                     },
                     onClick = {
                         showThemeDialog = true
@@ -167,8 +169,8 @@ fun SettingsScreen(
             item {
                 SettingsItem(
                     icon = Icons.Default.Language,
-                    title = "Language",
-                    subtitle = "English",
+                    title = stringResource(R.string.settings_language),
+                    subtitle = stringResource(R.string.settings_language_english),
                     onClick = {
                         showLanguageDialog = true
                     }
@@ -178,14 +180,14 @@ fun SettingsScreen(
             // Data Section
             item {
                 Spacer(modifier = Modifier.height(16.dp))
-                SettingsSectionHeader("Data")
+                SettingsSectionHeader(stringResource(R.string.settings_data))
             }
             
             item {
                 SettingsItem(
                     icon = Icons.Default.Upload,
-                    title = "Export Data",
-                    subtitle = "Export your bookmarks and collections",
+                    title = stringResource(R.string.settings_export_data),
+                    subtitle = stringResource(R.string.settings_export_description),
                     onClick = {
                         showExportDialog = true
                     }
@@ -195,8 +197,8 @@ fun SettingsScreen(
             item {
                 SettingsItem(
                     icon = Icons.Default.Download,
-                    title = "Import Data",
-                    subtitle = "Import bookmarks from file",
+                    title = stringResource(R.string.settings_import_data),
+                    subtitle = stringResource(R.string.settings_import_description),
                     onClick = {
                         importLauncher.launch(arrayOf("application/json", "text/csv", "text/plain", "*/*"))
                     }
@@ -206,14 +208,14 @@ fun SettingsScreen(
             // Privacy Section
             item {
                 Spacer(modifier = Modifier.height(16.dp))
-                SettingsSectionHeader("Privacy")
+                SettingsSectionHeader(stringResource(R.string.settings_privacy))
             }
             
             item {
                 SettingsItem(
                     icon = Icons.Default.Security,
-                    title = "Privacy Policy",
-                    subtitle = "View our privacy policy",
+                    title = stringResource(R.string.settings_privacy_policy),
+                    subtitle = stringResource(R.string.settings_privacy_description),
                     onClick = {
                         openPrivacyPolicy(context)
                     }
@@ -223,8 +225,8 @@ fun SettingsScreen(
             item {
                 SettingsItem(
                     icon = Icons.Default.Delete,
-                    title = "Clear All Data",
-                    subtitle = "Delete all bookmarks and collections",
+                    title = stringResource(R.string.settings_clear_data),
+                    subtitle = stringResource(R.string.settings_clear_data_description),
                     onClick = {
                         showClearDataDialog = true
                     },
@@ -235,14 +237,14 @@ fun SettingsScreen(
             // About Section
             item {
                 Spacer(modifier = Modifier.height(16.dp))
-                SettingsSectionHeader("About")
+                SettingsSectionHeader(stringResource(R.string.settings_about))
             }
             
             item {
                 SettingsItem(
                     icon = Icons.Default.Info,
-                    title = "About Linkzary",
-                    subtitle = "Version 1.0.0",
+                    title = stringResource(R.string.settings_about_app),
+                    subtitle = stringResource(R.string.settings_version, "1.0.0"),
                     onClick = {
                         showAboutDialog = true
                     }
@@ -252,8 +254,8 @@ fun SettingsScreen(
             item {
                 SettingsItem(
                     icon = Icons.Default.Star,
-                    title = "Rate App",
-                    subtitle = "Rate us on Google Play",
+                    title = stringResource(R.string.settings_rate_app),
+                    subtitle = stringResource(R.string.settings_rate_description),
                     onClick = {
                         openLinkzaryInPlayStore(context)
                     }
@@ -263,8 +265,8 @@ fun SettingsScreen(
             item {
                 SettingsItem(
                     icon = Icons.Default.Feedback,
-                    title = "Send Feedback",
-                    subtitle = "Help us improve the app",
+                    title = stringResource(R.string.settings_send_feedback),
+                    subtitle = stringResource(R.string.settings_feedback_description),
                     onClick = {
                         sendFeedbackEmail(context)
                     }
@@ -274,8 +276,8 @@ fun SettingsScreen(
             item {
                 SettingsItem(
                     icon = Icons.Default.Person,
-                    title = "Visit Developer Profile",
-                    subtitle = "More apps by AppCodeCraft",
+                    title = stringResource(R.string.settings_developer_profile),
+                    subtitle = stringResource(R.string.settings_developer_description),
                     onClick = {
                         openDeveloperProfile(context)
                     }
@@ -449,7 +451,7 @@ fun DonationHeader(
                 Spacer(modifier = Modifier.height(12.dp))
                 
                 Text(
-                    text = "Support Linkzary",
+                    text = stringResource(R.string.settings_support_title),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -459,7 +461,7 @@ fun DonationHeader(
                 Spacer(modifier = Modifier.height(8.dp))
                 
                 Text(
-                    text = "Help us keep Linkzary free and ad-free! Your support means the world to us.",
+                    text = stringResource(R.string.settings_support_description),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
                     textAlign = TextAlign.Center
@@ -481,7 +483,7 @@ fun DonationHeader(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Donate Now",
+                        text = stringResource(R.string.settings_donate_button),
                         fontWeight = FontWeight.SemiBold
                     )
                 }
@@ -489,7 +491,7 @@ fun DonationHeader(
                 Spacer(modifier = Modifier.height(8.dp))
                 
                 Text(
-                    text = "Donations are voluntary and don't unlock features",
+                    text = stringResource(R.string.settings_donate_disclaimer),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f),
                     textAlign = TextAlign.Center
@@ -582,22 +584,22 @@ fun LanguageSelectionDialog(
     onLanguageSelected: (String) -> Unit
 ) {
     val languages = listOf(
-        "English" to "en",
-        "Français" to "fr",
-        "Português (Brasil)" to "pt-br",
-        "Español" to "es",
-        "Deutsch" to "de",
-        "Italiano" to "it",
-        "日本語" to "ja",
-        "한국어" to "ko",
-        "中文" to "zh"
+        stringResource(R.string.language_english) to "en",
+        stringResource(R.string.language_french) to "fr",
+        stringResource(R.string.language_portuguese) to "pt-br",
+        stringResource(R.string.language_spanish) to "es",
+        stringResource(R.string.language_german) to "de",
+        stringResource(R.string.language_italian) to "it",
+        stringResource(R.string.language_japanese) to "ja",
+        stringResource(R.string.language_korean) to "ko",
+        stringResource(R.string.language_chinese) to "zh"
     )
     
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = "Select Language",
+                text = stringResource(R.string.settings_select_language),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
@@ -628,7 +630,7 @@ fun LanguageSelectionDialog(
         confirmButton = {},
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.common_cancel))
             }
         }
     )
@@ -652,7 +654,7 @@ fun ClearDataConfirmationDialog(
         },
         title = {
             Text(
-                text = "Clear All Data?",
+                text = stringResource(R.string.settings_clear_data_title),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.error
@@ -661,18 +663,18 @@ fun ClearDataConfirmationDialog(
         text = {
             Column {
                 Text(
-                    text = "This action will permanently delete:",
+                    text = stringResource(R.string.settings_clear_data_warning),
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Medium
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                Text("• All saved links and bookmarks")
-                Text("• All collections and their contents")
-                Text("• All tags and notes")
-                Text("• All app preferences")
+                Text(stringResource(R.string.settings_clear_data_item1))
+                Text(stringResource(R.string.settings_clear_data_item2))
+                Text(stringResource(R.string.settings_clear_data_item3))
+                Text(stringResource(R.string.settings_clear_data_item4))
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    text = "This action cannot be undone!",
+                    text = stringResource(R.string.settings_clear_data_irreversible),
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.error
@@ -686,12 +688,12 @@ fun ClearDataConfirmationDialog(
                     containerColor = MaterialTheme.colorScheme.error
                 )
             ) {
-                Text("Clear All Data")
+                Text(stringResource(R.string.settings_clear_data))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.common_cancel))
             }
         }
     )
@@ -718,7 +720,7 @@ fun AboutDialog(
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = "About Linkzary",
+                    text = stringResource(R.string.settings_about_app),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold
                 )
@@ -729,22 +731,22 @@ fun AboutDialog(
                 item {
                     Column {
                         Text(
-                            text = "Linkzary is a beautiful, minimal link saver that helps you organize and manage your favorite bookmarks with ease.",
+                            text = stringResource(R.string.settings_about_description),
                             style = MaterialTheme.typography.bodyLarge
                         )
                         
                         Spacer(modifier = Modifier.height(16.dp))
                         
                         // App Info
-                        InfoRow("Version", "1.0.0")
-                        InfoRow("Developer", "AppCodeCraft")
-                        InfoRow("Built with", "Jetpack Compose & Kotlin")
+                        InfoRow(stringResource(R.string.settings_version_label), "1.0.0")
+                        InfoRow(stringResource(R.string.settings_developer_label), "AppCodeCraft")
+                        InfoRow(stringResource(R.string.settings_built_with), "Jetpack Compose & Kotlin")
                         
                         Spacer(modifier = Modifier.height(20.dp))
                         
                         // More Apps Section
                         Text(
-                            text = "More Apps from Developer",
+                            text = stringResource(R.string.settings_more_apps),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
@@ -754,8 +756,8 @@ fun AboutDialog(
                         
                         // App Cards
                         AppCard(
-                            name = "CurioShuffle",
-                            description = "Discover amazing content with smart shuffling",
+                            name = stringResource(R.string.app_curioshuffle),
+                            description = stringResource(R.string.app_curioshuffle_description),
                             icon = Icons.Default.Shuffle,
                             onClick = {
                                 openAppInPlayStore(context, "com.appcodecraft.curioshuffle")
@@ -765,8 +767,8 @@ fun AboutDialog(
                         Spacer(modifier = Modifier.height(8.dp))
                         
                         AppCard(
-                            name = "CurioMate",
-                            description = "CurioMate offers a collection of utility tools to assist with everyday tasks.",
+                            name = stringResource(R.string.app_curiomate),
+                            description = stringResource(R.string.app_curiomate_description),
                             icon = Icons.Default.Construction,
                             onClick = {
                                 openAppInPlayStore(context, "com.appcodecraft.curiomate")
@@ -778,7 +780,7 @@ fun AboutDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Close")
+                Text(stringResource(R.string.common_close))
             }
         }
     )

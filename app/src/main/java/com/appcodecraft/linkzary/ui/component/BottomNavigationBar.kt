@@ -16,7 +16,9 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import com.appcodecraft.linkzary.R
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.appcodecraft.linkzary.navigation.Screen
@@ -25,24 +27,28 @@ import com.appcodecraft.linkzary.ui.theme.LinkzaryTheme
 data class BottomNavItem(
     val screen: Screen,
     val selectedIcon: ImageVector,
-    val unselectedIcon: ImageVector
+    val unselectedIcon: ImageVector,
+    val titleRes: Int
 )
 
 val bottomNavItems = listOf(
     BottomNavItem(
         screen = Screen.Home,
         selectedIcon = Icons.Filled.Home,
-        unselectedIcon = Icons.Outlined.Home
+        unselectedIcon = Icons.Outlined.Home,
+        titleRes = R.string.navigation_home
     ),
     BottomNavItem(
         screen = Screen.Collections,
         selectedIcon = Icons.Filled.Folder,
-        unselectedIcon = Icons.Outlined.Folder
+        unselectedIcon = Icons.Outlined.Folder,
+        titleRes = R.string.navigation_collections
     ),
     BottomNavItem(
         screen = Screen.Settings,
         selectedIcon = Icons.Filled.Settings,
-        unselectedIcon = Icons.Outlined.Settings
+        unselectedIcon = Icons.Outlined.Settings,
+        titleRes = R.string.navigation_settings
     )
 )
 
@@ -62,12 +68,12 @@ fun LinkzaryBottomNavigationBar(
                 icon = {
                     Icon(
                         imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
-                        contentDescription = item.screen.title,
+                        contentDescription = stringResource(item.titleRes),
                         tint = iconTint,
                         // Scale modifier removed for better performance
                     )
                 },
-                label = { Text(item.screen.title) },
+                label = { Text(stringResource(item.titleRes)) },
                 selected = isSelected,
                 onClick = {
                     if (currentRoute != item.screen.route) {

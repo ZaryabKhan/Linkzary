@@ -40,6 +40,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
+import androidx.compose.ui.res.stringResource
+import com.appcodecraft.linkzary.R
 import com.appcodecraft.linkzary.data.entity.Collection
 import com.appcodecraft.linkzary.ui.theme.LinkzaryTheme
 import java.util.Date
@@ -151,7 +153,11 @@ fun CollectionCard(
                 Spacer(modifier = Modifier.height(6.dp))
                 
                 Text(
-                    text = "$linkCount ${if (linkCount == 1) "link" else "links"}",
+                    text = if (linkCount == 1) {
+                        stringResource(R.string.collections_link_count_single, linkCount)
+                    } else {
+                        stringResource(R.string.collections_link_count_plural, linkCount)
+                    },
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                 )
@@ -164,7 +170,7 @@ fun CollectionCard(
             ) {
                 Icon(
                     imageVector = Icons.Default.MoreVert,
-                    contentDescription = "More options",
+                    contentDescription = stringResource(R.string.home_more_options),
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -205,7 +211,7 @@ fun SmallCollectionCard(
             ) {
                 Icon(
                     imageVector = getCollectionIcon(collection.name),
-                    contentDescription = "Collection icon",
+                    contentDescription = stringResource(R.string.collections_collection_icon),
                     tint = Color.White,
                     modifier = Modifier.size(20.dp)
                 )

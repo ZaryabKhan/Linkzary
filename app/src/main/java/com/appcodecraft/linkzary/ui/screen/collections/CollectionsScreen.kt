@@ -75,6 +75,8 @@ import androidx.core.graphics.toColorInt
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import androidx.compose.ui.res.stringResource
+import com.appcodecraft.linkzary.R
 import com.appcodecraft.linkzary.data.entity.Collection
 import com.appcodecraft.linkzary.navigation.Screen
 import com.appcodecraft.linkzary.ui.component.CollectionCard
@@ -114,13 +116,13 @@ fun CollectionsScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Folder,
-                        contentDescription = "Collections",
+                        contentDescription = stringResource(R.string.navigation_collections),
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(32.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Collections",
+                        text = stringResource(R.string.nav_collections),
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold
                     )
@@ -130,13 +132,13 @@ fun CollectionsScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.FolderOpen,
-                        contentDescription = "Collections count",
+                        contentDescription = stringResource(R.string.collections_collections_count),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "${uiState.collections.size} ${if (uiState.collections.size == 1) "collection" else "collections"}",
+                        text = stringResource(R.string.collections_count_info, uiState.collections.size, uiState.collectionsWithCounts.values.sum()),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -150,7 +152,7 @@ fun CollectionsScreen(
                         Spacer(modifier = Modifier.width(8.dp))
                         Icon(
                             imageVector = Icons.Default.Link,
-                            contentDescription = "Total links",
+                            contentDescription = stringResource(R.string.collections_total_links),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(16.dp)
                         )
@@ -180,7 +182,7 @@ fun CollectionsScreen(
                 ) {
                     Icon(
                         imageVector = if (isGridView) Icons.AutoMirrored.Filled.ViewList else Icons.Default.GridView,
-                        contentDescription = if (isGridView) "Switch to list view" else "Switch to grid view",
+                        contentDescription = if (isGridView) stringResource(R.string.home_switch_list_view) else stringResource(R.string.home_switch_grid_view),
                         tint = if (isGridView) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(24.dp)
                     )
@@ -199,7 +201,7 @@ fun CollectionsScreen(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Sort,
-                            contentDescription = "Sort options",
+                            contentDescription = stringResource(R.string.home_sort_options),
                             tint = if (showSortMenu) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(24.dp)
                         )
@@ -210,7 +212,7 @@ fun CollectionsScreen(
                         onDismissRequest = { showSortMenu = false }
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Name A-Z") },
+                            text = { Text(stringResource(R.string.collections_sort_name_az)) },
                             onClick = {
                                 viewModel.setSortOrder(SortOrder.NAME_ASC)
                                 showSortMenu = false
@@ -220,7 +222,7 @@ fun CollectionsScreen(
                             }
                         )
                         DropdownMenuItem(
-                            text = { Text("Name Z-A") },
+                            text = { Text(stringResource(R.string.collections_sort_name_za)) },
                             onClick = {
                                 viewModel.setSortOrder(SortOrder.NAME_DESC)
                                 showSortMenu = false
@@ -230,7 +232,7 @@ fun CollectionsScreen(
                             }
                         )
                         DropdownMenuItem(
-                            text = { Text("Most Links") },
+                            text = { Text(stringResource(R.string.collections_sort_most_links)) },
                             onClick = {
                                 viewModel.setSortOrder(SortOrder.LINK_COUNT_DESC)
                                 showSortMenu = false
@@ -240,7 +242,7 @@ fun CollectionsScreen(
                             }
                         )
                         DropdownMenuItem(
-                            text = { Text("Recently Created") },
+                            text = { Text(stringResource(R.string.collections_sort_recently_created)) },
                             onClick = {
                                 viewModel.setSortOrder(SortOrder.DATE_DESC)
                                 showSortMenu = false
@@ -259,7 +261,7 @@ fun CollectionsScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
-                        contentDescription = "Create collection"
+                        contentDescription = stringResource(R.string.collections_create_collection)
                     )
                 }
             }
@@ -272,11 +274,11 @@ fun CollectionsScreen(
             value = uiState.searchQuery,
             onValueChange = viewModel::updateSearchQuery,
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Search collections...") },
+            placeholder = { Text(stringResource(R.string.collections_search_placeholder)) },
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Search,
-                    contentDescription = "Search"
+                    contentDescription = stringResource(R.string.common_search)
                 )
             },
             shape = RoundedCornerShape(12.dp),
@@ -300,7 +302,7 @@ fun CollectionsScreen(
                         CircularProgressIndicator()
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = "Loading collections...",
+                            text = stringResource(R.string.collections_loading),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -331,7 +333,7 @@ fun CollectionsScreen(
 
                         Text(
                             text = if (uiState.searchQuery.isBlank())
-                                "No collections yet" else "No collections found",
+                                stringResource(R.string.collections_empty_state) else stringResource(R.string.collections_no_results),
                             style = MaterialTheme.typography.headlineSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = FontWeight.Medium
@@ -341,8 +343,8 @@ fun CollectionsScreen(
 
                         Text(
                             text = if (uiState.searchQuery.isBlank())
-                                "Create your first collection to organize and manage your saved links"
-                            else "Try adjusting your search terms",
+                                stringResource(R.string.collections_empty_description)
+                            else stringResource(R.string.collections_no_results_description),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                         )
@@ -360,7 +362,7 @@ fun CollectionsScreen(
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("Create Collection")
+                                Text(stringResource(R.string.collections_create_collection))
                             }
                         }
                     }
@@ -491,12 +493,12 @@ fun CollectionsCreateCollectionDialog(
             ) {
                 Icon(
                     imageVector = Icons.Default.CreateNewFolder,
-                    contentDescription = "Create collection",
+                    contentDescription = stringResource(R.string.collections_create_collection),
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Create Collection")
+                Text(stringResource(R.string.collections_create_collection))
             }
         },
         text = {
@@ -508,12 +510,12 @@ fun CollectionsCreateCollectionDialog(
                             name = newValue
                         }
                     },
-                    label = { Text("Collection Name") },
-                    placeholder = { Text("Enter collection name") },
+                    label = { Text(stringResource(R.string.collections_collection_name)) },
+                    placeholder = { Text(stringResource(R.string.collections_enter_name)) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Folder,
-                            contentDescription = "Collection name",
+                            contentDescription = stringResource(R.string.collections_collection_name),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     },
@@ -531,7 +533,7 @@ fun CollectionsCreateCollectionDialog(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "Choose Color",
+                    text = stringResource(R.string.collections_choose_color),
                     style = MaterialTheme.typography.labelMedium
                 )
 
@@ -576,12 +578,12 @@ fun CollectionsCreateCollectionDialog(
                 onClick = { onCreate(name, selectedColor) },
                 enabled = name.isNotBlank()
             ) {
-                Text("Create")
+                Text(stringResource(R.string.common_create))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.common_cancel))
             }
         }
     )
@@ -624,7 +626,7 @@ fun CollectionOptionsBottomSheet(
                 ) {
                     Icon(
                         imageVector = getCollectionIcon(collection.name),
-                        contentDescription = "Collection icon",
+                        contentDescription = stringResource(R.string.collections_collection_icon),
                         tint = Color.White,
                         modifier = Modifier.size(20.dp)
                     )
@@ -639,7 +641,7 @@ fun CollectionOptionsBottomSheet(
                         fontWeight = FontWeight.Medium
                     )
                     Text(
-                        text = "Collection Options",
+                        text = stringResource(R.string.collections_options),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -649,8 +651,8 @@ fun CollectionOptionsBottomSheet(
             // Options
             OptionItem(
                 icon = Icons.Default.Edit,
-                title = "Edit Collection",
-                subtitle = "Change name and color",
+                title = stringResource(R.string.collections_edit_collection),
+                subtitle = stringResource(R.string.collections_edit_description),
                 onClick = {
                     showEditDialog = true
                 }
@@ -658,8 +660,8 @@ fun CollectionOptionsBottomSheet(
 
             OptionItem(
                 icon = Icons.Default.Delete,
-                title = "Delete Collection",
-                subtitle = "Remove collection and all its links",
+                title = stringResource(R.string.collections_delete_collection),
+                subtitle = stringResource(R.string.collections_delete_description),
                 onClick = {
                     showDeleteConfirmation = true
                 },
@@ -684,10 +686,10 @@ fun CollectionOptionsBottomSheet(
     if (showDeleteConfirmation) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirmation = false },
-            title = { Text("Delete Collection?") },
+            title = { Text(stringResource(R.string.collections_delete_confirmation_title)) },
             text = {
                 Text(
-                    "Are you sure you want to delete \"${collection.name}\"? This action cannot be undone and will remove all links in this collection."
+                    stringResource(R.string.collections_delete_confirmation_message, collection.name)
                 )
             },
             confirmButton = {
@@ -700,14 +702,14 @@ fun CollectionOptionsBottomSheet(
                         contentColor = MaterialTheme.colorScheme.error
                     )
                 ) {
-                    Text("Delete")
+                    Text(stringResource(R.string.common_delete))
                 }
             },
             dismissButton = {
                 TextButton(
                     onClick = { showDeleteConfirmation = false }
                 ) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.common_cancel))
                 }
             }
         )
@@ -752,12 +754,12 @@ fun EditCollectionDialog(
             ) {
                 Icon(
                     imageVector = Icons.Default.Edit,
-                    contentDescription = "Edit collection",
+                    contentDescription = stringResource(R.string.collections_edit_collection),
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Edit Collection")
+                Text(stringResource(R.string.collections_edit_collection))
             }
         },
         text = {
@@ -769,12 +771,12 @@ fun EditCollectionDialog(
                             name = newValue
                         }
                     },
-                    label = { Text("Collection Name") },
-                    placeholder = { Text("Enter collection name") },
+                    label = { Text(stringResource(R.string.collections_collection_name)) },
+                    placeholder = { Text(stringResource(R.string.collections_enter_collection_name)) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Folder,
-                            contentDescription = "Collection name",
+                            contentDescription = stringResource(R.string.collections_collection_name),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     },
@@ -843,12 +845,12 @@ fun EditCollectionDialog(
                 },
                 enabled = name.isNotBlank() && (name.trim() != collection.name || selectedColor != collection.color)
             ) {
-                Text("Save")
+                Text(stringResource(R.string.common_save))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.common_cancel))
             }
         }
     )
@@ -863,7 +865,7 @@ fun CollectionsScreenPreview() {
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Text("Collections Screen Preview")
+                Text(stringResource(R.string.collections_screen_preview))
             }
         }
     }

@@ -35,7 +35,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.appcodecraft.linkzary.R
 import com.android.billingclient.api.ProductDetails
 import com.appcodecraft.linkzary.billing.BillingConnectionState
 import com.appcodecraft.linkzary.billing.PurchaseState
@@ -150,7 +152,7 @@ fun DonationDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Close")
+                Text(stringResource(R.string.common_close))
             }
         }
     )

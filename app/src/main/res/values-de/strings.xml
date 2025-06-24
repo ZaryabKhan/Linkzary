@@ -1,0 +1,469 @@
+<resources>
+    <!-- App Name -->
+    <string name="app_name">Linkzary</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Startseite</string>
+    <string name="nav_collections">Sammlungen</string>
+    <string name="nav_settings">Einstellungen</string>
+    <string name="nav_collection_detail">Sammlungsdetails</string>
+
+    <!-- Home Screen -->
+    <string name="home_linkzary_title">Linkzary</string>
+    <string name="home_saved_links">%d gespeicherte Links</string>
+    <string name="home_switch_to_list_view">Zur Listenansicht wechseln</string>
+    <string name="home_switch_to_grid_view">Zur Rasteransicht wechseln</string>
+    <string name="home_sort_options">Sortieroptionen</string>
+    <string name="home_pinned_first">Angeheftete zuerst</string>
+    <string name="home_newest_first">Neueste zuerst</string>
+    <string name="home_oldest_first">Älteste zuerst</string>
+    <string name="home_title_a_z">Titel A–Z</string>
+    <string name="home_title_z_a">Titel Z–A</string>
+    <string name="home_add_link">Link hinzufügen</string>
+    <string name="home_search_bookmarks">Lesezeichen suchen…</string>
+    <string name="home_search">Suchen</string>
+    <string name="home_clear_search">Suche löschen</string>
+    <string name="home_filter_by_tags">Nach Tags filtern</string>
+    <string name="home_clear_tags">Löschen (%d)</string>
+    <string name="home_selected">Ausgewählt</string>
+    <string name="home_recent_collections">Kürzliche Sammlungen</string>
+    <string name="home_recent">Kürzlich</string>
+    <string name="home_recent_bookmarks">Kürzliche Lesezeichen</string>
+    <string name="home_search_results">Suchergebnisse (%d)</string>
+    <string name="home_no_bookmarks_tags">Keine Lesezeichen mit ausgewählten Tags</string>
+    <string name="home_no_results_found">Keine Ergebnisse gefunden</string>
+    <string name="home_no_bookmarks_yet">Noch keine Lesezeichen</string>
+    <string name="home_start_saving_links">Beginnen Sie, Ihre Lieblingslinks zu speichern</string>
+
+    <!-- Add Link Dialog -->
+    <string name="add_link_title">Link hinzufügen</string>
+    <string name="add_link_url_label">URL</string>
+    <string name="add_link_url_placeholder">https://beispiel.de</string>
+    <string name="add_link_url_hint">URL</string>
+    <string name="add_link_invalid_url">Bitte geben Sie eine gültige URL ein</string>
+    <string name="add_link_save">Speichern</string>
+    <string name="add_link_cancel">Abbrechen</string>
+
+    <!-- Link Options -->
+    <string name="link_options_title">Link-Optionen</string>
+    <string name="link_edit_title">Link bearbeiten</string>
+    <string name="link_edit_subtitle">Titel, URL oder Notizen ändern</string>
+    <string name="link_pin_title">Anheften</string>
+    <string name="link_pin_subtitle">Oben in der Liste behalten</string>
+    <string name="link_unpin_title">Lösen</string>
+    <string name="link_unpin_subtitle">Von angehefteten Links entfernen</string>
+    <string name="link_move_title">In Sammlung verschieben</string>
+    <string name="link_move_subtitle">In einer Sammlung organisieren</string>
+    <string name="link_delete_title">Löschen</string>
+    <string name="link_delete_subtitle">Diesen Link dauerhaft entfernen</string>
+
+    <!-- Edit Link Dialog -->
+    <string name="edit_link_title">Link bearbeiten</string>
+    <string name="edit_link_title_label">Titel</string>
+    <string name="edit_link_url_label">URL</string>
+    <string name="edit_link_note_label">Notiz (optional)</string>
+    <string name="edit_link_tags_label">Tags (durch Kommas getrennt)</string>
+    <string name="edit_link_save">Speichern</string>
+    <string name="edit_link_cancel">Abbrechen</string>
+
+    <!-- Delete Link Dialog -->
+    <string name="delete_link_title">Link löschen</string>
+    <string name="delete_link_message">Möchten Sie diesen Link wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.</string>
+    <string name="delete_link_confirm">Löschen</string>
+    <string name="delete_link_cancel">Abbrechen</string>
+
+    <!-- Move Link Dialog -->
+    <string name="move_link_title">In Sammlung verschieben</string>
+    <string name="move_link_no_collection">Keine Sammlung</string>
+    <string name="move_link_create_new">Neue Sammlung erstellen</string>
+    <string name="move_link_cancel">Abbrechen</string>
+
+    <!-- Collections Screen -->
+    <string name="collections_title">Sammlungen</string>
+    <string name="collections_count">Sammlungsanzahl</string>
+    <string name="collections_collection_singular">Sammlung</string>
+    <string name="collections_collection_plural">Sammlungen</string>
+    <string name="collections_create_collection">Sammlung erstellen</string>
+    <string name="collections_search_placeholder">Sammlungen suchen…</string>
+    <string name="collections_loading">Sammlungen werden geladen…</string>
+    <string name="collections_no_collections_yet">Noch keine Sammlungen</string>
+    <string name="collections_no_collections_found">Keine Sammlungen gefunden</string>
+    <string name="collections_create_first_collection">Erstellen Sie Ihre erste Sammlung, um Ihre gespeicherten Links zu organisieren und zu verwalten</string>
+    <string name="collections_adjust_search_terms">Versuchen Sie, Ihre Suchbegriffe anzupassen</string>
+    <string name="collections_name_a_z">Name A–Z</string>
+    <string name="collections_name_z_a">Name Z–A</string>
+    <string name="collections_most_links">Meiste Links</string>
+    <string name="collections_recently_created">Kürzlich erstellt</string>
+
+    <!-- Create Collection Dialog -->
+    <string name="create_collection_title">Sammlung erstellen</string>
+    <string name="create_collection_name_label">Sammlungsname</string>
+    <string name="create_collection_name_placeholder">Sammlungsname eingeben</string>
+    <string name="create_collection_name_hint">Sammlungsname</string>
+    <string name="create_collection_choose_color">Farbe wählen</string>
+    <string name="create_collection_create">Erstellen</string>
+    <string name="create_collection_cancel">Abbrechen</string>
+
+    <!-- Collection Options -->
+    <string name="collection_options_title">Sammlungsoptionen</string>
+    <string name="collection_edit_title">Sammlung bearbeiten</string>
+    <string name="collection_edit_subtitle">Name und Farbe ändern</string>
+    <string name="collection_delete_title">Sammlung löschen</string>
+    <string name="collection_delete_subtitle">Sammlung und alle Links entfernen</string>
+
+    <!-- Delete Collection Dialog -->
+    <string name="delete_collection_title">Sammlung löschen?</string>
+    <string name="delete_collection_message">Möchten Sie „%s“ wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden und entfernt alle Links in dieser Sammlung.</string>
+    <string name="delete_collection_confirm">Löschen</string>
+    <string name="delete_collection_cancel">Abbrechen</string>
+
+    <!-- Edit Collection Dialog -->
+    <string name="edit_collection_title">Sammlung bearbeiten</string>
+    <string name="edit_collection_save">Speichern</string>
+    <string name="edit_collection_cancel">Abbrechen</string>
+
+    <!-- Collection Detail Screen -->
+    <string name="collection_detail_back">Zurück</string>
+    <string name="collection_detail_collection">Sammlung</string>
+    <string name="collection_detail_links_count">%d Links</string>
+    <string name="collection_detail_search_placeholder">Links suchen…</string>
+    <string name="collection_detail_clear">Löschen</string>
+    <string name="collection_detail_no_matching_links">Keine passenden Links</string>
+    <string name="collection_detail_no_links_in_collection">Keine Links in dieser Sammlung</string>
+    <string name="collection_detail_try_different_search">Versuchen Sie einen anderen Suchbegriff</string>
+    <string name="collection_detail_add_links_to_start">Fügen Sie einige Links hinzu, um zu beginnen</string>
+
+    <!-- Collection Card -->
+    <string name="collection_card_link_singular">Link</string>
+    <string name="collection_card_link_plural">Links</string>
+    <string name="collection_card_more_options">Weitere Optionen</string>
+    <string name="collection_card_icon">Sammlungsicon</string>
+
+    <!-- Bookmark Card -->
+    <string name="bookmark_card_pinned">Angeheftet</string>
+    <string name="bookmark_card_more_options">Weitere Optionen</string>
+    <!-- Settings Screen -->
+    <string name="settings_general">Allgemein</string>
+    <string name="settings_theme">Design</string>
+    <string name="settings_theme_light">Hell</string>
+    <string name="settings_theme_dark">Dunkel</string>
+    <string name="settings_theme_system">Systemstandard</string>
+    <string name="settings_language">Sprache</string>
+    <string name="settings_language_english">Englisch</string>
+    <string name="settings_data">Daten</string>
+    <string name="settings_export_data">Daten exportieren</string>
+    <string name="settings_export_data_subtitle">Exportieren Sie Ihre Lesezeichen und Sammlungen</string>
+    <string name="settings_import_data">Daten importieren</string>
+    <string name="settings_import_data_subtitle">Lesezeichen aus Datei importieren</string>
+    <string name="settings_privacy">Datenschutz</string>
+    <string name="settings_privacy_policy">Datenschutzerklärung</string>
+    <string name="settings_privacy_policy_subtitle">Unsere Datenschutzerklärung ansehen</string>
+    <string name="settings_clear_all_data">Alle Daten löschen</string>
+    <string name="settings_clear_all_data_subtitle">Alle Lesezeichen und Sammlungen löschen</string>
+    <string name="settings_about">Über</string>
+    <string name="settings_about_linkzary">Über Linkzary</string>
+    <string name="settings_about_linkzary_subtitle">Version 1.0.0</string>
+    <string name="settings_rate_app">App bewerten</string>
+    <string name="settings_rate_app_subtitle">Bewerten Sie uns im Google Play Store</string>
+    <string name="settings_send_feedback">Feedback senden</string>
+    <string name="settings_send_feedback_subtitle">Helfen Sie uns, die App zu verbessern</string>
+    <string name="settings_visit_developer">Entwicklerprofil besuchen</string>
+    <string name="settings_visit_developer_subtitle">Weitere Apps von AppCodeCraft</string>
+
+    <!-- Theme Selection Dialog -->
+    <string name="theme_selection_title">Design wählen</string>
+    <string name="theme_light_title">Hell</string>
+    <string name="theme_light_subtitle">Immer helles Design verwenden</string>
+    <string name="theme_dark_title">Dunkel</string>
+    <string name="theme_dark_subtitle">Immer dunkles Design verwenden</string>
+    <string name="theme_system_title">Systemstandard</string>
+    <string name="theme_system_subtitle">Systemeinstellung für Design verwenden</string>
+    <string name="theme_cancel">Abbrechen</string>
+
+    <!-- Language Selection Dialog -->
+    <string name="language_selection_title">Sprache auswählen</string>
+    <string name="language_cancel">Abbrechen</string>
+
+    <!-- Clear Data Dialog -->
+    <string name="clear_data_title">Alle Daten löschen?</string>
+    <string name="clear_data_description">Diese Aktion löscht dauerhaft:</string>
+    <string name="clear_data_links">• Alle gespeicherten Links und Lesezeichen</string>
+    <string name="clear_data_collections">• Alle Sammlungen und deren Inhalte</string>
+    <string name="clear_data_tags">• Alle Tags und Notizen</string>
+    <string name="clear_data_preferences">• Alle App-Einstellungen</string>
+    <string name="clear_data_warning">Diese Aktion kann nicht rückgängig gemacht werden!</string>
+    <string name="clear_data_confirm">Alle Daten löschen</string>
+    <string name="clear_data_cancel">Abbrechen</string>
+
+    <!-- About Dialog -->
+    <string name="about_title">Über Linkzary</string>
+    <string name="about_description">Linkzary ist ein schönes, minimalistisches Tool zum Speichern von Links, mit dem Sie Ihre Lieblings-Lesezeichen einfach organisieren und verwalten können.</string>
+    <string name="about_version">Version</string>
+    <string name="about_version_number">1.0.0</string>
+    <string name="about_developer">Entwickler</string>
+    <string name="about_developer_name">AppCodeCraft</string>
+    <string name="about_built_with">Erstellt mit</string>
+    <string name="about_built_with_tech">Jetpack Compose &amp; Kotlin</string>
+    <string name="about_more_apps">Weitere Apps vom Entwickler</string>
+    <string name="about_close">Schließen</string>
+
+    <!-- Donation Dialog -->
+    <string name="donation_title">Linkzary unterstützen</string>
+    <string name="donation_description">Ihre Unterstützung hilft uns, Linkzary weiterzuentwickeln und zu verbessern. Wählen Sie einen beliebigen Betrag, den Sie spenden möchten:</string>
+    <string name="donation_help_text">Helfen Sie uns, Linkzary kostenlos und werbefrei zu halten! Ihre Unterstützung bedeutet uns viel.</string>
+    <string name="donation_donate_now">Jetzt spenden</string>
+    <string name="donation_voluntary_text">Spenden sind freiwillig und schalten keine Funktionen frei</string>
+    <string name="donation_loading">Spendenoptionen werden geladen…</string>
+    <string name="donation_unable_to_load">Spendenoptionen konnten nicht geladen werden. Bitte versuchen Sie es später erneut.</string>
+    <string name="donation_close">Schließen</string>
+
+    <!-- Import/Export Dialogs -->
+    <string name="export_data_title">Daten exportieren</string>
+    <string name="export_data_description">Wählen Sie das Format, um Ihre Lesezeichen und Sammlungen zu exportieren:</string>
+    <string name="export_json_title">JSON-Format</string>
+    <string name="export_json_description">Komplettes Backup mit allen Metadaten. Empfohlen für vollständige Datensicherung.</string>
+    <string name="export_json_button">Als JSON exportieren</string>
+    <string name="export_csv_title">CSV-Format</string>
+    <string name="export_csv_description">Tabellenkompatibles Format. Gut für Datenanalyse und Weitergabe.</string>
+    <string name="export_csv_button">Als CSV exportieren</string>
+    <string name="export_cancel">Abbrechen</string>
+
+    <string name="import_data_title">Daten importieren</string>
+    <string name="import_data_description">Importieren Sie Lesezeichen und Sammlungen aus einer Sicherungsdatei.</string>
+    <string name="import_supported_formats">Unterstützte Formate:</string>
+    <string name="import_json_files">JSON-Dateien (.json)</string>
+    <string name="import_csv_files">CSV-Dateien (.csv)</string>
+    <string name="import_select_file">Datei auswählen</string>
+    <string name="import_cancel">Abbrechen</string>
+
+    <string name="import_preview_title">Importvorschau</string>
+    <string name="import_summary_title">Importübersicht</string>
+    <string name="import_total_links">Gesamtanzahl Links:</string>
+    <string name="import_total_collections">Gesamtanzahl Sammlungen:</string>
+    <string name="import_uncategorized_links">Nicht kategorisierte Links:</string>
+    <string name="import_mode_title">Importmodus</string>
+    <string name="import_merge_title">Mit vorhandenen Daten zusammenführen</string>
+    <string name="import_merge_description">Doppelte Links überspringen, kollidierende Sammlungen umbenennen</string>
+    <string name="import_replace_title">Nur importieren (vorhandene ersetzen)</string>
+    <string name="import_replace_description">Alle Daten importieren, kann Duplikate erzeugen</string>
+    <string name="import_collections_title">Zu importierende Sammlungen</string>
+    <string name="import_will_be_renamed">Wird umbenannt</string>
+    <string name="import_button">Importieren</string>
+
+    <string name="importing_data_title">Daten werden importiert</string>
+    <string name="importing_progress">%d / %d Elemente verarbeitet</string>
+    <string name="importing_step">Schritt: %s</string>
+    <string name="importing_done">Fertig</string>
+
+    <string name="import_successful_title">Import erfolgreich</string>
+    <string name="import_failed_title">Import fehlgeschlagen</string>
+    <string name="import_successful_description">Ihre Daten wurden erfolgreich importiert!</string>
+    <string name="import_summary_links_imported">• %d Links importiert</string>
+    <string name="import_summary_collections_imported">• %d Sammlungen importiert</string>
+    <string name="import_summary_links_skipped">• %d doppelte Links übersprungen</string>
+    <string name="import_summary_collections_renamed">• %d Sammlungen umbenannt</string>
+    <string name="import_failed_description">Datenimport fehlgeschlagen:</string>
+    <string name="import_ok">OK</string>
+
+    <!-- Error Messages -->
+    <string name="error_unknown">Unbekannter Fehler aufgetreten</string>
+    <string name="error_failed_to_save_link">Link konnte nicht gespeichert werden: %s</string>
+    <string name="error_link_already_saved">Link bereits gespeichert</string>
+    <string name="error_failed_to_delete_link">Link konnte nicht gelöscht werden: %s</string>
+    <string name="error_failed_to_update_pin">Anheftstatus konnte nicht aktualisiert werden: %s</string>
+    <string name="error_failed_to_move_link">Link konnte nicht verschoben werden: %s</string>
+    <string name="error_failed_to_update_link">Link konnte nicht aktualisiert werden: %s</string>
+    <string name="error_failed_to_create_collection">Sammlung konnte nicht erstellt werden: %s</string>
+    <string name="error_failed_to_refresh_collections">Sammlungen konnten nicht aktualisiert werden: %s</string>
+    <string name="error_failed_to_refresh_link_count">Linkanzahl konnte nicht aktualisiert werden: %s</string>
+    <string name="error_failed_to_update_collection">Sammlung konnte nicht aktualisiert werden: %s</string>
+    <string name="error_failed_to_delete_collection">Sammlung konnte nicht gelöscht werden: %s</string>
+    <string name="error_no_data_to_clear">Keine Daten zum Löschen</string>
+    <string name="error_failed_to_clear_data">Alle Daten konnten nicht gelöscht werden. Verbleibend: %d Links, %d Sammlungen</string>
+    <string name="error_failed_to_clear_data_exception">Daten konnten nicht gelöscht werden: %s</string>
+
+    <!-- Export/Import Error Messages -->
+    <string name="export_error_no_data">Keine Daten zum Exportieren. Fügen Sie zuerst Links oder Sammlungen hinzu.</string>
+    <string name="export_error_cannot_write">Kann nicht an den ausgewählten Speicherort schreiben: %s</string>
+    <string name="export_error_failed">Daten konnten nicht exportiert werden. Bitte überprüfen Sie die Dateiberechtigungen und versuchen Sie es erneut.</string>
+    <string name="export_error_exception">Export fehlgeschlagen: %s</string>
+    <string name="import_error_cannot_read">Ausgewählte Datei kann nicht gelesen werden: %s</string>
+    <string name="import_error_file_too_large">Datei ist zu groß (%dMB). Maximale Größe ist 50MB.</string>
+    <string name="import_error_no_valid_data">Keine gültigen Daten in der ausgewählten Datei gefunden. Bitte überprüfen Sie das Dateiformat.</string>
+    <string name="import_error_failed_to_parse">Importdatei konnte nicht verarbeitet werden: %s</string>
+    <string name="import_error_failed">Import fehlgeschlagen: %s</string>
+
+    <!-- Common Actions -->
+    <string name="action_save">Speichern</string>
+    <string name="action_cancel">Abbrechen</string>
+    <string name="action_delete">Löschen</string>
+    <string name="action_edit">Bearbeiten</string>
+    <string name="action_create">Erstellen</string>
+    <string name="action_close">Schließen</string>
+    <string name="action_ok">OK</string>
+    <string name="action_done">Fertig</string>
+
+    <!-- Collections Screen Additional Strings -->
+    <string name="collections_count_info">%1$d Sammlungen</string>
+    <string name="home_switch_list_view">Zur Listenansicht wechseln</string>
+    <string name="home_switch_grid_view">Zur Rasteransicht wechseln</string>
+    <string name="collections_sort_name_az">Name (A–Z)</string>
+    <string name="collections_sort_name_za">Name (Z–A)</string>
+    <string name="collections_sort_most_links">Meiste Links</string>
+    <string name="collections_sort_recently_created">Kürzlich erstellt</string>
+    <string name="collections_empty_state">Noch keine Sammlungen</string>
+    <string name="collections_no_results">Keine Ergebnisse gefunden</string>
+    <string name="collections_empty_description">Erstellen Sie Ihre erste Sammlung, um Ihre Links zu organisieren</string>
+    <string name="collections_no_results_description">Versuchen Sie, Ihre Suche oder Filter anzupassen</string>
+    <string name="collections_enter_name">Sammlungsname eingeben</string>
+    <string name="collections_options">Sammlungsoptionen</string>
+    <string name="collections_edit_collection">Sammlung bearbeiten</string>
+    <string name="collections_edit_description">Sammlungsdetails ändern</string>
+    <string name="collections_delete_collection">Sammlung löschen</string>
+    <string name="collections_delete_description">Diese Sammlung dauerhaft entfernen</string>
+    <string name="collections_delete_confirmation_title">Sammlung löschen</string>
+    <string name="collections_delete_confirmation_message">Möchten Sie diese Sammlung wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.</string>
+    <string name="collections_enter_collection_name">Sammlungsname eingeben</string>
+
+    <!-- Settings Screen Additional Strings -->
+    <string name="settings_export_description">Exportieren Sie Ihre Daten in Sicherungsdateien</string>
+    <string name="settings_import_description">Importieren Sie Daten aus Sicherungsdateien</string>
+    <string name="settings_privacy_description">Verwalten Sie Ihre Datenschutzeinstellungen</string>
+    <string name="settings_clear_data">Daten löschen</string>
+    <string name="settings_clear_data_description">Alle App-Daten dauerhaft entfernen</string>
+    <string name="settings_about_app">Über die App</string>
+    <string name="settings_version">Version %1$s</string>
+    <string name="settings_rate_description">Bewerten Sie uns im App Store</string>
+    <string name="settings_feedback_description">Senden Sie uns Ihr Feedback</string>
+    <string name="settings_developer_profile">Entwicklerprofil</string>
+    <string name="settings_developer_description">Erfahren Sie mehr über den Entwickler</string>
+    <string name="settings_support_title">Entwicklung unterstützen</string>
+    <string name="settings_support_description">Helfen Sie uns, Linkzary weiter zu verbessern</string>
+    <string name="settings_donate_button">Spenden</string>
+    <string name="settings_donate_disclaimer">Ihre Unterstützung hilft uns, die App zu pflegen und zu verbessern</string>
+    <string name="settings_select_language">Sprache auswählen</string>
+    <string name="settings_clear_data_title">Alle Daten löschen</string>
+    <string name="settings_clear_data_warning">Dadurch wird dauerhaft gelöscht:</string>
+    <string name="settings_clear_data_item1">Alle Ihre Lesezeichen</string>
+    <string name="settings_clear_data_item2">Alle Ihre Sammlungen</string>
+    <string name="settings_clear_data_item3">Alle Ihre Einstellungen</string>
+    <string name="settings_clear_data_item4">Alle App-Präferenzen</string>
+    <string name="settings_clear_data_irreversible">Diese Aktion ist unwiderruflich</string>
+
+    <!-- About Section -->
+    <string name="settings_about_description">Erfahren Sie mehr über Linkzary</string>
+    <string name="settings_version_label">Version:</string>
+    <string name="settings_developer_label">Entwickler:</string>
+    <string name="settings_built_with">Erstellt mit ❤️ in Kotlin &amp; Jetpack Compose</string>
+    <string name="settings_more_apps">Weitere Apps vom Entwickler</string>
+
+    <!-- Developer Apps -->
+    <string name="app_curioshuffle">CurioShuffle</string>
+    <string name="app_curioshuffle_description">Entdecken Sie zufällig interessante Inhalte</string>
+    <string name="app_curiomate">CurioMate</string>
+    <string name="app_curiomate_description">Ihr Neugier-Begleiter</string>
+
+    <!-- Language Options -->
+    <string name="language_english">Englisch</string>
+    <string name="language_french">Französisch</string>
+    <string name="language_portuguese">Portugiesisch</string>
+    <string name="language_spanish">Spanisch</string>
+    <string name="language_german">Deutsch</string>
+    <string name="language_italian">Italienisch</string>
+    <string name="language_japanese">Japanisch</string>
+    <string name="language_korean">Koreanisch</string>
+    <string name="language_chinese">Chinesisch</string>
+
+    <!-- Common strings for compatibility -->
+    <string name="common_back">Zurück</string>
+    <string name="common_cancel">Abbrechen</string>
+    <string name="common_create">Erstellen</string>
+    <string name="common_delete">Löschen</string>
+    <string name="common_close">Schließen</string>
+    <string name="common_done">Fertig</string>
+    <string name="common_search">Suchen</string>
+    <string name="common_clear">Löschen</string>
+    <string name="common_selected">Ausgewählt</string>
+    <string name="common_unknown_error">Unbekannter Fehler aufgetreten</string>
+    <string name="common_edit">Bearbeiten</string>
+    <string name="common_save">Speichern</string>
+    <string name="common_ok">OK</string>
+
+    <!-- Collections compatibility strings -->
+    <string name="collections_collection">Sammlung</string>
+    <string name="collections_links_count">%d Links</string>
+    <string name="collections_search_links">Links suchen…</string>
+    <string name="collections_no_matching_links">Keine passenden Links</string>
+    <string name="collections_no_links">Keine Links in dieser Sammlung</string>
+    <string name="collections_try_different_search">Versuchen Sie einen anderen Suchbegriff</string>
+    <string name="collections_add_links_to_start">Fügen Sie einige Links hinzu, um zu beginnen</string>
+    <string name="collections_link_options">Link-Optionen</string>
+    <string name="collections_edit_link">Link bearbeiten</string>
+    <string name="collections_edit_link_description">Titel, URL oder Notizen ändern</string>
+    <string name="collections_move_to_collection">In Sammlung verschieben</string>
+    <string name="collections_move_description">In einer Sammlung organisieren</string>
+    <string name="collections_delete_link_description">Diesen Link dauerhaft entfernen</string>
+    <string name="collections_delete_link">Link löschen</string>
+    <string name="collections_collection_name">Sammlungsname</string>
+    <string name="collections_choose_color">Farbe wählen</string>
+    <string name="collections_collection_icon">Sammlungsicon</string>
+    <string name="collections_link_count_single">Link</string>
+    <string name="collections_link_count_plural">Links</string>
+    <string name="collections_collections_count">Sammlungsanzahl</string>
+    <string name="collections_total_links">Gesamtanzahl Links</string>
+    <string name="collections_screen_preview">Sammlungsbildschirm-Vorschau</string>
+    <string name="collections_delete_link_confirmation">Link löschen</string>
+    <string name="collections_move">Verschieben</string>
+    <string name="collections_no_collection">Keine Sammlung</string>
+    <string name="collections_create_new_collection">Neue Sammlung erstellen</string>
+
+    <!-- Home compatibility strings -->
+    <string name="home_switch_to_list">Zur Listenansicht wechseln</string>
+    <string name="home_switch_to_grid">Zur Rasteransicht wechseln</string>
+    <string name="home_more_options">Weitere Optionen</string>
+    <string name="home_add_bookmark">Lesezeichen hinzufügen</string>
+    <string name="home_view_collections">Sammlungen anzeigen</string>
+    <string name="home_screen_preview">Startbildschirm mit erweiterten Link-Optionen</string>
+    <string name="home_title">Titel</string>
+    <string name="home_url">URL</string>
+    <string name="home_note_optional">Notiz (optional)</string>
+    <string name="home_note">Notiz</string>
+    <string name="home_tags_comma_separated">Tags (durch Kommas getrennt)</string>
+    <string name="home_tags">Tags</string>
+    <string name="home_pinned">Angeheftet</string>
+
+    <!-- Navigation compatibility strings -->
+    <string name="navigation_collections">Sammlungen</string>
+    <string name="navigation_home">Startseite</string>
+    <string name="navigation_settings">Einstellungen</string>
+
+    <!-- Settings compatibility strings -->
+    <string name="settings_select_file">Datei auswählen</string>
+    <string name="settings_import">Importieren</string>
+    <string name="settings_export_as_json">Als JSON exportieren</string>
+    <string name="settings_export_as_csv">Als CSV exportieren</string>
+    <string name="settings_import_links_imported">Links importiert</string>
+    <string name="settings_import_collections_imported">Sammlungen importiert</string>
+    <string name="settings_import_links_skipped">Doppelte Links übersprungen</string>
+    <string name="settings_import_collections_renamed">Sammlungen umbenannt</string>
+
+    <!-- Content Descriptions -->
+    <string name="cd_pinned">Angeheftet</string>
+    <string name="cd_more_options">Weitere Optionen</string>
+    <string name="cd_search">Suchen</string>
+    <string name="cd_clear_search">Suche löschen</string>
+    <string name="cd_selected">Ausgewählt</string>
+    <string name="cd_collection_icon">Sammlungsicon</string>
+    <string name="cd_back">Zurück</string>
+    <string name="cd_create_collection">Sammlung erstellen</string>
+    <string name="cd_edit_collection">Sammlung bearbeiten</string>
+    <string name="cd_delete">Löschen</string>
+    <string name="cd_edit">Bearbeiten</string>
+    <string name="cd_move">Verschieben</string>
+    <string name="cd_create_new_collection">Neue Sammlung erstellen</string>
+
+    <!-- Miscellaneous -->
+    <string name="loading">Wird geladen…</string>
+    <string name="unknown">Unbekannt</string>
+    <string name="version_1_0">1.0</string>
+</resources>
