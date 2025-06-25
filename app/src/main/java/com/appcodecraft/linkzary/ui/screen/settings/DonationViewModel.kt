@@ -5,13 +5,15 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import com.android.billingclient.api.ProductDetails
 import com.appcodecraft.linkzary.billing.BillingManager
+import com.appcodecraft.linkzary.data.preferences.UserPreferencesManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
 @HiltViewModel
 class DonationViewModel @Inject constructor(
-    private val billingManager: BillingManager
+    private val billingManager: BillingManager,
+    private val userPreferencesManager: UserPreferencesManager
 ) : ViewModel() {
     
     val billingConnectionState: StateFlow<com.appcodecraft.linkzary.billing.BillingConnectionState> = 
@@ -22,6 +24,9 @@ class DonationViewModel @Inject constructor(
     
     val purchaseState: StateFlow<com.appcodecraft.linkzary.billing.PurchaseState> = 
         billingManager.purchaseState
+    
+    val hasDonated: StateFlow<Boolean> = 
+        userPreferencesManager.hasDonated
     
     fun initializeBilling(context: Context) {
         billingManager.initializeBilling(context)

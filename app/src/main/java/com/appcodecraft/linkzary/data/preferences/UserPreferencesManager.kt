@@ -43,6 +43,10 @@ class UserPreferencesManager(context: Context) {
 
     private val _isCollectionDetailGridView = MutableStateFlow(getCollectionDetailGridView())
     val isCollectionDetailGridView: StateFlow<Boolean> = _isCollectionDetailGridView.asStateFlow()
+    
+    // Donation preferences
+    private val _hasDonated = MutableStateFlow(getHasDonated())
+    val hasDonated: StateFlow<Boolean> = _hasDonated.asStateFlow()
 
     // Home screen preferences
     fun setHomeGridView(isGridView: Boolean) {
@@ -126,12 +130,25 @@ class UserPreferencesManager(context: Context) {
         return sharedPreferences.getString(KEY_CURRENT_LANGUAGE, "en") ?: "en"
     }
     
+    // Donation methods
+    fun setHasDonated(hasDonated: Boolean) {
+        sharedPreferences.edit()
+            .putBoolean(KEY_HAS_DONATED, hasDonated)
+            .apply()
+        _hasDonated.value = hasDonated
+    }
+    
+    private fun getHasDonated(): Boolean {
+        return sharedPreferences.getBoolean(KEY_HAS_DONATED, false)
+    }
+    
     companion object {
         private const val KEY_THEME_MODE = "theme_mode"
         private const val KEY_CURRENT_LANGUAGE = "current_language"
         private const val KEY_HOME_GRID_VIEW = "home_grid_view"
         private const val KEY_COLLECTIONS_GRID_VIEW = "collections_grid_view"
         private const val KEY_COLLECTION_DETAIL_GRID_VIEW = "collection_detail_grid_view"
+        private const val KEY_HAS_DONATED = "has_donated"
         private const val KEY_HOME_SORT_ORDER = "home_sort_order"
         private const val KEY_COLLECTIONS_SORT_ORDER = "collections_sort_order"
     }

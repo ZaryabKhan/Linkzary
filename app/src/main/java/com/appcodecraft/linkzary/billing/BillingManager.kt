@@ -16,9 +16,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
+import com.appcodecraft.linkzary.data.preferences.UserPreferencesManager
 
 @Singleton
-class BillingManager @Inject constructor() : PurchasesUpdatedListener {
+class BillingManager @Inject constructor(
+    private val userPreferencesManager: UserPreferencesManager
+) : PurchasesUpdatedListener {
     
     private var billingClient: BillingClient? = null
     
@@ -59,6 +62,7 @@ class BillingManager @Inject constructor() : PurchasesUpdatedListener {
                 if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                     _billingConnectionState.value = BillingConnectionState.CONNECTED
                     queryAvailableProducts()
+                    queryExistingPurchases()
                 } else {
                     _billingConnectionState.value = BillingConnectionState.ERROR
                 }
@@ -85,6 +89,20 @@ class BillingManager @Inject constructor() : PurchasesUpdatedListener {
         billingClient?.queryProductDetailsAsync(params) { billingResult, productDetailsList ->
             if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                 _availableProducts.value = productDetailsList
+            }
+        }
+    }
+    
+    private fun queryExistingPurchases() {
+        billingClient?.queryPurchasesAsync(
+            BillingClient.ProductType.INAPP
+        ) { billingResult, purchases ->
+            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                val hasDonations = purchases.any { purchase ->
+                    purchase.purchaseState == Purchase.PurchaseState.PURCHASED &&
+                    donationSkus.contains(purchase.products.firstOrNull())
+                }
+                userPreferencesManager.setHasDonated(hasDonations)
             }
         }
     }
@@ -123,6 +141,11 @@ class BillingManager @Inject constructor() : PurchasesUpdatedListener {
     private fun handlePurchase(purchase: Purchase) {
         if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
             _purchaseState.value = PurchaseState.Success
+            
+            // Check if this is a donation and update preference
+            if (donationSkus.contains(purchase.products.firstOrNull())) {
+                userPreferencesManager.setHasDonated(true)
+            }
             
             // Acknowledge the purchase
             if (!purchase.isAcknowledged) {
