@@ -343,7 +343,7 @@
     <string name="settings_clear_data">Daten löschen</string>
     <string name="settings_clear_data_description">Alle App-Daten dauerhaft entfernen</string>
     <string name="settings_about_app">Über die App</string>
-    <string name="settings_version">Version %1$s</string>
+    <string name="settings_version">Version: %1$s</string>
     <string name="settings_rate_description">Bewerten Sie uns im App Store</string>
     <string name="settings_feedback_description">Senden Sie uns Ihr Feedback</string>
     <string name="settings_developer_profile">Entwicklerprofil</string>

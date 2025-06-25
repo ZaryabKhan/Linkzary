@@ -345,7 +345,7 @@
     <string name="settings_clear_data">Effacer les données</string>
     <string name="settings_clear_data_description">Supprimer définitivement toutes les données de l’application</string>
     <string name="settings_about_app">À propos de l’application</string>
-    <string name="settings_version">Version %1$s</string>
+    <string name="settings_version">Version: %1$s</string>
     <string name="settings_rate_description">Notez-nous sur le store</string>
     <string name="settings_feedback_description">Envoyez-nous vos retours</string>
     <string name="settings_developer_profile">Profil du développeur</string>

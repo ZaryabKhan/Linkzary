@@ -345,7 +345,7 @@
     <string name="settings_clear_data">Cancella dati</string>
     <string name="settings_clear_data_description">Rimuovi tutti i dati dell\'app in modo permanente</string>
     <string name="settings_about_app">Informazioni sull\'app</string>
-    <string name="settings_version">Versione %1$s</string>
+    <string name="settings_version">Versione: %1$s</string>
     <string name="settings_rate_description">Valutaci sullo store</string>
     <string name="settings_feedback_description">Inviaci il tuo feedback</string>
     <string name="settings_developer_profile">Profilo sviluppatore</string>

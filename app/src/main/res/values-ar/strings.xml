@@ -345,7 +345,7 @@
     <string name="settings_clear_data">مسح البيانات</string>
     <string name="settings_clear_data_description">إزالة جميع بيانات التطبيق نهائياً</string>
     <string name="settings_about_app">حول التطبيق</string>
-    <string name="settings_version">الإصدار %1$s</string>
+    <string name="settings_version">الإصدار: %1$s</string>
     <string name="settings_rate_description">قيّمنا في متجر التطبيقات</string>
     <string name="settings_feedback_description">أرسل لنا ملاحظاتك</string>
     <string name="settings_developer_profile">ملف المطور</string>
