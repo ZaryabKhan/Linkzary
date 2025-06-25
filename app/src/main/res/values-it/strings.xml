@@ -2,6 +2,9 @@
     <!-- App Name -->
     <string name="app_name">Linkzary</string>
 
+    <!-- Settings -->
+    <string name="settings_title">Impostazioni</string>
+
     <!-- Navigation -->
     <string name="nav_home">Home</string>
     <string name="nav_collections">Raccolte</string>
@@ -150,6 +153,15 @@
     <string name="settings_theme_dark">Scuro</string>
     <string name="settings_theme_system">Predefinito di sistema</string>
     <string name="settings_language">Lingua</string>
+    <string name="settings_select_language">Seleziona lingua</string>
+    
+    <!-- About Dialog Key Features -->
+    <string name="about_key_features">Caratteristiche principali</string>
+    <string name="about_app_information">Informazioni app</string>
+    <string name="about_feature_secure">100% Sicuro e Privato</string>
+    <string name="about_feature_free">Completamente Gratuito</string>
+    <string name="about_feature_themes">Temi Dinamici</string>
+    <string name="about_feature_languages">Supporto Multi-lingua</string>
     <string name="settings_language_english">Inglese</string>
     <string name="settings_data">Dati</string>
     <string name="settings_export_data">Esporta dati</string>
@@ -342,7 +354,6 @@
     <string name="settings_support_description">Aiutaci a migliorare Linkzary</string>
     <string name="settings_donate_button">Dona</string>
     <string name="settings_donate_disclaimer">Il tuo supporto ci aiuta a mantenere e migliorare l\'app</string>
-    <string name="settings_select_language">Seleziona lingua</string>
     <string name="settings_clear_data_title">Cancella tutti i dati</string>
     <string name="settings_clear_data_warning">Questo eliminerà definitivamente:</string>
     <string name="settings_clear_data_item1">Tutti i tuoi segnalibri</string>

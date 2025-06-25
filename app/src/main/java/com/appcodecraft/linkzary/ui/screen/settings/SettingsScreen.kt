@@ -70,6 +70,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.res.stringResource
+import com.appcodecraft.linkzary.BuildConfig
 import com.appcodecraft.linkzary.R
 import com.appcodecraft.linkzary.utils.LocaleHelper
 import com.appcodecraft.linkzary.data.preferences.ThemeMode
@@ -723,9 +724,9 @@ fun AboutDialog(
                     imageVector = Icons.Default.Bookmark,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(28.dp)
                 )
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = stringResource(R.string.settings_about_app),
                     style = MaterialTheme.typography.headlineSmall,
@@ -734,55 +735,77 @@ fun AboutDialog(
             }
         },
         text = {
-            LazyColumn {
-                item {
-                    Column {
-                        Text(
-                            text = stringResource(R.string.settings_about_description),
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                        
-                        Spacer(modifier = Modifier.height(16.dp))
-                        
-                        // App Info
-                        InfoRow(stringResource(R.string.settings_version_label), "1.0.0")
-                        InfoRow(stringResource(R.string.settings_developer_label), "AppCodeCraft")
-                        InfoRow(stringResource(R.string.settings_built_with), "Jetpack Compose & Kotlin")
-                        
-                        Spacer(modifier = Modifier.height(20.dp))
-                        
-                        // More Apps Section
-                        Text(
-                            text = stringResource(R.string.settings_more_apps),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        
-                        Spacer(modifier = Modifier.height(12.dp))
-                        
-                        // App Cards
-                        AppCard(
-                            name = stringResource(R.string.app_curioshuffle),
-                            description = stringResource(R.string.app_curioshuffle_description),
-                            icon = Icons.Default.Shuffle,
-                            onClick = {
-                                openAppInPlayStore(context, "com.appcodecraft.curioshuffle")
-                            }
-                        )
-                        
-                        Spacer(modifier = Modifier.height(8.dp))
-                        
-                        AppCard(
-                            name = stringResource(R.string.app_curiomate),
-                            description = stringResource(R.string.app_curiomate_description),
-                            icon = Icons.Default.Construction,
-                            onClick = {
-                                openAppInPlayStore(context, "com.appcodecraft.curiomate")
-                            }
-                        )
+            Column {
+                Text(
+                    text = stringResource(R.string.settings_about_description),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                // Key Features Section
+                Text(
+                    text = stringResource(R.string.about_key_features),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                FeatureRow(Icons.Default.Security, stringResource(R.string.about_feature_secure))
+                FeatureRow(Icons.Default.Favorite, stringResource(R.string.about_feature_free))
+                FeatureRow(Icons.Default.Palette, stringResource(R.string.about_feature_themes))
+                FeatureRow(Icons.Default.Language, stringResource(R.string.about_feature_languages))
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                // App Info
+                Text(
+                    text = stringResource(R.string.about_app_information),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                InfoRow(stringResource(R.string.settings_version_label), BuildConfig.VERSION_NAME)
+                InfoRow(stringResource(R.string.settings_developer_label), "AppCodeCraft")
+                InfoRow(stringResource(R.string.about_built_with), "Jetpack Compose & Kotlin")
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                // More Apps Section
+                Text(
+                    text = stringResource(R.string.settings_more_apps),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                // App Cards
+                AppCard(
+                    name = stringResource(R.string.app_curioshuffle),
+                    description = stringResource(R.string.app_curioshuffle_description),
+                    icon = Icons.Default.Shuffle,
+                    onClick = {
+                        openAppInPlayStore(context, "com.appcodecraft.curioshuffle")
                     }
-                }
+                )
+                
+                Spacer(modifier = Modifier.height(6.dp))
+                
+                AppCard(
+                    name = stringResource(R.string.app_curiomate),
+                    description = stringResource(R.string.app_curiomate_description),
+                    icon = Icons.Default.Construction,
+                    onClick = {
+                        openAppInPlayStore(context, "com.appcodecraft.curiomate")
+                    }
+                )
             }
         },
         confirmButton = {
@@ -798,7 +821,7 @@ fun InfoRow(label: String, value: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(vertical = 2.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
@@ -810,6 +833,29 @@ fun InfoRow(label: String, value: String) {
             text = value,
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Medium
+        )
+    }
+}
+
+@Composable
+fun FeatureRow(icon: ImageVector, feature: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(16.dp)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = feature,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }

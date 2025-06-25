@@ -2,6 +2,9 @@
     <!-- App Name -->
     <string name="app_name">لينكزاري</string>
 
+    <!-- Settings -->
+    <string name="settings_title">الإعدادات</string>
+
     <!-- Navigation -->
     <string name="nav_home">الرئيسية</string>
     <string name="nav_collections">المجموعات</string>
@@ -150,7 +153,16 @@
     <string name="settings_theme_dark">داكن</string>
     <string name="settings_theme_system">افتراضي النظام</string>
     <string name="settings_language">اللغة</string>
+    <string name="settings_select_language">اختر اللغة</string>
     <string name="settings_language_english">الإنجليزية</string>
+    
+    <!-- About Dialog Key Features -->
+    <string name="about_key_features">الميزات الرئيسية</string>
+    <string name="about_app_information">معلومات التطبيق</string>
+    <string name="about_feature_secure">آمن وخاص 100%</string>
+    <string name="about_feature_free">مجاني تماماً</string>
+    <string name="about_feature_themes">مظاهر ديناميكية</string>
+    <string name="about_feature_languages">دعم متعدد اللغات</string>
     <string name="settings_data">البيانات</string>
     <string name="settings_export_data">تصدير البيانات</string>
     <string name="settings_export_data_subtitle">تصدير العلامات والمجموعات</string>
@@ -342,7 +354,6 @@
     <string name="settings_support_description">ساعدنا في تحسين لينكزاري</string>
     <string name="settings_donate_button">تبرع</string>
     <string name="settings_donate_disclaimer">دعمك يساعدنا في تطوير وتحسين التطبيق</string>
-    <string name="settings_select_language">اختر اللغة</string>
     <string name="settings_clear_data_title">مسح جميع البيانات</string>
     <string name="settings_clear_data_warning">سيتم حذف ما يلي نهائياً:</string>
     <string name="settings_clear_data_item1">جميع العلامات الخاصة بك</string>

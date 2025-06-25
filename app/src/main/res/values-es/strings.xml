@@ -2,6 +2,9 @@
     <!-- App Name -->
     <string name="app_name">Linkzary</string>
 
+    <!-- Settings -->
+    <string name="settings_title">Ajustes</string>
+
     <!-- Navigation -->
     <string name="nav_home">Inicio</string>
     <string name="nav_collections">Colecciones</string>
@@ -151,6 +154,15 @@
     <string name="settings_theme_system">Predeterminado del sistema</string>
     <string name="settings_language">Idioma</string>
     <string name="settings_language_english">Inglés</string>
+    <string name="settings_select_language">Seleccionar idioma</string>
+    
+    <!-- About Dialog Key Features -->
+    <string name="about_key_features">Características clave</string>
+    <string name="about_app_information">Información de la app</string>
+    <string name="about_feature_secure">100% Seguro y Privado</string>
+    <string name="about_feature_free">Completamente Gratis</string>
+    <string name="about_feature_themes">Temas Dinámicos</string>
+    <string name="about_feature_languages">Soporte Multi-idioma</string>
     <string name="settings_data">Datos</string>
     <string name="settings_export_data">Exportar datos</string>
     <string name="settings_export_data_subtitle">Exporta tus marcadores y colecciones</string>
@@ -342,7 +354,6 @@
     <string name="settings_support_description">Ayúdanos a seguir mejorando Linkzary</string>
     <string name="settings_donate_button">Donar</string>
     <string name="settings_donate_disclaimer">Tu apoyo nos ayuda a mantener y mejorar la app</string>
-    <string name="settings_select_language">Seleccionar idioma</string>
     <string name="settings_clear_data_title">Borrar todos los datos</string>
     <string name="settings_clear_data_warning">Esto eliminará permanentemente:</string>
     <string name="settings_clear_data_item1">Todos tus marcadores</string>

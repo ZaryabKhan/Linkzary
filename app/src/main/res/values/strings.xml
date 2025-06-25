@@ -144,13 +144,24 @@
     <string name="bookmark_card_more_options">More options</string>
 
     <!-- Settings Screen -->
+    <string name="settings_title">Settings</string>
     <string name="settings_general">General</string>
     <string name="settings_theme">Theme</string>
     <string name="settings_theme_light">Light</string>
     <string name="settings_theme_dark">Dark</string>
-    <string name="settings_theme_system">System default</string>
+    <string name="settings_theme_system">System</string>
     <string name="settings_language">Language</string>
+    <string name="settings_select_language">Select Language</string>
     <string name="settings_language_english">English</string>
+    
+    <!-- About Dialog Key Features -->
+    <string name="about_key_features">Key Features</string>
+    <string name="about_app_information">App Information</string>
+    <string name="about_feature_secure">100% Secure &amp; Private</string>
+    <string name="about_feature_free">Completely Free</string>
+    <string name="about_feature_themes">Dynamic Themes</string>
+    <string name="about_feature_languages">Multi-language Support</string>
+    <string name="about_built_with">Built with</string>
     <string name="settings_data">Data</string>
     <string name="settings_export_data">Export Data</string>
     <string name="settings_export_data_subtitle">Export your bookmarks and collections</string>
@@ -203,7 +214,6 @@
     <string name="about_version_number">1.0.0</string>
     <string name="about_developer">Developer</string>
     <string name="about_developer_name">AppCodeCraft</string>
-    <string name="about_built_with">Built with</string>
     <string name="about_built_with_tech">Jetpack Compose &amp; Kotlin</string>
     <string name="about_more_apps">More Apps from Developer</string>
     <string name="about_close">Close</string>
@@ -342,7 +352,6 @@
     <string name="settings_support_description">Help us continue improving Linkzary</string>
     <string name="settings_donate_button">Donate</string>
     <string name="settings_donate_disclaimer">Your support helps us maintain and improve the app</string>
-    <string name="settings_select_language">Select language</string>
     <string name="settings_clear_data_title">Clear All Data</string>
     <string name="settings_clear_data_warning">This will permanently delete:</string>
     <string name="settings_clear_data_item1">All your bookmarks</string>

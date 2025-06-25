@@ -2,6 +2,9 @@
     <!-- App Name -->
     <string name="app_name">Linkzary</string>
 
+    <!-- Settings -->
+    <string name="settings_title">Einstellungen</string>
+
     <!-- Navigation -->
     <string name="nav_home">Startseite</string>
     <string name="nav_collections">Sammlungen</string>
@@ -150,6 +153,14 @@
     <string name="settings_theme_system">Systemstandard</string>
     <string name="settings_language">Sprache</string>
     <string name="settings_language_english">Englisch</string>
+    
+    <!-- About Dialog Key Features -->
+    <string name="about_key_features">Hauptfunktionen</string>
+    <string name="about_app_information">App-Informationen</string>
+    <string name="about_feature_secure">100% Sicher &amp; Privat</string>
+    <string name="about_feature_free">Völlig Kostenlos</string>
+    <string name="about_feature_themes">Dynamische Themes</string>
+    <string name="about_feature_languages">Mehrsprachige Unterstützung</string>
     <string name="settings_data">Daten</string>
     <string name="settings_export_data">Daten exportieren</string>
     <string name="settings_export_data_subtitle">Exportieren Sie Ihre Lesezeichen und Sammlungen</string>
@@ -370,9 +381,6 @@
     <string name="language_spanish">Spanisch</string>
     <string name="language_german">Deutsch</string>
     <string name="language_italian">Italienisch</string>
-    <string name="language_japanese">Japanisch</string>
-    <string name="language_korean">Koreanisch</string>
-    <string name="language_chinese">Chinesisch</string>
 
     <!-- Common strings for compatibility -->
     <string name="common_back">Zurück</string>
