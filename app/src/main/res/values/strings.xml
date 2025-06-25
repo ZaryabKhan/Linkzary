@@ -415,8 +415,8 @@
     <string name="collections_collection_name">Collection Name</string>
     <string name="collections_choose_color">Choose Color</string>
     <string name="collections_collection_icon">Collection icon</string>
-    <string name="collections_link_count_single">link</string>
-    <string name="collections_link_count_plural">links</string>
+    <string name="collections_link_count_single">%d link</string>
+    <string name="collections_link_count_plural">%d links</string>
     <string name="collections_collections_count">Collections count</string>
     <string name="collections_total_links">Total links</string>
     <string name="collections_screen_preview">Collections Screen Preview</string>

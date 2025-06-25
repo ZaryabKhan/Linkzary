@@ -416,8 +416,8 @@
     <string name="collections_collection_name">اسم المجموعة</string>
     <string name="collections_choose_color">اختر اللون</string>
     <string name="collections_collection_icon">أيقونة المجموعة</string>
-    <string name="collections_link_count_single">رابط</string>
-    <string name="collections_link_count_plural">روابط</string>
+    <string name="collections_link_count_single">%d رابط</string>
+    <string name="collections_link_count_plural">%d روابط</string>
     <string name="collections_collections_count">عدد المجموعات</string>
     <string name="collections_total_links">إجمالي الروابط</string>
     <string name="collections_screen_preview">معاينة شاشة المجموعات</string>

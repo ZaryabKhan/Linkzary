@@ -416,8 +416,8 @@
     <string name="collections_collection_name">Nome da Coleção</string>
     <string name="collections_choose_color">Escolher cor</string>
     <string name="collections_collection_icon">Ícone da coleção</string>
-    <string name="collections_link_count_single">link</string>
-    <string name="collections_link_count_plural">links</string>
+    <string name="collections_link_count_single">%d link</string>
+    <string name="collections_link_count_plural">%d links</string>
     <string name="collections_collections_count">Quantidade de coleções</string>
     <string name="collections_total_links">Total de links</string>
     <string name="collections_screen_preview">Pré-visualização da tela de coleções</string>
