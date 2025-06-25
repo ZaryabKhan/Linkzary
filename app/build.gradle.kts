@@ -16,8 +16,8 @@ android {
         applicationId = "com.appcodecraft.linkzary"
         minSdk = 24
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0-internal-testing-1"
+        versionCode = 3
+        versionName = "1.0-internal-testing-3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

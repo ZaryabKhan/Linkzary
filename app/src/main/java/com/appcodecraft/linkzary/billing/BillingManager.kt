@@ -88,7 +88,24 @@ class BillingManager @Inject constructor(
         
         billingClient?.queryProductDetailsAsync(params) { billingResult, productDetailsList ->
             if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                _availableProducts.value = productDetailsList
+                // Filter out products that don't have proper price details
+                val validProducts = productDetailsList.filter { product ->
+                    product.oneTimePurchaseOfferDetails != null &&
+                    product.oneTimePurchaseOfferDetails?.formattedPrice != null
+                }
+                _availableProducts.value = validProducts
+                
+                // Debug logging to help identify issues
+                android.util.Log.d("BillingManager", "Total products queried: ${productDetailsList.size}")
+                android.util.Log.d("BillingManager", "Valid products with prices: ${validProducts.size}")
+                productDetailsList.forEach { product ->
+                    android.util.Log.d("BillingManager", "Product: ${product.productId}, " +
+                        "Name: ${product.name}, " +
+                        "Price: ${product.oneTimePurchaseOfferDetails?.formattedPrice ?: "NULL"}")
+                }
+            } else {
+                android.util.Log.e("BillingManager", "Failed to query products: ${billingResult.debugMessage}")
+                _availableProducts.value = emptyList()
             }
         }
     }
