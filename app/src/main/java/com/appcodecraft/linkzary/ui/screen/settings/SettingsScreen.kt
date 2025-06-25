@@ -446,9 +446,11 @@ fun DonationHeader(
                         )
                     )
                 )
-                .padding(20.dp)
+                .padding(20.dp),
+            contentAlignment = Alignment.Center
         ) {
             Column(
+                modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Icon(
@@ -465,7 +467,8 @@ fun DonationHeader(
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
                 )
                 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -474,7 +477,8 @@ fun DonationHeader(
                     text = stringResource(R.string.settings_support_description),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
                 )
                 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -504,7 +508,8 @@ fun DonationHeader(
                     text = stringResource(R.string.settings_donate_disclaimer),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f),
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
         }
