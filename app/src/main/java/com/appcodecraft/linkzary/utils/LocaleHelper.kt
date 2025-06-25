@@ -59,9 +59,7 @@ object LocaleHelper {
             "es" -> "Español"
             "de" -> "Deutsch"
             "it" -> "Italiano"
-            "ja" -> "日本語"
-            "ko" -> "한국어"
-            "zh" -> "中文"
+            "ar" -> "العربية"
             else -> "English"
         }
     }

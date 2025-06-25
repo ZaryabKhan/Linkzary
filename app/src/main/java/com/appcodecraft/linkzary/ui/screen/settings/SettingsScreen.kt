@@ -599,9 +599,7 @@ fun LanguageSelectionDialog(
         stringResource(R.string.language_spanish) to "es",
         stringResource(R.string.language_german) to "de",
         stringResource(R.string.language_italian) to "it",
-        stringResource(R.string.language_japanese) to "ja",
-        stringResource(R.string.language_korean) to "ko",
-        stringResource(R.string.language_chinese) to "zh"
+        stringResource(R.string.language_arabic) to "ar"
     )
     
     AlertDialog(

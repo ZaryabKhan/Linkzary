@@ -1,0 +1,467 @@
+<resources>
+    <!-- App Name -->
+    <string name="app_name">لينكزاري</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">الرئيسية</string>
+    <string name="nav_collections">المجموعات</string>
+    <string name="nav_settings">الإعدادات</string>
+    <string name="nav_collection_detail">تفاصيل المجموعة</string>
+
+    <!-- Home Screen -->
+    <string name="home_linkzary_title">لينكزاري</string>
+    <string name="home_saved_links">%d روابط محفوظة</string>
+    <string name="home_switch_to_list_view">عرض كقائمة</string>
+    <string name="home_switch_to_grid_view">عرض كمصفوفة</string>
+    <string name="home_sort_options">خيارات الفرز</string>
+    <string name="home_pinned_first">المثبتة أولاً</string>
+    <string name="home_newest_first">الأحدث أولاً</string>
+    <string name="home_oldest_first">الأقدم أولاً</string>
+    <string name="home_title_a_z">العنوان أ-ي</string>
+    <string name="home_title_z_a">العنوان ي-أ</string>
+    <string name="home_add_link">إضافة رابط</string>
+    <string name="home_search_bookmarks">بحث في العلامات…</string>
+    <string name="home_search">بحث</string>
+    <string name="home_clear_search">مسح البحث</string>
+    <string name="home_filter_by_tags">تصفية حسب الوسوم</string>
+    <string name="home_clear_tags">مسح (%d)</string>
+    <string name="home_selected">محدد</string>
+    <string name="home_recent_collections">المجموعات الحديثة</string>
+    <string name="home_recent">حديث</string>
+    <string name="home_recent_bookmarks">العلامات الحديثة</string>
+    <string name="home_search_results">نتائج البحث (%d)</string>
+    <string name="home_no_bookmarks_tags">لا توجد علامات بالوسوم المحددة</string>
+    <string name="home_no_results_found">لا توجد نتائج</string>
+    <string name="home_no_bookmarks_yet">لا توجد علامات بعد</string>
+    <string name="home_start_saving_links">ابدأ بحفظ روابطك المفضلة</string>
+
+    <!-- Add Link Dialog -->
+    <string name="add_link_title">إضافة رابط</string>
+    <string name="add_link_url_label">الرابط</string>
+    <string name="add_link_url_placeholder">https://example.com</string>
+    <string name="add_link_url_hint">الرابط</string>
+    <string name="add_link_invalid_url">يرجى إدخال رابط صحيح</string>
+    <string name="add_link_save">حفظ</string>
+    <string name="add_link_cancel">إلغاء</string>
+
+    <!-- Link Options -->
+    <string name="link_options_title">خيارات الرابط</string>
+    <string name="link_edit_title">تعديل الرابط</string>
+    <string name="link_edit_subtitle">تعديل العنوان أو الرابط أو الملاحظات</string>
+    <string name="link_pin_title">تثبيت في الأعلى</string>
+    <string name="link_pin_subtitle">ابقائه في أعلى القائمة</string>
+    <string name="link_unpin_title">إلغاء التثبيت</string>
+    <string name="link_unpin_subtitle">إزالة من الروابط المثبتة</string>
+    <string name="link_move_title">نقل إلى مجموعة</string>
+    <string name="link_move_subtitle">تنظيمه في مجموعة</string>
+    <string name="link_delete_title">حذف</string>
+    <string name="link_delete_subtitle">حذف هذا الرابط نهائياً</string>
+
+    <!-- Edit Link Dialog -->
+    <string name="edit_link_title">تعديل الرابط</string>
+    <string name="edit_link_title_label">العنوان</string>
+    <string name="edit_link_url_label">الرابط</string>
+    <string name="edit_link_note_label">ملاحظة (اختياري)</string>
+    <string name="edit_link_tags_label">وسوم (مفصولة بفاصلة)</string>
+    <string name="edit_link_save">حفظ</string>
+    <string name="edit_link_cancel">إلغاء</string>
+
+    <!-- Delete Link Dialog -->
+    <string name="delete_link_title">حذف الرابط</string>
+    <string name="delete_link_message">هل أنت متأكد أنك تريد حذف هذا الرابط؟ لا يمكن التراجع عن هذا الإجراء.</string>
+    <string name="delete_link_confirm">حذف</string>
+    <string name="delete_link_cancel">إلغاء</string>
+
+    <!-- Move Link Dialog -->
+    <string name="move_link_title">نقل إلى مجموعة</string>
+    <string name="move_link_no_collection">لا توجد مجموعة</string>
+    <string name="move_link_create_new">إنشاء مجموعة جديدة</string>
+    <string name="move_link_cancel">إلغاء</string>
+
+    <!-- Collections Screen -->
+    <string name="collections_title">المجموعات</string>
+    <string name="collections_count">عدد المجموعات</string>
+    <string name="collections_collection_singular">مجموعة</string>
+    <string name="collections_collection_plural">مجموعات</string>
+    <string name="collections_create_collection">إنشاء مجموعة</string>
+    <string name="collections_search_placeholder">بحث في المجموعات…</string>
+    <string name="collections_loading">جاري تحميل المجموعات…</string>
+    <string name="collections_no_collections_yet">لا توجد مجموعات بعد</string>
+    <string name="collections_no_collections_found">لم يتم العثور على مجموعات</string>
+    <string name="collections_create_first_collection">أنشئ أول مجموعة لتنظيم وإدارة روابطك المحفوظة</string>
+    <string name="collections_adjust_search_terms">جرب تعديل كلمات البحث</string>
+    <string name="collections_name_a_z">الاسم أ-ي</string>
+    <string name="collections_name_z_a">الاسم ي-أ</string>
+    <string name="collections_most_links">أكثر الروابط</string>
+    <string name="collections_recently_created">تم إنشاؤها مؤخراً</string>
+
+    <!-- Create Collection Dialog -->
+    <string name="create_collection_title">إنشاء مجموعة</string>
+    <string name="create_collection_name_label">اسم المجموعة</string>
+    <string name="create_collection_name_placeholder">أدخل اسم المجموعة</string>
+    <string name="create_collection_name_hint">اسم المجموعة</string>
+    <string name="create_collection_choose_color">اختر اللون</string>
+    <string name="create_collection_create">إنشاء</string>
+    <string name="create_collection_cancel">إلغاء</string>
+
+    <!-- Collection Options -->
+    <string name="collection_options_title">خيارات المجموعة</string>
+    <string name="collection_edit_title">تعديل المجموعة</string>
+    <string name="collection_edit_subtitle">تغيير الاسم واللون</string>
+    <string name="collection_delete_title">حذف المجموعة</string>
+    <string name="collection_delete_subtitle">حذف المجموعة وجميع روابطها</string>
+
+    <!-- Delete Collection Dialog -->
+    <string name="delete_collection_title">حذف المجموعة؟</string>
+    <string name="delete_collection_message">هل أنت متأكد أنك تريد حذف "%s"؟ لا يمكن التراجع عن هذا الإجراء وسيتم حذف جميع الروابط في هذه المجموعة.</string>
+    <string name="delete_collection_confirm">حذف</string>
+    <string name="delete_collection_cancel">إلغاء</string>
+
+    <!-- Edit Collection Dialog -->
+    <string name="edit_collection_title">تعديل المجموعة</string>
+    <string name="edit_collection_save">حفظ</string>
+    <string name="edit_collection_cancel">إلغاء</string>
+
+    <!-- Collection Detail Screen -->
+    <string name="collection_detail_back">رجوع</string>
+    <string name="collection_detail_collection">مجموعة</string>
+    <string name="collection_detail_links_count">%d روابط</string>
+    <string name="collection_detail_search_placeholder">بحث في الروابط…</string>
+    <string name="collection_detail_clear">مسح</string>
+    <string name="collection_detail_no_matching_links">لا توجد روابط مطابقة</string>
+    <string name="collection_detail_no_links_in_collection">لا توجد روابط في هذه المجموعة</string>
+    <string name="collection_detail_try_different_search">جرب مصطلح بحث مختلف</string>
+    <string name="collection_detail_add_links_to_start">أضف بعض الروابط للبدء</string>
+
+    <!-- Collection Card -->
+    <string name="collection_card_link_singular">رابط</string>
+    <string name="collection_card_link_plural">روابط</string>
+    <string name="collection_card_more_options">خيارات أخرى</string>
+    <string name="collection_card_icon">أيقونة المجموعة</string>
+
+    <!-- Bookmark Card -->
+    <string name="bookmark_card_pinned">مثبت</string>
+    <string name="bookmark_card_more_options">خيارات أخرى</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_general">عام</string>
+    <string name="settings_theme">الثيم</string>
+    <string name="settings_theme_light">فاتح</string>
+    <string name="settings_theme_dark">داكن</string>
+    <string name="settings_theme_system">افتراضي النظام</string>
+    <string name="settings_language">اللغة</string>
+    <string name="settings_language_english">الإنجليزية</string>
+    <string name="settings_data">البيانات</string>
+    <string name="settings_export_data">تصدير البيانات</string>
+    <string name="settings_export_data_subtitle">تصدير العلامات والمجموعات</string>
+    <string name="settings_import_data">استيراد البيانات</string>
+    <string name="settings_import_data_subtitle">استيراد العلامات من ملف</string>
+    <string name="settings_privacy">الخصوصية</string>
+    <string name="settings_privacy_policy">سياسة الخصوصية</string>
+    <string name="settings_privacy_policy_subtitle">عرض سياسة الخصوصية</string>
+    <string name="settings_clear_all_data">مسح جميع البيانات</string>
+    <string name="settings_clear_all_data_subtitle">حذف جميع العلامات والمجموعات</string>
+    <string name="settings_about">حول</string>
+    <string name="settings_about_linkzary">حول لينكزاري</string>
+    <string name="settings_about_linkzary_subtitle">الإصدار 1.0.0</string>
+    <string name="settings_rate_app">قيّم التطبيق</string>
+    <string name="settings_rate_app_subtitle">قيّمنا على Google Play</string>
+    <string name="settings_send_feedback">إرسال ملاحظات</string>
+    <string name="settings_send_feedback_subtitle">ساعدنا في تحسين التطبيق</string>
+    <string name="settings_visit_developer">ملف المطور</string>
+    <string name="settings_visit_developer_subtitle">المزيد من التطبيقات من AppCodeCraft</string>
+
+    <!-- Theme Selection Dialog -->
+    <string name="theme_selection_title">اختر الثيم</string>
+    <string name="theme_light_title">فاتح</string>
+    <string name="theme_light_subtitle">استخدم الثيم الفاتح دائماً</string>
+    <string name="theme_dark_title">داكن</string>
+    <string name="theme_dark_subtitle">استخدم الثيم الداكن دائماً</string>
+    <string name="theme_system_title">افتراضي النظام</string>
+    <string name="theme_system_subtitle">اتبع إعدادات النظام</string>
+    <string name="theme_cancel">إلغاء</string>
+
+    <!-- Language Selection Dialog -->
+    <string name="language_selection_title">اختر اللغة</string>
+    <string name="language_cancel">إلغاء</string>
+
+    <!-- Clear Data Dialog -->
+    <string name="clear_data_title">مسح جميع البيانات؟</string>
+    <string name="clear_data_description">سيؤدي هذا الإجراء إلى حذف نهائي:</string>
+    <string name="clear_data_links">• جميع الروابط والعلامات المحفوظة</string>
+    <string name="clear_data_collections">• جميع المجموعات ومحتوياتها</string>
+    <string name="clear_data_tags">• جميع الوسوم والملاحظات</string>
+    <string name="clear_data_preferences">• جميع تفضيلات التطبيق</string>
+    <string name="clear_data_warning">لا يمكن التراجع عن هذا الإجراء!</string>
+    <string name="clear_data_confirm">مسح جميع البيانات</string>
+    <string name="clear_data_cancel">إلغاء</string>
+
+    <!-- About Dialog -->
+    <string name="about_title">حول لينكزاري</string>
+    <string name="about_description">لينكزاري هو تطبيق بسيط وجميل لحفظ الروابط وتنظيم وإدارة العلامات المفضلة بسهولة.</string>
+    <string name="about_version">الإصدار</string>
+    <string name="about_version_number">1.0.0</string>
+    <string name="about_developer">المطور</string>
+    <string name="about_developer_name">AppCodeCraft</string>
+    <string name="about_built_with">تم التطوير باستخدام</string>
+    <string name="about_built_with_tech">Jetpack Compose &amp; Kotlin</string>
+    <string name="about_more_apps">المزيد من تطبيقات المطور</string>
+    <string name="about_close">إغلاق</string>
+
+    <!-- Donation Dialog -->
+    <string name="donation_title">ادعم لينكزاري</string>
+    <string name="donation_description">دعمك يساعدنا في تطوير وتحسين لينكزاري. اختر أي مبلغ ترغب في التبرع به:</string>
+    <string name="donation_help_text">ساعدنا في إبقاء لينكزاري مجانياً وبدون إعلانات! دعمك يعني لنا الكثير.</string>
+    <string name="donation_donate_now">تبرع الآن</string>
+    <string name="donation_voluntary_text">التبرعات اختيارية ولا تفتح ميزات إضافية</string>
+    <string name="donation_loading">جاري تحميل خيارات التبرع…</string>
+    <string name="donation_unable_to_load">تعذر تحميل خيارات التبرع. يرجى المحاولة لاحقاً.</string>
+    <string name="donation_close">إغلاق</string>
+
+    <!-- Import/Export Dialogs -->
+    <string name="export_data_title">تصدير البيانات</string>
+    <string name="export_data_description">اختر التنسيق لتصدير العلامات والمجموعات:</string>
+    <string name="export_json_title">تنسيق JSON</string>
+    <string name="export_json_description">نسخة احتياطية كاملة مع جميع البيانات الوصفية. يوصى به للحفاظ على البيانات بالكامل.</string>
+    <string name="export_json_button">تصدير كـ JSON</string>
+    <string name="export_csv_title">تنسيق CSV</string>
+    <string name="export_csv_description">تنسيق متوافق مع الجداول. جيد لتحليل البيانات والمشاركة.</string>
+    <string name="export_csv_button">تصدير كـ CSV</string>
+    <string name="export_cancel">إلغاء</string>
+
+    <string name="import_data_title">استيراد البيانات</string>
+    <string name="import_data_description">استيراد العلامات والمجموعات من ملف نسخ احتياطي.</string>
+    <string name="import_supported_formats">التنسيقات المدعومة:</string>
+    <string name="import_json_files">ملفات JSON (.json)</string>
+    <string name="import_csv_files">ملفات CSV (.csv)</string>
+    <string name="import_select_file">اختر ملف</string>
+    <string name="import_cancel">إلغاء</string>
+
+    <string name="import_preview_title">معاينة الاستيراد</string>
+    <string name="import_summary_title">ملخص الاستيراد</string>
+    <string name="import_total_links">إجمالي الروابط:</string>
+    <string name="import_total_collections">إجمالي المجموعات:</string>
+    <string name="import_uncategorized_links">روابط غير مصنفة:</string>
+    <string name="import_mode_title">وضع الاستيراد</string>
+    <string name="import_merge_title">دمج مع البيانات الحالية</string>
+    <string name="import_merge_description">تخطي الروابط المكررة، إعادة تسمية المجموعات المتعارضة</string>
+    <string name="import_replace_title">استيراد فقط (استبدال الموجود)</string>
+    <string name="import_replace_description">استيراد جميع البيانات، قد يؤدي إلى تكرار</string>
+    <string name="import_collections_title">المجموعات المراد استيرادها</string>
+    <string name="import_will_be_renamed">سيتم إعادة التسمية</string>
+    <string name="import_button">استيراد</string>
+
+    <string name="importing_data_title">جاري الاستيراد</string>
+    <string name="importing_progress">%d / %d عنصر تمت معالجته</string>
+    <string name="importing_step">الخطوة: %s</string>
+    <string name="importing_done">تم</string>
+
+    <string name="import_successful_title">تم الاستيراد بنجاح</string>
+    <string name="import_failed_title">فشل الاستيراد</string>
+    <string name="import_successful_description">تم استيراد بياناتك بنجاح!</string>
+    <string name="import_summary_links_imported">• %d روابط تم استيرادها</string>
+    <string name="import_summary_collections_imported">• %d مجموعات تم استيرادها</string>
+    <string name="import_summary_links_skipped">• %d روابط مكررة تم تخطيها</string>
+    <string name="import_summary_collections_renamed">• %d مجموعات تم إعادة تسميتها</string>
+    <string name="import_failed_description">فشل في استيراد البيانات:</string>
+    <string name="import_ok">موافق</string>
+
+    <!-- Error Messages -->
+    <string name="error_unknown">حدث خطأ غير معروف</string>
+    <string name="error_failed_to_save_link">فشل في حفظ الرابط: %s</string>
+    <string name="error_link_already_saved">الرابط محفوظ مسبقاً</string>
+    <string name="error_failed_to_delete_link">فشل في حذف الرابط: %s</string>
+    <string name="error_failed_to_update_pin">فشل في تحديث حالة التثبيت: %s</string>
+    <string name="error_failed_to_move_link">فشل في نقل الرابط: %s</string>
+    <string name="error_failed_to_update_link">فشل في تحديث الرابط: %s</string>
+    <string name="error_failed_to_create_collection">فشل في إنشاء المجموعة: %s</string>
+    <string name="error_failed_to_refresh_collections">فشل في تحديث المجموعات: %s</string>
+    <string name="error_failed_to_refresh_link_count">فشل في تحديث عدد الروابط: %s</string>
+    <string name="error_failed_to_update_collection">فشل في تحديث المجموعة: %s</string>
+    <string name="error_failed_to_delete_collection">فشل في حذف المجموعة: %s</string>
+    <string name="error_no_data_to_clear">لا توجد بيانات للمسح</string>
+    <string name="error_failed_to_clear_data">فشل في مسح جميع البيانات. المتبقي: %d روابط، %d مجموعات</string>
+    <string name="error_failed_to_clear_data_exception">فشل في مسح البيانات: %s</string>
+
+    <!-- Export/Import Error Messages -->
+    <string name="export_error_no_data">لا توجد بيانات للتصدير. أضف بعض الروابط أو المجموعات أولاً.</string>
+    <string name="export_error_cannot_write">لا يمكن الكتابة في الموقع المحدد: %s</string>
+    <string name="export_error_failed">فشل في تصدير البيانات. يرجى التحقق من أذونات الملف والمحاولة مرة أخرى.</string>
+    <string name="export_error_exception">فشل التصدير: %s</string>
+    <string name="import_error_cannot_read">لا يمكن قراءة الملف المحدد: %s</string>
+    <string name="import_error_file_too_large">الملف كبير جداً (%dMB). الحد الأقصى 50MB.</string>
+    <string name="import_error_no_valid_data">لم يتم العثور على بيانات صالحة في الملف المحدد. يرجى التحقق من تنسيق الملف.</string>
+    <string name="import_error_failed_to_parse">فشل في معالجة ملف الاستيراد: %s</string>
+    <string name="import_error_failed">فشل الاستيراد: %s</string>
+
+    <!-- Common Actions -->
+    <string name="action_save">حفظ</string>
+    <string name="action_cancel">إلغاء</string>
+    <string name="action_delete">حذف</string>
+    <string name="action_edit">تعديل</string>
+    <string name="action_create">إنشاء</string>
+    <string name="action_close">إغلاق</string>
+    <string name="action_ok">موافق</string>
+    <string name="action_done">تم</string>
+
+    <!-- Collections Screen Additional Strings -->
+    <string name="collections_count_info">%1$d مجموعات</string>
+    <string name="home_switch_list_view">عرض كقائمة</string>
+    <string name="home_switch_grid_view">عرض كمصفوفة</string>
+    <string name="collections_sort_name_az">الاسم (أ-ي)</string>
+    <string name="collections_sort_name_za">الاسم (ي-أ)</string>
+    <string name="collections_sort_most_links">أكثر الروابط</string>
+    <string name="collections_sort_recently_created">تم إنشاؤها مؤخراً</string>
+    <string name="collections_empty_state">لا توجد مجموعات بعد</string>
+    <string name="collections_no_results">لا توجد نتائج</string>
+    <string name="collections_empty_description">أنشئ أول مجموعة لتنظيم روابطك</string>
+    <string name="collections_no_results_description">جرب تعديل البحث أو الفلاتر</string>
+    <string name="collections_enter_name">أدخل اسم المجموعة</string>
+    <string name="collections_options">خيارات المجموعة</string>
+    <string name="collections_edit_collection">تعديل المجموعة</string>
+    <string name="collections_edit_description">تعديل تفاصيل المجموعة</string>
+    <string name="collections_delete_collection">حذف المجموعة</string>
+    <string name="collections_delete_description">حذف هذه المجموعة نهائياً</string>
+    <string name="collections_delete_confirmation_title">حذف المجموعة</string>
+    <string name="collections_delete_confirmation_message">هل أنت متأكد من حذف هذه المجموعة؟ لا يمكن التراجع عن هذا الإجراء.</string>
+    <string name="collections_enter_collection_name">أدخل اسم المجموعة</string>
+
+    <!-- Settings Screen Additional Strings -->
+    <string name="settings_export_description">تصدير بياناتك إلى ملفات نسخ احتياطي</string>
+    <string name="settings_import_description">استيراد البيانات من ملفات النسخ الاحتياطي</string>
+    <string name="settings_privacy_description">إدارة إعدادات الخصوصية</string>
+    <string name="settings_clear_data">مسح البيانات</string>
+    <string name="settings_clear_data_description">إزالة جميع بيانات التطبيق نهائياً</string>
+    <string name="settings_about_app">حول التطبيق</string>
+    <string name="settings_version">الإصدار %1$s</string>
+    <string name="settings_rate_description">قيّمنا في متجر التطبيقات</string>
+    <string name="settings_feedback_description">أرسل لنا ملاحظاتك</string>
+    <string name="settings_developer_profile">ملف المطور</string>
+    <string name="settings_developer_description">تعرف على المزيد حول المطور</string>
+    <string name="settings_support_title">دعم التطوير</string>
+    <string name="settings_support_description">ساعدنا في تحسين لينكزاري</string>
+    <string name="settings_donate_button">تبرع</string>
+    <string name="settings_donate_disclaimer">دعمك يساعدنا في تطوير وتحسين التطبيق</string>
+    <string name="settings_select_language">اختر اللغة</string>
+    <string name="settings_clear_data_title">مسح جميع البيانات</string>
+    <string name="settings_clear_data_warning">سيتم حذف ما يلي نهائياً:</string>
+    <string name="settings_clear_data_item1">جميع العلامات الخاصة بك</string>
+    <string name="settings_clear_data_item2">جميع المجموعات الخاصة بك</string>
+    <string name="settings_clear_data_item3">جميع إعداداتك</string>
+    <string name="settings_clear_data_item4">جميع تفضيلات التطبيق</string>
+    <string name="settings_clear_data_irreversible">هذا الإجراء غير قابل للاسترجاع</string>
+
+    <!-- About Section -->
+    <string name="settings_about_description">تعرف على المزيد حول لينكزاري</string>
+    <string name="settings_version_label">الإصدار:</string>
+    <string name="settings_developer_label">المطور:</string>
+    <string name="settings_built_with">تم التطوير بحب باستخدام Kotlin &amp; Jetpack Compose</string>
+    <string name="settings_more_apps">المزيد من تطبيقات المطور</string>
+
+    <!-- Developer Apps -->
+    <string name="app_curioshuffle">CurioShuffle</string>
+    <string name="app_curioshuffle_description">اكتشف محتوى عشوائي ممتع</string>
+    <string name="app_curiomate">CurioMate</string>
+    <string name="app_curiomate_description">رفيق فضولك</string>
+
+    <!-- Language Options -->
+    <string name="language_english">الإنجليزية</string>
+    <string name="language_french">الفرنسية</string>
+    <string name="language_portuguese">البرتغالية</string>
+    <string name="language_spanish">الإسبانية</string>
+    <string name="language_german">الألمانية</string>
+    <string name="language_italian">الإيطالية</string>
+
+    <!-- Common strings for compatibility -->
+    <string name="common_back">رجوع</string>
+    <string name="common_cancel">إلغاء</string>
+    <string name="common_create">إنشاء</string>
+    <string name="common_delete">حذف</string>
+    <string name="common_close">إغلاق</string>
+    <string name="common_done">تم</string>
+    <string name="common_search">بحث</string>
+    <string name="common_clear">مسح</string>
+    <string name="common_selected">محدد</string>
+    <string name="common_unknown_error">حدث خطأ غير معروف</string>
+    <string name="common_edit">تعديل</string>
+    <string name="common_save">حفظ</string>
+    <string name="common_ok">موافق</string>
+
+    <!-- Collections compatibility strings -->
+    <string name="collections_collection">مجموعة</string>
+    <string name="collections_links_count">%d روابط</string>
+    <string name="collections_search_links">بحث في الروابط…</string>
+    <string name="collections_no_matching_links">لا توجد روابط مطابقة</string>
+    <string name="collections_no_links">لا توجد روابط في هذه المجموعة</string>
+    <string name="collections_try_different_search">جرب مصطلح بحث مختلف</string>
+    <string name="collections_add_links_to_start">أضف بعض الروابط للبدء</string>
+    <string name="collections_link_options">خيارات الرابط</string>
+    <string name="collections_edit_link">تعديل الرابط</string>
+    <string name="collections_edit_link_description">تعديل العنوان أو الرابط أو الملاحظات</string>
+    <string name="collections_move_to_collection">نقل إلى مجموعة</string>
+    <string name="collections_move_description">تنظيمه في مجموعة</string>
+    <string name="collections_delete_link_description">حذف هذا الرابط نهائياً</string>
+    <string name="collections_delete_link">حذف الرابط</string>
+    <string name="collections_collection_name">اسم المجموعة</string>
+    <string name="collections_choose_color">اختر اللون</string>
+    <string name="collections_collection_icon">أيقونة المجموعة</string>
+    <string name="collections_link_count_single">رابط</string>
+    <string name="collections_link_count_plural">روابط</string>
+    <string name="collections_collections_count">عدد المجموعات</string>
+    <string name="collections_total_links">إجمالي الروابط</string>
+    <string name="collections_screen_preview">معاينة شاشة المجموعات</string>
+    <string name="collections_delete_link_confirmation">حذف الرابط</string>
+    <string name="collections_move">نقل</string>
+    <string name="collections_no_collection">لا توجد مجموعة</string>
+    <string name="collections_create_new_collection">إنشاء مجموعة جديدة</string>
+
+    <!-- Home compatibility strings -->
+    <string name="home_switch_to_list">عرض كقائمة</string>
+    <string name="home_switch_to_grid">عرض كمصفوفة</string>
+    <string name="home_more_options">خيارات أخرى</string>
+    <string name="home_add_bookmark">إضافة علامة</string>
+    <string name="home_view_collections">عرض المجموعات</string>
+    <string name="home_screen_preview">شاشة الرئيسية مع خيارات متقدمة للروابط</string>
+    <string name="home_title">العنوان</string>
+    <string name="home_url">الرابط</string>
+    <string name="home_note_optional">ملاحظة (اختياري)</string>
+    <string name="home_note">ملاحظة</string>
+    <string name="home_tags_comma_separated">وسوم (مفصولة بفاصلة)</string>
+    <string name="home_tags">وسوم</string>
+    <string name="home_pinned">مثبت</string>
+
+    <!-- Navigation compatibility strings -->
+    <string name="navigation_collections">المجموعات</string>
+    <string name="navigation_home">الرئيسية</string>
+    <string name="navigation_settings">الإعدادات</string>
+
+    <!-- Settings compatibility strings -->
+    <string name="settings_select_file">اختر ملف</string>
+    <string name="settings_import">استيراد</string>
+    <string name="settings_export_as_json">تصدير كـ JSON</string>
+    <string name="settings_export_as_csv">تصدير كـ CSV</string>
+    <string name="settings_import_links_imported">روابط تم استيرادها</string>
+    <string name="settings_import_collections_imported">مجموعات تم استيرادها</string>
+    <string name="settings_import_links_skipped">روابط مكررة تم تخطيها</string>
+    <string name="settings_import_collections_renamed">مجموعات تم إعادة تسميتها</string>
+
+    <!-- Content Descriptions -->
+    <string name="cd_pinned">مثبت</string>
+    <string name="cd_more_options">خيارات أخرى</string>
+    <string name="cd_search">بحث</string>
+    <string name="cd_clear_search">مسح البحث</string>
+    <string name="cd_selected">محدد</string>
+    <string name="cd_collection_icon">أيقونة المجموعة</string>
+    <string name="cd_back">رجوع</string>
+    <string name="cd_create_collection">إنشاء مجموعة</string>
+    <string name="cd_edit_collection">تعديل المجموعة</string>
+    <string name="cd_delete">حذف</string>
+    <string name="cd_edit">تعديل</string>
+    <string name="cd_move">نقل</string>
+    <string name="cd_create_new_collection">إنشاء مجموعة جديدة</string>
+
+    <!-- Miscellaneous -->
+    <string name="loading">جاري التحميل…</string>
+    <string name="unknown">غير معروف</string>
+    <string name="version_1_0">1.0</string>
+</resources>
