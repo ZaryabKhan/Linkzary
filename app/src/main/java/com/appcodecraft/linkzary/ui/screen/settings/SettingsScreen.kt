@@ -252,7 +252,7 @@ fun SettingsScreen(
                 SettingsItem(
                     icon = Icons.Default.Info,
                     title = stringResource(R.string.settings_about_app),
-                    subtitle = stringResource(R.string.settings_version, "1.0.0"),
+                    subtitle = stringResource(R.string.settings_version, BuildConfig.VERSION_NAME),
                     onClick = {
                         showAboutDialog = true
                     }
