@@ -460,27 +460,22 @@ fun DonationHeader(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Favorite,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(28.dp)
-                        )
-                        
-                        Spacer(modifier = Modifier.width(12.dp))
-                        
-                        Text(
-                            text = "Thank you for your support!",
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    }
+                    Icon(
+                        imageVector = Icons.Default.Favorite,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(32.dp)
+                    )
+                    
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    Text(
+                        text = "Thank you for your support!",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        textAlign = TextAlign.Center
+                    )
                     
                     Spacer(modifier = Modifier.height(8.dp))
                     
@@ -1071,6 +1066,65 @@ fun SettingsScreenPreview() {
             SettingsScreen(
                 userPreferencesManager = UserPreferencesManager(context)
             )
+        }
+    }
+}
+
+// Preview Components
+@Preview(showBackground = true)
+@Composable
+fun DonationHeaderPreview() {
+    LinkzaryTheme {
+        Surface {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Non-donated state
+                Text(
+                    text = "Non-Donated State:",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                DonationHeader(
+                    onDonateClick = { },
+                    hasDonated = false
+                )
+                
+                // Donated state
+                Text(
+                    text = "Donated State (Centered):",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                DonationHeader(
+                    onDonateClick = { },
+                    hasDonated = true
+                )
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun DonationHeaderDarkPreview() {
+    LinkzaryTheme {
+        Surface {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                DonationHeader(
+                    onDonateClick = { },
+                    hasDonated = true
+                )
+                
+                DonationHeader(
+                    onDonateClick = { },
+                    hasDonated = false
+                )
+            }
         }
     }
 }
