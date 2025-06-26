@@ -13,6 +13,7 @@ import com.appcodecraft.linkzary.ui.screen.collections.CollectionDetailScreen
 import com.appcodecraft.linkzary.ui.screen.collections.CollectionsScreen
 import com.appcodecraft.linkzary.ui.screen.home.HomeScreen
 import com.appcodecraft.linkzary.ui.screen.settings.SettingsScreen
+import com.appcodecraft.linkzary.ui.screen.donation.DonationScreen
 
 @Composable
 fun LinkzaryNavigation(
@@ -64,7 +65,24 @@ fun LinkzaryNavigation(
             enterTransition = { fadeIn(animationSpec = tween(200)) },
             exitTransition = { fadeOut(animationSpec = tween(200)) }
         ) {
-            SettingsScreen(userPreferencesManager = userPreferencesManager)
+            SettingsScreen(
+                userPreferencesManager = userPreferencesManager,
+                onNavigateToDonation = {
+                    navController.navigate(Screen.Donation.route)
+                }
+            )
+        }
+        
+        composable(
+            route = Screen.Donation.route,
+            enterTransition = { fadeIn(animationSpec = tween(200)) },
+            exitTransition = { fadeOut(animationSpec = tween(200)) }
+        ) {
+            DonationScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
         }
     }
 }
@@ -76,4 +94,5 @@ sealed class Screen(val route: String, val title: String) {
         fun createRoute(collectionId: String) = "collection_detail/$collectionId"
     }
     object Settings : Screen("settings", "Settings")
+    object Donation : Screen("donation", "Donation")
 }

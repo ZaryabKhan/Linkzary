@@ -83,7 +83,8 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
     importExportViewModel: ImportExportViewModel = hiltViewModel(),
     donationViewModel: DonationViewModel = hiltViewModel(),
-    userPreferencesManager: UserPreferencesManager
+    userPreferencesManager: UserPreferencesManager,
+    onNavigateToDonation: () -> Unit = {}
 ) {
     val context = LocalContext.current
     
@@ -91,7 +92,7 @@ fun SettingsScreen(
     var showLanguageDialog by remember { mutableStateOf(false) }
     var showThemeDialog by remember { mutableStateOf(false) }
     var showClearDataDialog by remember { mutableStateOf(false) }
-    var showDonationDialog by remember { mutableStateOf(false) }
+    // Removed showDonationDialog as we now navigate to DonationScreen
     var showExportDialog by remember { mutableStateOf(false) }
     var showImportDialog by remember { mutableStateOf(false) }
     
@@ -145,7 +146,7 @@ fun SettingsScreen(
             // Donation Header
             item {
                 DonationHeader(
-                    onDonateClick = { showDonationDialog = true },
+                    onDonateClick = onNavigateToDonation,
                     hasDonated = hasDonated
                 )
             }
@@ -417,12 +418,7 @@ fun SettingsScreen(
         }
     }
     
-    // Donation Dialog
-    if (showDonationDialog) {
-        DonationDialog(
-            onDismiss = { showDonationDialog = false }
-        )
-    }
+    // Donation navigation is now handled by onNavigateToDonation callback
 }
 
 // Donation Header Component
