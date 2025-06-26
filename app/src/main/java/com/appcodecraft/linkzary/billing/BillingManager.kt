@@ -35,7 +35,7 @@ class BillingManager @Inject constructor(
     private val donationSkus = listOf(
         "donation_1_dollar",
         "donation_2_dollar", 
-        "donation_3_dollar",
+        "lz_donation_3_dollar",
         "donation_5_dollar",
         "donation_10_dollar",
         "donation_15_dollar",
