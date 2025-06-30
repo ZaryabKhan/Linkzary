@@ -4,6 +4,7 @@ package com.appcodecraft.linkzary.ui.screen.collections
 // Delay import removed
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,11 +22,15 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CreateNewFolder
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -33,6 +38,7 @@ import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SortByAlpha
@@ -54,6 +60,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -464,7 +472,10 @@ fun CollectionsCreateCollectionDialog(
 ) {
     var name by remember { mutableStateOf("") }
     var selectedColor by remember { mutableStateOf("#6366F1") }
+    var showCustomColorPicker by remember { mutableStateOf(false) }
+    var customColor by remember { mutableStateOf(Color(0xFF6366F1)) }
     val maxNameLength = 30
+    val hapticFeedback = LocalHapticFeedback.current
 
     val colors = listOf(
         "#6366F1", // Indigo
@@ -539,36 +550,156 @@ fun CollectionsCreateCollectionDialog(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(8),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.height(120.dp)
-                ) {
-                    items(colors) { color ->
-                        FilterChip(
-                            onClick = { selectedColor = color },
-                            label = { },
-                            selected = selectedColor == color,
-                            modifier = Modifier.size(32.dp),
-                            colors = FilterChipDefaults.filterChipColors(
-                                containerColor = Color(color.toColorInt()),
-                                selectedContainerColor = Color(color.toColorInt())
-                            ),
-                            border = if (selectedColor == color) {
-                                FilterChipDefaults.filterChipBorder(
-                                    enabled = true,
-                                    selected = true,
-                                    borderColor = MaterialTheme.colorScheme.primary,
-                                    borderWidth = 2.dp
+                if (showCustomColorPicker) {
+                    // Custom color picker UI
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp)
+                    ) {
+                        // Color preview
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(40.dp)
+                                .background(customColor, RoundedCornerShape(8.dp))
+                        )
+                        
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        // Red slider
+                        Text("Red", style = MaterialTheme.typography.bodySmall)
+                        Slider(
+                            value = customColor.red,
+                            onValueChange = { 
+                                customColor = customColor.copy(red = it)
+                                selectedColor = String.format("#%02X%02X%02X", 
+                                    (customColor.red * 255).toInt(),
+                                    (customColor.green * 255).toInt(),
+                                    (customColor.blue * 255).toInt())
+                            },
+                            colors = SliderDefaults.colors(
+                                thumbColor = Color.Red,
+                                activeTrackColor = Color.Red.copy(alpha = 0.5f)
+                            )
+                        )
+                        
+                        // Green slider
+                        Text("Green", style = MaterialTheme.typography.bodySmall)
+                        Slider(
+                            value = customColor.green,
+                            onValueChange = { 
+                                customColor = customColor.copy(green = it)
+                                selectedColor = String.format("#%02X%02X%02X", 
+                                    (customColor.red * 255).toInt(),
+                                    (customColor.green * 255).toInt(),
+                                    (customColor.blue * 255).toInt())
+                            },
+                            colors = SliderDefaults.colors(
+                                thumbColor = Color.Green,
+                                activeTrackColor = Color.Green.copy(alpha = 0.5f)
+                            )
+                        )
+                        
+                        // Blue slider
+                        Text("Blue", style = MaterialTheme.typography.bodySmall)
+                        Slider(
+                            value = customColor.blue,
+                            onValueChange = { 
+                                customColor = customColor.copy(blue = it)
+                                selectedColor = String.format("#%02X%02X%02X", 
+                                    (customColor.red * 255).toInt(),
+                                    (customColor.green * 255).toInt(),
+                                    (customColor.blue * 255).toInt())
+                            },
+                            colors = SliderDefaults.colors(
+                                thumbColor = Color.Blue,
+                                activeTrackColor = Color.Blue.copy(alpha = 0.5f)
+                            )
+                        )
+                        
+                        // Back button
+                        TextButton(
+                            onClick = { showCustomColorPicker = false },
+                            modifier = Modifier.align(Alignment.End)
+                        ) {
+                            Text("Back to Presets")
+                        }
+                    }
+                } else {
+                    // Predefined colors grid
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(8),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.height(120.dp)
+                    ) {
+                        items(colors) { color ->
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.size(32.dp)
+                            ) {
+                                FilterChip(
+                                    onClick = { 
+                                        if (selectedColor != color) {
+                                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            selectedColor = color 
+                                        }
+                                    },
+                                    label = { },
+                                    selected = selectedColor == color,
+                                    modifier = Modifier.size(32.dp),
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        containerColor = Color(color.toColorInt()),
+                                        selectedContainerColor = Color(color.toColorInt())
+                                    ),
+                                    border = FilterChipDefaults.filterChipBorder(
+                                        enabled = true,
+                                        selected = selectedColor == color,
+                                        borderColor = if (selectedColor == color) MaterialTheme.colorScheme.primary else Color.Transparent,
+                                        borderWidth = if (selectedColor == color) 2.dp else 0.dp
+                                    )
                                 )
-                            } else {
-                                FilterChipDefaults.filterChipBorder(
-                                    enabled = true,
-                                    selected = false
+                                
+                                // Selection indicator
+                                if (selectedColor == color) {
+                                    Icon(
+                                        imageVector = Icons.Default.Check,
+                                        contentDescription = "Selected",
+                                        tint = Color.White,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                            }
+                        }
+                        
+                        // Custom color option
+                        item {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                                    .clickable { 
+                                        hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        showCustomColorPicker = true 
+                                        // Initialize custom color picker with current selection
+                                        try {
+                                            customColor = Color(selectedColor.toColorInt())
+                                        } catch (e: Exception) {
+                                            customColor = Color(0xFF6366F1) // Default to Indigo if parsing fails
+                                        }
+                                    }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Palette,
+                                    contentDescription = "Custom Color",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(16.dp)
                                 )
                             }
-                        )
+                        }
                     }
                 }
             }
@@ -725,7 +856,16 @@ fun EditCollectionDialog(
 ) {
     var name by remember { mutableStateOf(collection.name) }
     var selectedColor by remember { mutableStateOf(collection.color) }
+    var showCustomColorPicker by remember { mutableStateOf(false) }
+    var customColor by remember { 
+        mutableStateOf(try {
+            Color(collection.color.toColorInt())
+        } catch (e: Exception) {
+            Color(0xFF6366F1) // Default to Indigo if parsing fails
+        })
+    }
     val maxNameLength = 30
+    val hapticFeedback = LocalHapticFeedback.current
 
     val colors = listOf(
         "#6366F1", // Indigo
@@ -794,42 +934,162 @@ fun EditCollectionDialog(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "Choose Color",
+                    text = stringResource(R.string.collections_choose_color),
                     style = MaterialTheme.typography.labelMedium
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(8),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.height(120.dp)
-                ) {
-                    items(colors) { color ->
-                        FilterChip(
-                            onClick = { selectedColor = color },
-                            label = { },
-                            selected = selectedColor == color,
-                            modifier = Modifier.size(32.dp),
-                            colors = FilterChipDefaults.filterChipColors(
-                                containerColor = Color(color.toColorInt()),
-                                selectedContainerColor = Color(color.toColorInt())
-                            ),
-                            border = if (selectedColor == color) {
-                                FilterChipDefaults.filterChipBorder(
-                                    enabled = true,
-                                    selected = true,
-                                    borderColor = MaterialTheme.colorScheme.primary,
-                                    borderWidth = 2.dp
+                if (showCustomColorPicker) {
+                    // Custom color picker UI
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp)
+                    ) {
+                        // Color preview
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(40.dp)
+                                .background(customColor, RoundedCornerShape(8.dp))
+                        )
+                        
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        // Red slider
+                        Text("Red", style = MaterialTheme.typography.bodySmall)
+                        Slider(
+                            value = customColor.red,
+                            onValueChange = { 
+                                customColor = customColor.copy(red = it)
+                                selectedColor = String.format("#%02X%02X%02X", 
+                                    (customColor.red * 255).toInt(),
+                                    (customColor.green * 255).toInt(),
+                                    (customColor.blue * 255).toInt())
+                            },
+                            colors = SliderDefaults.colors(
+                                thumbColor = Color.Red,
+                                activeTrackColor = Color.Red.copy(alpha = 0.5f)
+                            )
+                        )
+                        
+                        // Green slider
+                        Text("Green", style = MaterialTheme.typography.bodySmall)
+                        Slider(
+                            value = customColor.green,
+                            onValueChange = { 
+                                customColor = customColor.copy(green = it)
+                                selectedColor = String.format("#%02X%02X%02X", 
+                                    (customColor.red * 255).toInt(),
+                                    (customColor.green * 255).toInt(),
+                                    (customColor.blue * 255).toInt())
+                            },
+                            colors = SliderDefaults.colors(
+                                thumbColor = Color.Green,
+                                activeTrackColor = Color.Green.copy(alpha = 0.5f)
+                            )
+                        )
+                        
+                        // Blue slider
+                        Text("Blue", style = MaterialTheme.typography.bodySmall)
+                        Slider(
+                            value = customColor.blue,
+                            onValueChange = { 
+                                customColor = customColor.copy(blue = it)
+                                selectedColor = String.format("#%02X%02X%02X", 
+                                    (customColor.red * 255).toInt(),
+                                    (customColor.green * 255).toInt(),
+                                    (customColor.blue * 255).toInt())
+                            },
+                            colors = SliderDefaults.colors(
+                                thumbColor = Color.Blue,
+                                activeTrackColor = Color.Blue.copy(alpha = 0.5f)
+                            )
+                        )
+                        
+                        // Back button
+                        TextButton(
+                            onClick = { showCustomColorPicker = false },
+                            modifier = Modifier.align(Alignment.End)
+                        ) {
+                            Text("Back to Presets")
+                        }
+                    }
+                } else {
+                    // Predefined colors grid
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(8),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.height(120.dp)
+                    ) {
+                        items(colors) { color ->
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.size(32.dp)
+                            ) {
+                                FilterChip(
+                                    onClick = { 
+                                        if (selectedColor != color) {
+                                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            selectedColor = color 
+                                        }
+                                    },
+                                    label = { },
+                                    selected = selectedColor == color,
+                                    modifier = Modifier.size(32.dp),
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        containerColor = Color(color.toColorInt()),
+                                        selectedContainerColor = Color(color.toColorInt())
+                                    ),
+                                    border = FilterChipDefaults.filterChipBorder(
+                                        enabled = true,
+                                        selected = selectedColor == color,
+                                        borderColor = if (selectedColor == color) MaterialTheme.colorScheme.primary else Color.Transparent,
+                                        borderWidth = if (selectedColor == color) 2.dp else 0.dp
+                                    )
                                 )
-                            } else {
-                                FilterChipDefaults.filterChipBorder(
-                                    enabled = true,
-                                    selected = false
+                                
+                                // Selection indicator
+                                if (selectedColor == color) {
+                                    Icon(
+                                        imageVector = Icons.Default.Check,
+                                        contentDescription = "Selected",
+                                        tint = Color.White,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                            }
+                        }
+                        
+                        // Custom color option
+                        item {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                                    .clickable { 
+                                        hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        showCustomColorPicker = true 
+                                        // Initialize custom color picker with current selection
+                                        try {
+                                            customColor = Color(selectedColor.toColorInt())
+                                        } catch (e: Exception) {
+                                            customColor = Color(0xFF6366F1) // Default to Indigo if parsing fails
+                                        }
+                                    }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Palette,
+                                    contentDescription = "Custom Color",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(16.dp)
                                 )
                             }
-                        )
+                        }
                     }
                 }
             }
