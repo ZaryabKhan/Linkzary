@@ -37,7 +37,41 @@ class ImportExportService @Inject constructor() {
         coerceInputValues = true
     }
     
+    // Format for export data timestamps (machine-readable format)
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+    
+    // Format for user-facing dates with time
+    private val userFacingDateTimeFormat = SimpleDateFormat("d MMM yyyy, h:mm a", Locale.getDefault())
+    
+    // Format for user-facing dates without time
+    private val userFacingDateFormat = SimpleDateFormat("d MMM yyyy", Locale.getDefault())
+    
+    /**
+     * Formats a date for user display
+     * @param date The date to format
+     * @param includeTime Whether to include time in the formatted date
+     * @return A user-friendly formatted date string
+     */
+    fun formatDateForDisplay(date: Date, includeTime: Boolean = true): String {
+        return if (includeTime) {
+            userFacingDateTimeFormat.format(date)
+        } else {
+            userFacingDateFormat.format(date)
+        }
+    }
+    
+    /**
+     * Parses a date string from the export format
+     * @param dateString The date string in export format
+     * @return The parsed Date object
+     */
+    fun parseExportDate(dateString: String): Date {
+        return try {
+            dateFormat.parse(dateString) ?: Date()
+        } catch (e: Exception) {
+            Date()
+        }
+    }
     
     /**
      * Exports links and collections to JSON format

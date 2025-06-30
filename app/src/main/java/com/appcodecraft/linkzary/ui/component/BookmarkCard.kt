@@ -326,18 +326,22 @@ fun extractDomain(url: String): String {
 }
 
 /**
- * Format save date with relative time
+ * Format save date with actual formatted date instead of relative labels
  */
 fun formatSaveDate(date: Date): String {
     val now = Date()
     val diffInMillis = now.time - date.time
     val diffInDays = diffInMillis / (24 * 60 * 60 * 1000)
-
+    
+    // Format for recent dates (today and yesterday) - show date and time
+    val recentDateFormat = SimpleDateFormat("d MMM yyyy, h:mm a", Locale.getDefault())
+    
+    // Format for older dates - show only date
+    val olderDateFormat = SimpleDateFormat("d MMM yyyy", Locale.getDefault())
+    
     return when {
-        diffInDays < 1 -> "Today"
-        diffInDays < 2 -> "Yesterday"
-        diffInDays < 7 -> "${diffInDays}d ago"
-        else -> SimpleDateFormat("MMM dd", Locale.getDefault()).format(date)
+        diffInDays < 7 -> recentDateFormat.format(date) // Recent dates show time
+        else -> olderDateFormat.format(date) // Older dates show only date
     }
 }
 
