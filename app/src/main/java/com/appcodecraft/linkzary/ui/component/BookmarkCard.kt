@@ -84,57 +84,56 @@ fun BookmarkCard(
                 interactionSource = interactionSource,
                 indication = null
             ) { onCardClick() },
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(12.dp), // Reduced corner radius for more compact look
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface // Use MaterialTheme surface
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = 4.dp, // Increased elevation for better separation
-            pressedElevation = 8.dp,
-            hoveredElevation = 6.dp
+            defaultElevation = 2.dp, // Reduced elevation for more compact appearance
+            pressedElevation = 4.dp,
+            hoveredElevation = 3.dp
         ),
-        border = BorderStroke( // Enhanced border for better visibility, especially in dark mode
+        border = BorderStroke(
             width = 0.5.dp,
-            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f) // Slightly increased alpha
+            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)
         )
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(12.dp) // Reduced padding for more compact card
         ) {
-            // Header with collection badge and actions
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            // Header with collection badge and actions - standardized layout
+            Box(
+                modifier = Modifier.fillMaxWidth()
             ) {
-                // Collection badge
+                // Collection badge - positioned at start
                 if (collectionName != null && collectionColor != null) {
                     Box(
                         modifier = Modifier
+                            .align(Alignment.CenterStart)
                             .background(
                                 color = Color(collectionColor.toColorInt()).copy(alpha = 0.15f),
-                                shape = RoundedCornerShape(8.dp)
+                                shape = RoundedCornerShape(6.dp) // Smaller radius for compact look
                             )
-                            .padding(horizontal = 10.dp, vertical = 4.dp)
+                            .padding(horizontal = 8.dp, vertical = 3.dp) // Reduced padding
                     ) {
                         Text(
                             text = collectionName,
                             style = MaterialTheme.typography.labelSmall.copy(
-                                fontWeight = FontWeight.SemiBold
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 10.sp // Slightly smaller font
                             ),
                             color = Color(collectionColor.toColorInt()),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                     }
-                } else {
-                    // Spacer removed, layout will adapt automatically if collection badge is null
                 }
 
-                // Actions row
+                // Actions row - always positioned at end
                 Row(
+                    modifier = Modifier.align(Alignment.TopEnd),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    horizontalArrangement = Arrangement.spacedBy(2.dp) // Reduced spacing
                 ) {
                     if (link.isPinned) {
                         Icon(
@@ -147,37 +146,37 @@ fun BookmarkCard(
 
                     IconButton(
                         onClick = onMoreClick,
-                        modifier = Modifier.size(28.dp)
+                        modifier = Modifier.size(24.dp) // Slightly smaller but still touchable
                     ) {
                         Icon(
                             imageVector = Icons.Default.MoreVert,
                             contentDescription = stringResource(R.string.home_more_options),
-                            modifier = Modifier.size(16.dp),
+                            modifier = Modifier.size(14.dp), // Smaller icon
                             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                         )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp)) // Reduced spacing
 
-            // Site icon and domain info
+            // Site icon and domain info - more compact layout
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp) // Reduced spacing
             ) {
-                // Site favicon with fallback logic
+                // Site favicon with fallback logic - smaller size
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
+                        .size(32.dp) // Smaller icon size
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
                     contentAlignment = Alignment.Center
                 ) {
                     if (showDomainFallbackIcon) {
                         // Display generated fallback icon (first letter of domain)
-                        FallbackSiteIcon(domain = domain, modifier = Modifier.size(40.dp))
+                        FallbackSiteIcon(domain = domain, modifier = Modifier.size(32.dp))
                     } else {
                         // Try loading the favicon
                         AsyncImage(
@@ -186,7 +185,7 @@ fun BookmarkCard(
                                 .crossfade(true)
                                 .build(),
                             contentDescription = "Site icon for $domain",
-                            modifier = Modifier.size(24.dp),
+                            modifier = Modifier.size(20.dp), // Smaller icon
                             contentScale = ContentScale.Fit,
                             onError = {
                                 // If loading fails, show the domain fallback
@@ -196,14 +195,15 @@ fun BookmarkCard(
                     }
                 }
 
-                // Domain and URL info, now with conditional title snippet
+                // Domain and URL info - more compact
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
                         text = domain,
                         style = MaterialTheme.typography.labelMedium.copy(
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 11.sp // Smaller font size
                         ),
                         color = MaterialTheme.colorScheme.primary,
                         maxLines = 1,
@@ -212,7 +212,9 @@ fun BookmarkCard(
 
                     Text(
                         text = link.url,
-                        style = MaterialTheme.typography.labelSmall,
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontSize = 10.sp // Smaller font size
+                        ),
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -222,72 +224,76 @@ fun BookmarkCard(
                     if (showDomainFallbackIcon && link.title.isNotBlank()) {
                         Text(
                             text = link.title.take(30) + if (link.title.length > 30) "..." else "",
-                            style = MaterialTheme.typography.labelSmall,
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontSize = 10.sp // Smaller font size
+                            ),
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.padding(top = 4.dp)
+                            modifier = Modifier.padding(top = 2.dp) // Reduced padding
                         )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(8.dp)) // Reduced spacing
 
-            // Title - more prominent
+            // Title - more compact but still prominent
             Text(
                 text = link.title,
-                style = MaterialTheme.typography.titleMedium.copy(
+                style = MaterialTheme.typography.titleSmall.copy( // Changed from titleMedium to titleSmall
                     fontWeight = FontWeight.SemiBold,
-                    lineHeight = 22.sp
+                    lineHeight = 18.sp // Reduced line height
                 ),
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 color = MaterialTheme.colorScheme.onSurface
             )
 
-            // Description/Note
+            // Description/Note - more compact
             if (link.note.isNotBlank()) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(6.dp)) // Reduced spacing
                 Text(
                     text = link.note,
                     style = MaterialTheme.typography.bodySmall.copy(
-                        lineHeight = 18.sp
+                        lineHeight = 16.sp, // Reduced line height
+                        fontSize = 11.sp // Smaller font size
                     ),
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-                    maxLines = 3,
+                    maxLines = 2, // Reduced from 3 to 2 lines for more compact display
                     overflow = TextOverflow.Ellipsis
                 )
             }
 
-            // Tags with better styling
+            // Tags with more compact styling
             if (link.tags.isNotBlank()) {
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(6.dp)) // Reduced spacing
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    horizontalArrangement = Arrangement.spacedBy(4.dp) // Reduced spacing
                 ) {
                     link.tags.split(",").take(3).forEach { tag ->
                         if (tag.isNotBlank()) {
                             Text(
                                 text = "#${tag.trim()}",
                                 style = MaterialTheme.typography.labelSmall.copy(
-                                    fontWeight = FontWeight.Medium
+                                    fontWeight = FontWeight.Medium,
+                                    fontSize = 9.sp // Smaller font size
                                 ),
                                 color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier
-                                    .clip(RoundedCornerShape(6.dp))
+                                    .clip(RoundedCornerShape(4.dp)) // Smaller corner radius
                                     .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f))
-                                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                                    .padding(horizontal = 4.dp, vertical = 1.dp) // Reduced padding
                             )
                         }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(6.dp)) // Reduced spacing
 
-            // Footer with enhanced date
+            // Footer with enhanced date - more compact
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -296,7 +302,8 @@ fun BookmarkCard(
                 Text(
                     text = formatSaveDate(link.saveDate),
                     style = MaterialTheme.typography.labelSmall.copy(
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 9.sp // Smaller font size
                     ),
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                 )
