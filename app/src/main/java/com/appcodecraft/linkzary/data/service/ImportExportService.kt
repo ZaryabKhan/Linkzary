@@ -33,6 +33,8 @@ class ImportExportService @Inject constructor() {
         prettyPrint = true
         ignoreUnknownKeys = true
         encodeDefaults = true
+        isLenient = true
+        coerceInputValues = true
     }
     
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
@@ -172,15 +174,27 @@ class ImportExportService @Inject constructor() {
             val content = readFileContent(context, uri)
             
             val result = if (isJsonFormat(content)) {
-                importFromJson(
-                    content = content,
-                    mode = mode,
-                    existingCollections = existingCollections,
-                    existingLinks = existingLinks,
-                    onProgress = onProgress,
-                    onCollectionInsert = onCollectionInsert,
-                    onLinkInsert = onLinkInsert
-                )
+                try {
+                    importFromJson(
+                        content = content,
+                        mode = mode,
+                        existingCollections = existingCollections,
+                        existingLinks = existingLinks,
+                        onProgress = onProgress,
+                        onCollectionInsert = onCollectionInsert,
+                        onLinkInsert = onLinkInsert
+                    )
+                } catch (e: Exception) {
+                    android.util.Log.e("ImportExportService", "JSON import failed in importData: ${e.message}", e)
+                    ImportResult(
+                        success = false,
+                        importedLinks = 0,
+                        importedCollections = 0,
+                        skippedLinks = 0,
+                        renamedCollections = emptyList(),
+                        errorMessage = "JSON import failed: ${e.message ?: "Unknown error"}"
+                    )
+                }
             } else {
                 importFromCsv(
                     content = content,
@@ -230,12 +244,34 @@ class ImportExportService @Inject constructor() {
     
     private fun isJsonFormat(content: String): Boolean {
         val trimmed = content.trim()
-        return trimmed.startsWith("{") && trimmed.endsWith("}")
+        // Basic check for JSON object format
+        if (!(trimmed.startsWith("{") && trimmed.endsWith("}"))) {
+            return false
+        }
+        
+        // Try to parse as JSON to validate format
+        return try {
+            json.parseToJsonElement(trimmed)
+            true
+        } catch (e: Exception) {
+            false
+        }
     }
     
     private fun parseJsonPreview(content: String, existingCollections: List<Collection>): ImportPreview {
         try {
+            // First validate JSON structure
+            if (!isJsonFormat(content)) {
+                throw IOException("Invalid JSON format: The file does not contain valid JSON")
+            }
+            
             val exportData = json.decodeFromString<ExportData>(content)
+            
+            // Validate required data
+            if (exportData.links.isEmpty() && exportData.collections.isEmpty()) {
+                throw IOException("The JSON file contains no links or collections")
+            }
+            
             val existingCollectionNames = existingCollections.map { it.name.lowercase() }.toSet()
             
             return ImportPreview(
@@ -250,9 +286,18 @@ class ImportExportService @Inject constructor() {
                 },
                 linksWithoutCollection = exportData.links.count { it.collectionId == null }
             )
+        } catch (e: kotlinx.serialization.SerializationException) {
+            // Log the specific serialization error
+            android.util.Log.e("ImportExportService", "JSON parsing error: ${e.message}", e)
+            throw IOException("Invalid JSON format: The file structure doesn't match the expected format", e)
+        } catch (e: IOException) {
+            // Rethrow IOException as is
+            throw e
         } catch (e: Exception) {
-             throw IOException("Invalid JSON format: ${e.message}", e)
-         }
+            // Log other unexpected errors
+            android.util.Log.e("ImportExportService", "Unexpected error parsing JSON: ${e.message}", e)
+            throw IOException("Failed to parse JSON: ${e.message ?: "Unknown error"}", e)
+        }
     }
     
     private fun parseCsvPreview(content: String, existingCollections: List<Collection>): ImportPreview {
@@ -325,8 +370,22 @@ class ImportExportService @Inject constructor() {
         onCollectionInsert: suspend (Collection) -> Long,
         onLinkInsert: suspend (SavedLink) -> Unit
     ): ImportResult {
-        val exportData = json.decodeFromString<ExportData>(content)
-        val totalItems = exportData.collections.size + exportData.links.size
+        try {
+            val exportData = json.decodeFromString<ExportData>(content)
+            
+            // Validate the parsed data
+            if (exportData.links.isEmpty() && exportData.collections.isEmpty()) {
+                return ImportResult(
+                    success = false,
+                    importedLinks = 0,
+                    importedCollections = 0,
+                    skippedLinks = 0,
+                    renamedCollections = emptyList(),
+                    errorMessage = "The JSON file contains no valid links or collections"
+                )
+            }
+            
+            val totalItems = exportData.collections.size + exportData.links.size
         
         onProgress(createProgress(
             ImportStep.PROCESSING_COLLECTIONS, 
@@ -443,6 +502,19 @@ class ImportExportService @Inject constructor() {
             renamedCollections = renamedCollections,
             errorMessage = null
         )
+        } catch (e: Exception) {
+            // Log the error for debugging
+            android.util.Log.e("ImportExportService", "JSON import failed: ${e.message}", e)
+            
+            return ImportResult(
+                success = false,
+                importedLinks = 0,
+                importedCollections = 0,
+                skippedLinks = 0,
+                renamedCollections = emptyList(),
+                errorMessage = "Failed to import JSON: ${e.message ?: "Unknown error"}"
+            )
+        }
     }
     
     private suspend fun importFromCsv(

@@ -110,7 +110,9 @@ fun LinkzaryTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.primary.toArgb()
+            // Make status bar transparent for edge-to-edge experience
+            window.statusBarColor = android.graphics.Color.TRANSPARENT
+            // Set status bar icons to be visible based on theme
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
         }
     }

@@ -34,10 +34,11 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Enable edge-to-edge display
         enableEdgeToEdge()
-
+        
         // Performance optimizations
-        WindowCompat.setDecorFitsSystemWindows(window, false)
         window.setFlags(
             WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
             WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED
@@ -112,7 +113,8 @@ fun LinkzaryApp(
                 currentRoute = currentRoute
             )
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
+        contentColor = MaterialTheme.colorScheme.onBackground
     ) { innerPadding ->
         LinkzaryNavigation(
             navController = navController,
