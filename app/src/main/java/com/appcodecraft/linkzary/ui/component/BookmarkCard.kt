@@ -112,9 +112,7 @@ fun BookmarkCard(
             },
         shape = RoundedCornerShape(12.dp), // Reduced corner radius for more compact look
         colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) 
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.12f) 
-                else MaterialTheme.colorScheme.surface
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 2.dp, // Reduced elevation for more compact appearance

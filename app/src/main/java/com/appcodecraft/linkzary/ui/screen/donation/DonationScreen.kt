@@ -1,5 +1,6 @@
 package com.appcodecraft.linkzary.ui.screen.donation
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -264,13 +265,17 @@ fun DonationOptionCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
         ),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = 6.dp,
-            pressedElevation = 10.dp
+            defaultElevation = 2.dp,
+            pressedElevation = 4.dp
+        ),
+        border = BorderStroke(
+            width = 1.dp,
+            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
         )
     ) {
         Column(

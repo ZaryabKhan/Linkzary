@@ -282,7 +282,7 @@ fun ImportDataDialog(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f)
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f)
                     )
                 ) {
                     Row(
@@ -295,13 +295,13 @@ fun ImportDataDialog(
                             imageVector = Icons.Default.Warning,
                             contentDescription = null,
                             modifier = Modifier.size(16.dp),
-                            tint = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f)
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = "Only files exported from Linkzary are currently supported. Third-party .json or .csv formats may not work as expected.",
                             style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp),
-                            color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.8f)
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
                         )
                     }
                 }
