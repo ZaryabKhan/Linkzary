@@ -209,7 +209,7 @@ fun SettingsScreen(
                     title = stringResource(R.string.settings_import_data),
                     subtitle = stringResource(R.string.settings_import_description),
                     onClick = {
-                        importLauncher.launch(arrayOf("application/json", "text/csv", "text/plain", "*/*"))
+                        showImportDialog = true
                     }
                 )
             }
@@ -358,6 +358,17 @@ fun SettingsScreen(
             onExportCsv = {
                 csvExportLauncher.launch("linkzary_backup_${System.currentTimeMillis()}.csv")
                 showExportDialog = false
+            }
+        )
+    }
+    
+    // Import Dialog
+    if (showImportDialog) {
+        ImportDataDialog(
+            onDismiss = { showImportDialog = false },
+            onSelectFile = {
+                importLauncher.launch(arrayOf("application/json", "text/csv", "text/plain", "*/*"))
+                showImportDialog = false
             }
         )
     }
