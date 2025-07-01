@@ -3,6 +3,7 @@ package com.appcodecraft.linkzary.ui.component
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material3.Card
@@ -35,7 +37,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -62,7 +67,11 @@ fun BookmarkCard(
     collectionName: String? = null,
     collectionColor: String? = null,
     onCardClick: () -> Unit,
-    onMoreClick: () -> Unit
+    onMoreClick: () -> Unit,
+    isMultiSelectMode: Boolean = false,
+    isSelected: Boolean = false,
+    onLongPress: () -> Unit = {},
+    onSelectClick: () -> Unit = {}
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val domain = extractDomain(link.url)
@@ -77,16 +86,35 @@ fun BookmarkCard(
         "https://www.google.com/s2/favicons?domain=${domain}&sz=32"
     )
 
+    val haptic = LocalHapticFeedback.current
+    
     Card(
         modifier = modifier
             .fillMaxWidth()
             .clickable(
                 interactionSource = interactionSource,
                 indication = null
-            ) { onCardClick() },
+            ) { 
+                if (isMultiSelectMode) {
+                    onSelectClick()
+                } else {
+                    onCardClick() 
+                }
+            }
+            // Add long press gesture to trigger multi-select mode
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onLongPress = { 
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onLongPress() 
+                    }
+                )
+            },
         shape = RoundedCornerShape(12.dp), // Reduced corner radius for more compact look
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = if (isSelected) 
+                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.12f) 
+                else MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 2.dp, // Reduced elevation for more compact appearance
@@ -94,8 +122,10 @@ fun BookmarkCard(
             hoveredElevation = 3.dp
         ),
         border = BorderStroke(
-            width = 0.5.dp,
-            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)
+            width = if (isSelected) 2.dp else 0.5.dp,
+            color = if (isSelected) 
+                MaterialTheme.colorScheme.primary 
+                else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
         )
     ) {
         Column(
@@ -105,8 +135,31 @@ fun BookmarkCard(
             Box(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                // Collection badge - positioned at start
-                if (collectionName != null && collectionColor != null) {
+                // Collection badge or selection indicator - positioned at start
+                if (isMultiSelectMode) {
+                    // Selection indicator
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.CenterStart)
+                            .size(24.dp)
+                            .background(
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                                shape = CircleShape
+                            )
+                            .padding(4.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (isSelected) {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = stringResource(R.string.home_selected),
+                                tint = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+                } else if (collectionName != null && collectionColor != null) {
+                    // Regular collection badge when not in multi-select mode
                     Box(
                         modifier = Modifier
                             .align(Alignment.CenterStart)

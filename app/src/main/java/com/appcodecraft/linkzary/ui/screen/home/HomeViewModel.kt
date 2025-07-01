@@ -39,7 +39,10 @@ data class HomeUiState(
     val searchQuery: String = "",
     val sortOrder: LinkSortOrder = LinkSortOrder.PINNED_FIRST,
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val isMultiSelectMode: Boolean = false,
+    val selectedLinks: Set<Long> = emptySet(),
+    val batchOperationMessage: String? = null
 )
 
 @HiltViewModel
@@ -56,6 +59,9 @@ class HomeViewModel @Inject constructor(
     )
     private val _isLoading = MutableStateFlow(false)
     private val _error = MutableStateFlow<String?>(null)
+    private val _isMultiSelectMode = MutableStateFlow(false)
+    private val _selectedLinks = MutableStateFlow<Set<Long>>(emptySet())
+    private val _batchOperationMessage = MutableStateFlow<String?>(null)
 
     val isGridView: StateFlow<Boolean> = userPreferencesManager.isHomeGridView
 
@@ -72,7 +78,10 @@ class HomeViewModel @Inject constructor(
         collectionRepository.getAllCollections(),
         _sortOrder,
         _isLoading,
-        _error
+        _error,
+        _isMultiSelectMode,
+        _selectedLinks,
+        _batchOperationMessage
     ) { flows ->
         val links = flows[0] as List<SavedLink>
         val recentCollections = flows[1] as List<Collection>
@@ -80,7 +89,10 @@ class HomeViewModel @Inject constructor(
         val sortOrder = flows[3] as LinkSortOrder
         val isLoading = flows[4] as Boolean
         val error = flows[5] as String?
-        
+        val isMultiSelectMode = flows[6] as Boolean
+        val selectedLinks = flows[7] as Set<Long>
+        val batchOperationMessage = flows[8] as String?
+
         val sortedLinks = when (sortOrder) {
             LinkSortOrder.PINNED_FIRST -> links.sortedWith(
                 compareByDescending<SavedLink> { it.isPinned }
@@ -91,7 +103,7 @@ class HomeViewModel @Inject constructor(
             LinkSortOrder.TITLE_ASC -> links.sortedBy { it.title.lowercase() }
             LinkSortOrder.TITLE_DESC -> links.sortedByDescending { it.title.lowercase() }
         }
-        
+
         HomeUiState(
             links = sortedLinks,
             recentCollections = recentCollections,
@@ -100,7 +112,10 @@ class HomeViewModel @Inject constructor(
             searchQuery = _searchQuery.value,
             sortOrder = sortOrder,
             isLoading = isLoading,
-            error = error
+            error = error,
+            isMultiSelectMode = isMultiSelectMode,
+            selectedLinks = selectedLinks,
+            batchOperationMessage = batchOperationMessage
         )
     }.stateIn(
         scope = viewModelScope,
@@ -148,7 +163,7 @@ class HomeViewModel @Inject constructor(
     fun updateSearchQuery(query: String) {
         _searchQuery.value = query
     }
-    
+
     fun setSortOrder(sortOrder: LinkSortOrder) {
         _sortOrder.value = sortOrder
         userPreferencesManager.setHomeSortOrder(sortOrder.name)
@@ -162,21 +177,101 @@ class HomeViewModel @Inject constructor(
         _error.value = null
     }
 
+    fun clearBatchOperationMessage() {
+        _batchOperationMessage.value = null
+    }
+
+    // Multi-select mode methods
+    fun enterMultiSelectMode(initialLinkId: Long? = null) {
+        _isMultiSelectMode.value = true
+        if (initialLinkId != null) {
+            _selectedLinks.value = setOf(initialLinkId)
+        } else {
+            _selectedLinks.value = emptySet()
+        }
+    }
+
+    fun exitMultiSelectMode() {
+        _isMultiSelectMode.value = false
+        _selectedLinks.value = emptySet()
+    }
+
+    fun toggleLinkSelection(linkId: Long) {
+        val currentSelection = _selectedLinks.value
+        _selectedLinks.value = if (currentSelection.contains(linkId)) {
+            currentSelection - linkId
+        } else {
+            currentSelection + linkId
+        }
+
+        // Auto-exit multi-select mode if no items are selected
+        if (_selectedLinks.value.isEmpty() && _isMultiSelectMode.value) {
+            exitMultiSelectMode()
+        }
+    }
+
+    fun startMultiSelectWithToggle(linkId: Long) {
+        if (!_isMultiSelectMode.value) {
+            // Enter multi-select mode and select the item
+            _isMultiSelectMode.value = true
+            _selectedLinks.value = setOf(linkId)
+        } else {
+            // Already in multi-select mode, just toggle the selection
+            toggleLinkSelection(linkId)
+        }
+    }
+
+    // Batch operations
+    fun batchMoveToCollection(collectionId: Long?) {
+        viewModelScope.launch {
+            try {
+                val count = _selectedLinks.value.size
+                _selectedLinks.value.forEach { linkId ->
+                    linkRepository.moveToCollection(linkId, collectionId)
+                }
+
+                val collectionName = if (collectionId == null) {
+                    "Uncategorized"
+                } else {
+                    collectionRepository.getCollectionById(collectionId)?.name ?: "Unknown"
+                }
+
+                _batchOperationMessage.value = "Moved $count bookmarks to $collectionName"
+                exitMultiSelectMode()
+            } catch (e: Exception) {
+                _error.value = "Failed to move links: ${e.message}"
+            }
+        }
+    }
+
+    fun batchDeleteLinks() {
+        viewModelScope.launch {
+            try {
+                val count = _selectedLinks.value.size
+                linkRepository.deleteLinksByIds(_selectedLinks.value.toList())
+                _batchOperationMessage.value = "Deleted $count bookmarks"
+                exitMultiSelectMode()
+            } catch (e: Exception) {
+                _error.value = "Failed to delete links: ${e.message}"
+            }
+        }
+    }
+
     fun saveLink(url: String, collectionId: Long? = null) {
         viewModelScope.launch {
             try {
                 _isLoading.value = true
                 _error.value = null
-                
+
                 val metadata = urlMetadataExtractor.extractMetadata(url)
-                
+
                 val link = SavedLink(
                     title = metadata.title,
                     url = url,
                     collectionId = collectionId,
                     favicon = metadata.favicon
                 )
-                
+
                 linkRepository.insertLink(link)
             } catch (e: Exception) {
                 _error.value = "Failed to save link: ${e.message}"
@@ -185,29 +280,29 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
-    
+
     fun saveSharedLink(url: String, collectionId: Long? = null) {
         viewModelScope.launch {
             try {
                 _isLoading.value = true
                 _error.value = null
-                
+
                 // Check if link already exists
                 val existingLink = linkRepository.getLinkByUrl(url)
                 if (existingLink != null) {
                     _error.value = "Link already saved"
                     return@launch
                 }
-                
+
                 val metadata = urlMetadataExtractor.extractMetadata(url)
-                
+
                 val link = SavedLink(
                     title = metadata.title,
                     url = url,
                     collectionId = collectionId,
                     favicon = metadata.favicon
                 )
-                
+
                 linkRepository.insertLink(link)
             } catch (e: Exception) {
                 _error.value = "Failed to save link: ${e.message}"
@@ -265,7 +360,7 @@ class HomeViewModel @Inject constructor(
                     color = String.format("#%06X", color and 0xFFFFFF),
                     createdDate = Date()
                 )
-                
+
                 val collectionId = collectionRepository.insertCollection(collection)
                 onCreated(collectionId)
             } catch (e: Exception) {
