@@ -1,6 +1,8 @@
 package com.appcodecraft.linkzary.ui.screen.collections
 
 import androidx.compose.foundation.BorderStroke
+import com.appcodecraft.linkzary.ui.screen.home.HomeViewModel
+import androidx.core.graphics.toColorInt
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -22,11 +24,13 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.DriveFileMove
 import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.automirrored.filled.ViewList
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.CreateNewFolder
@@ -55,7 +59,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -69,6 +73,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.appcodecraft.linkzary.R
@@ -82,12 +87,15 @@ fun CollectionDetailScreen(
     navController: NavController,
     viewModel: CollectionDetailViewModel = hiltViewModel()
 ) {
+    // Get the HomeViewModel for collection creation
+    val homeViewModel: HomeViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val uriHandler = LocalUriHandler.current
 
     var selectedLink by remember { mutableStateOf<SavedLink?>(null) }
     var searchQuery by remember { mutableStateOf("") }
-    val isGridView by viewModel.isGridView.collectAsState()
+    val isGridView = uiState.isGridView
+    var showAddLinkDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(collectionId) {
         viewModel.loadCollectionDetails(collectionId)
@@ -107,11 +115,12 @@ fun CollectionDetailScreen(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
         // Top bar
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -273,10 +282,25 @@ fun CollectionDetailScreen(
             }
         }
     }
-    
+
+        // Add Floating Action Button for adding bookmarks directly to this collection
+        androidx.compose.material3.FloatingActionButton(
+            onClick = { showAddLinkDialog = true },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp),
+            containerColor = MaterialTheme.colorScheme.primary
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = stringResource(R.string.home_add_link)
+            )
+        }
+    }
+
     // Link options bottom sheet
     selectedLink?.let { link ->
-        LinkOptionsBottomSheet(
+        CollectionLinkOptionsBottomSheet(
             link = link,
             onDismiss = { selectedLink = null },
             onEdit = { updatedLink ->
@@ -292,6 +316,18 @@ fun CollectionDetailScreen(
                     viewModel.moveToCollection(link.id, collectionId)
                 }
                 selectedLink = null
+            },
+            homeViewModel = homeViewModel
+        )
+    }
+
+    // Add Link Dialog
+    if (showAddLinkDialog) {
+        AddLinkToCollectionDialog(
+            onDismiss = { showAddLinkDialog = false },
+            onSave = { url ->
+                viewModel.addLinkToCollection(url, collectionId.toLongOrNull())
+                showAddLinkDialog = false
             }
         )
     }
@@ -342,9 +378,9 @@ fun CollectionOption(
                     modifier = Modifier.size(16.dp)
                 )
             }
-            
+
             Spacer(modifier = Modifier.width(16.dp))
-            
+
             Text(
                 text = name,
                 style = MaterialTheme.typography.bodyLarge,
@@ -355,9 +391,9 @@ fun CollectionOption(
                     MaterialTheme.colorScheme.onSurface
                 }
             )
-            
+
             Spacer(modifier = Modifier.weight(1f))
-            
+
             if (isSelected) {
                 Icon(
                     imageVector = Icons.Default.Check,
@@ -374,17 +410,17 @@ fun CollectionOption(
 @Composable
 fun CreateCollectionDialog(
     onDismiss: () -> Unit,
-    onCreate: (String, String) -> Unit
+    onCreate: (String, Int) -> Unit
 ) {
     var name by remember { mutableStateOf("") }
     var selectedColor by remember { mutableStateOf("#6366F1") }
-    
+
     val colors = listOf(
         "#6366F1", "#8B5CF6", "#EC4899", "#EF4444",
         "#F97316", "#EAB308", "#22C55E", "#06B6D4",
         "#3B82F6", "#6366F1", "#8B5CF6", "#EC4899"
     )
-    
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
@@ -417,13 +453,13 @@ fun CreateCollectionDialog(
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
-                
+
                 Text(
                     text = stringResource(R.string.collections_choose_color),
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium
                 )
-                
+
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(6),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -435,7 +471,7 @@ fun CreateCollectionDialog(
                             modifier = Modifier
                                 .size(32.dp)
                                 .background(
-                                    color = Color(android.graphics.Color.parseColor(color)),
+                                    color = Color(color.toColorInt()),
                                     shape = CircleShape
                                 )
                                 .border(
@@ -462,10 +498,10 @@ fun CreateCollectionDialog(
         confirmButton = {
             TextButton(
                 onClick = {
-                    if (name.isNotBlank()) {
-                        onCreate(name.trim(), selectedColor)
-                    }
-                },
+                        if (name.isNotBlank()) {
+                            onCreate(name.trim(), selectedColor.toColorInt())
+                        }
+                    },
                 enabled = name.isNotBlank()
             ) {
                 Text(stringResource(R.string.common_create))
@@ -481,12 +517,91 @@ fun CreateCollectionDialog(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LinkOptionsBottomSheet(
+fun AddLinkToCollectionDialog(
+    onDismiss: () -> Unit,
+    onSave: (String) -> Unit
+) {
+    var url by remember { mutableStateOf("") }
+    var isValidUrl by remember { mutableStateOf(true) }
+
+    fun validateUrl(input: String): Boolean {
+        return input.isNotBlank() && (
+            input.startsWith("http://") ||
+                input.startsWith("https://") ||
+                input.startsWith("www.") ||
+                input.contains(".") && input.length > 3
+        )
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Link,
+                    contentDescription = stringResource(R.string.home_add_link),
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.home_add_link),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = url,
+                    onValueChange = {
+                        url = it
+                        isValidUrl = validateUrl(it)
+                    },
+                    label = { Text(stringResource(R.string.home_url)) },
+                    placeholder = { Text("https://example.com") },
+                    modifier = Modifier.fillMaxWidth(),
+                    isError = !isValidUrl && url.isNotBlank(),
+                    supportingText = {
+                        if (!isValidUrl && url.isNotBlank()) {
+                            Text(stringResource(R.string.add_link_invalid_url))
+                        }
+                    },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri)
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onSave(url) },
+                enabled = isValidUrl && url.isNotBlank()
+            ) {
+                Text(stringResource(R.string.common_save))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.common_cancel))
+            }
+        }
+    )
+}
+
+// Using LinkOptionsBottomSheet from HomeScreen.kt
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CollectionLinkOptionsBottomSheet(
     link: SavedLink,
     onDismiss: () -> Unit,
     onEdit: (SavedLink) -> Unit,
     onDelete: () -> Unit,
-    onMoveToCollection: (Long?) -> Unit
+    onMoveToCollection: (Long?) -> Unit,
+    homeViewModel: HomeViewModel
 ) {
     var showEditDialog by remember { mutableStateOf(false) }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
@@ -551,6 +666,8 @@ fun LinkOptionsBottomSheet(
 
     // Collection Selection Dialog
     if (showCollectionDialog) {
+        var showCreateDialog by remember { mutableStateOf(false) }
+
         CollectionSelectionDialog(
             currentCollectionId = link.collectionId,
             onDismiss = { showCollectionDialog = false },
@@ -558,15 +675,34 @@ fun LinkOptionsBottomSheet(
                 onMoveToCollection(collectionId)
                 showCollectionDialog = false
                 onDismiss()
-            }
+            },
+            onCreateNew = { showCreateDialog = true }
         )
+
+        if (showCreateDialog) {
+            CreateCollectionDialog(
+                onDismiss = { showCreateDialog = false },
+                onCreate = { name: String, color: Int ->
+                    // Use the HomeViewModel from the parent composable
+                    homeViewModel.createCollection(name = name, color = color) { newCollectionId ->
+                        // Move the link to the new collection if needed
+                        link.collectionId?.let { oldCollectionId ->
+                            if (oldCollectionId != newCollectionId) {
+                                onMoveToCollection(newCollectionId)
+                            }
+                        }
+                    }
+                    showCreateDialog = false
+                }
+            )
+        }
     }
 
     // Delete Confirmation Dialog
     if (showDeleteConfirmation) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirmation = false },
-            title = { 
+            title = {
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -620,7 +756,7 @@ fun EditLinkDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { 
+        title = {
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -733,16 +869,15 @@ fun EditLinkDialog(
 fun CollectionSelectionDialog(
     currentCollectionId: Long?,
     onDismiss: () -> Unit,
-    onCollectionSelected: (Long?) -> Unit
+    onCollectionSelected: (Long?) -> Unit,
+    onCreateNew: () -> Unit
 ) {
-    val viewModel: CollectionDetailViewModel = hiltViewModel()
-    val homeViewModel: com.appcodecraft.linkzary.ui.screen.home.HomeViewModel = hiltViewModel()
+    val homeViewModel: HomeViewModel = hiltViewModel()
     val homeUiState by homeViewModel.combinedUiState.collectAsStateWithLifecycle()
-    var showCreateDialog by remember { mutableStateOf(false) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { 
+        title = {
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -775,7 +910,7 @@ fun CollectionSelectionDialog(
                         onClick = { onCollectionSelected(null) }
                     )
                 }
-                
+
                 // Existing collections
                 items(homeUiState.allCollections) { collection ->
                     CollectionOption(
@@ -786,11 +921,11 @@ fun CollectionSelectionDialog(
                         onClick = { onCollectionSelected(collection.id) }
                     )
                 }
-                
+
                 // Create new collection option
                 item {
                     Surface(
-                        onClick = { showCreateDialog = true },
+                        onClick = { onCreateNew() },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
@@ -807,9 +942,9 @@ fun CollectionSelectionDialog(
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(24.dp)
                             )
-                            
+
                             Spacer(modifier = Modifier.width(16.dp))
-                            
+
                             Text(
                                 text = stringResource(R.string.collections_create_new_collection),
                                 style = MaterialTheme.typography.bodyLarge,
@@ -828,26 +963,14 @@ fun CollectionSelectionDialog(
             }
         }
     )
-    
-    // Create Collection Dialog
-    if (showCreateDialog) {
-        CreateCollectionDialog(
-            onDismiss = { showCreateDialog = false },
-            onCreate = { name: String, color: String ->
-                // Create collection and move link to it
-                val colorInt = android.graphics.Color.parseColor(color)
-                homeViewModel.createCollection(name, colorInt) { collectionId ->
-                    onCollectionSelected(collectionId)
-                }
-                showCreateDialog = false
-            }
-        )
-    }
+
+    // We don't need to handle the create dialog here anymore
+    // It's now handled by the parent component through onCreateNew callback
 }
 
 @Composable
 fun OptionItem(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     title: String,
     subtitle: String,
     onClick: () -> Unit,
@@ -873,9 +996,9 @@ fun OptionItem(
                 tint = if (isDestructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.size(24.dp)
             )
-            
+
             Spacer(modifier = Modifier.width(16.dp))
-            
+
             Column(
                 modifier = Modifier.weight(1f)
             ) {

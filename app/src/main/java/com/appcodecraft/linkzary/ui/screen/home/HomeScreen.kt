@@ -628,7 +628,8 @@ fun HomeScreen(
             onMoveToCollection = { collectionId ->
                 viewModel.moveToCollection(link.id, collectionId)
                 selectedLink = null
-            }
+            },
+            viewModel = viewModel
         )
     }
 }
@@ -717,7 +718,8 @@ fun LinkOptionsBottomSheet(
     onEdit: (SavedLink) -> Unit,
     onDelete: () -> Unit,
     onTogglePin: () -> Unit,
-    onMoveToCollection: (Long?) -> Unit
+    onMoveToCollection: (Long?) -> Unit,
+    viewModel: HomeViewModel = hiltViewModel()
 ) {
     var showEditDialog by remember { mutableStateOf(false) }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
@@ -793,6 +795,8 @@ fun LinkOptionsBottomSheet(
 
     // Collection Selection Dialog
     if (showCollectionDialog) {
+        var showCreateDialog by remember { mutableStateOf(false) }
+        
         CollectionSelectionDialog(
             currentCollectionId = link.collectionId,
             onDismiss = { showCollectionDialog = false },
@@ -800,8 +804,22 @@ fun LinkOptionsBottomSheet(
                 onMoveToCollection(collectionId)
                 showCollectionDialog = false
                 onDismiss()
-            }
+            },
+            onCreateNew = { showCreateDialog = true }
         )
+        
+        if (showCreateDialog) {
+            CreateCollectionDialog(
+                onDismiss = { showCreateDialog = false },
+                onCreate = { name, color ->
+                    // Create collection and move link to it
+                    viewModel.createCollection(name = name, color = color) { collectionId ->
+                        onMoveToCollection(collectionId)
+                    }
+                    showCreateDialog = false
+                }
+            )
+        }
     }
 
     // Delete Confirmation Dialog
@@ -999,11 +1017,11 @@ fun OptionItem(
 fun CollectionSelectionDialog(
     currentCollectionId: Long?,
     onDismiss: () -> Unit,
-    onCollectionSelected: (Long?) -> Unit
+    onCollectionSelected: (Long?) -> Unit,
+    onCreateNew: () -> Unit = {}
 ) {
     val viewModel: HomeViewModel = hiltViewModel()
     val uiState by viewModel.combinedUiState.collectAsStateWithLifecycle()
-    var showCreateDialog by remember { mutableStateOf(false) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -1044,7 +1062,7 @@ fun CollectionSelectionDialog(
                 // Create new collection option
                 item {
                     Surface(
-                        onClick = { showCreateDialog = true },
+                        onClick = { onCreateNew() },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
@@ -1082,20 +1100,6 @@ fun CollectionSelectionDialog(
             }
         }
     )
-    
-    // Create Collection Dialog
-    if (showCreateDialog) {
-        CreateCollectionDialog(
-            onDismiss = { showCreateDialog = false },
-            onCreate = { name, color ->
-                // Create collection and move link to it
-                viewModel.createCollection(name, color) { collectionId ->
-                    onCollectionSelected(collectionId)
-                }
-                showCreateDialog = false
-            }
-        )
-    }
 }
 
 @Composable
