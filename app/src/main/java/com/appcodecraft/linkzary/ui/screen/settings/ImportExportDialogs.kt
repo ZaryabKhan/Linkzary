@@ -39,11 +39,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.res.stringResource
 import com.appcodecraft.linkzary.R
 import com.appcodecraft.linkzary.data.model.ImportMode
 import com.appcodecraft.linkzary.data.model.ImportPreview
@@ -299,7 +299,7 @@ fun ImportDataDialog(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Only files exported from Linkzary are currently supported. Third-party .json or .csv formats may not work as expected.",
+                            text = stringResource(R.string.only_lz_format),
                             style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp),
                             color = MaterialTheme.colorScheme.onSecondaryContainer
                         )

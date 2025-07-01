@@ -475,4 +475,5 @@
     <string name="loading">Chargement…</string>
     <string name="unknown">Inconnu</string>
     <string name="version_1_0">1.0</string>
+    <string name="only_lz_format">Seuls les fichiers exportés depuis Linkzary sont actuellement pris en charge. Les formats .json ou .csv tiers peuvent ne pas fonctionner comme prévu.</string>
 </resources>

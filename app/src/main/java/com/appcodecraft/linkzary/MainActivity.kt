@@ -15,14 +15,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.core.view.WindowCompat
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.appcodecraft.linkzary.data.preferences.UserPreferencesManager
 import com.appcodecraft.linkzary.navigation.LinkzaryNavigation
-import com.appcodecraft.linkzary.utils.LocaleHelper
 import com.appcodecraft.linkzary.ui.component.LinkzaryBottomNavigationBar
 import com.appcodecraft.linkzary.ui.theme.LinkzaryTheme
+import com.appcodecraft.linkzary.utils.LocaleHelper
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 

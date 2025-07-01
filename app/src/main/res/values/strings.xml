@@ -474,5 +474,6 @@
     <string name="loading">Loading…</string>
     <string name="unknown">Unknown</string>
     <string name="version_1_0">1.0</string>
+    <string name="only_lz_format">Only files exported from Linkzary are currently supported. Third-party .json or .csv formats may not work as expected.</string>
 
 </resources>

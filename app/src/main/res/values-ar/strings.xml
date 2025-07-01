@@ -475,4 +475,5 @@
     <string name="loading">جاري التحميل…</string>
     <string name="unknown">غير معروف</string>
     <string name="version_1_0">1.0</string>
+    <string name="only_lz_format">يتم حاليًا دعم الملفات التي يتم تصديرها من Linkzary فقط. قد لا تعمل تنسيقات .json أو .csv التابعة لجهات خارجية كما هو متوقع.</string>
 </resources>

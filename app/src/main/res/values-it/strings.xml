@@ -475,4 +475,5 @@
     <string name="loading">Caricamento…</string>
     <string name="unknown">Sconosciuto</string>
     <string name="version_1_0">1.0</string>
+    <string name="only_lz_format">Sono attualmente supportati solo i file esportati da Linkzary. I formati .json o .csv di terze parti potrebbero non funzionare come previsto.</string>
 </resources>
