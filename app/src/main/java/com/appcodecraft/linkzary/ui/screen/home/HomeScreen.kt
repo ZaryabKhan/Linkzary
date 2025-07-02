@@ -90,6 +90,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import android.util.Log
 import androidx.navigation.NavController
 import com.appcodecraft.linkzary.R
 import com.appcodecraft.linkzary.data.entity.SavedLink
@@ -1358,13 +1359,16 @@ fun HomeScreen(
                                         isMultiSelectMode = uiState.isMultiSelectMode,
                                         isSelected = uiState.selectedLinks.contains(link.id),
                                         onCardClick = {
+                                            Log.d("HomeScreen", "Grid BookmarkCard clicked - isMultiSelectMode: ${uiState.isMultiSelectMode}, URL: ${link.url}")
                                             if (uiState.isMultiSelectMode) {
                                                 viewModel.toggleLinkSelection(link.id)
                                             } else {
                                                 try {
+                                                    Log.d("HomeScreen", "Opening URI: ${link.url}")
                                                     uriHandler.openUri(link.url)
-                                                } catch (_: Exception) {
-                                                    // Handle error - could show a snackbar
+                                                } catch (e: Exception) {
+                                                    Log.e("HomeScreen", "Failed to open URI: ${link.url}", e)
+                                                    //viewModel.showError("Failed to open link: ${e.message}")
                                                 }
                                             }
                                         },
@@ -1400,13 +1404,16 @@ fun HomeScreen(
                                 isMultiSelectMode = uiState.isMultiSelectMode,
                                 isSelected = uiState.selectedLinks.contains(link.id),
                                 onCardClick = {
+                                    Log.d("HomeScreen", "List BookmarkCard clicked - isMultiSelectMode: ${uiState.isMultiSelectMode}, URL: ${link.url}")
                                     if (uiState.isMultiSelectMode) {
                                         viewModel.toggleLinkSelection(link.id)
                                     } else {
                                         try {
+                                            Log.d("HomeScreen", "Opening URI: ${link.url}")
                                             uriHandler.openUri(link.url)
-                                        } catch (_: Exception) {
-                                            // Handle error - could show a snack bar
+                                        } catch (e: Exception) {
+                                            Log.e("HomeScreen", "Failed to open URI: ${link.url}", e)
+                                            //viewModel.showError("Failed to open link: ${e.message}")
                                         }
                                     }
                                 },

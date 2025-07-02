@@ -49,6 +49,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.toColorInt
+import android.util.Log
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.appcodecraft.linkzary.R
@@ -90,19 +91,16 @@ fun BookmarkCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null
-            ) { 
-                if (isMultiSelectMode) {
-                    onSelectClick()
-                } else {
-                    onCardClick() 
-                }
-            }
-            // Add long press gesture to trigger multi-select mode
-            .pointerInput(Unit) {
+            .pointerInput(isMultiSelectMode, onCardClick, onSelectClick, onLongPress) {
                 detectTapGestures(
+                    onTap = {
+                        Log.d("BookmarkCard", "Card tapped - isMultiSelectMode: $isMultiSelectMode")
+                        if (isMultiSelectMode) {
+                            onSelectClick()
+                        } else {
+                            onCardClick() 
+                        }
+                    },
                     onLongPress = { 
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         onLongPress() 
@@ -194,9 +192,14 @@ fun BookmarkCard(
                         )
                     }
 
-                    IconButton(
-                        onClick = onMoreClick,
-                        modifier = Modifier.size(24.dp) // Slightly smaller but still touchable
+                    Box(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) { onMoreClick() },
+                        contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.MoreVert,
