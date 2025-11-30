@@ -9,7 +9,8 @@ import javax.inject.Singleton
 
 data class UrlMetadata(
     val title: String,
-    val favicon: String?
+    val favicon: String?,
+    val previewImageUrl: String?
 )
 
 @Singleton
@@ -24,11 +25,63 @@ class UrlMetadataExtractor @Inject constructor() {
 
             val title = doc.title().takeIf { it.isNotBlank() } ?: extractDomainFromUrl(url)
             val favicon = extractFavicon(doc, url)
+            val previewImage = extractPreviewImage(doc, url)
 
-            UrlMetadata(title, favicon)
+            UrlMetadata(title, favicon, previewImage)
         } catch (e: Exception) {
             // Fallback to domain name if extraction fails
-            UrlMetadata(extractDomainFromUrl(url), null)
+            UrlMetadata(extractDomainFromUrl(url), null, null)
+        }
+    }
+
+    private fun extractPreviewImage(doc: org.jsoup.nodes.Document, baseUrl: String): String? {
+        return try {
+            // Try Open Graph image first (most common)
+            val ogImage = doc.select("meta[property=og:image]").first()?.attr("content")
+            if (!ogImage.isNullOrBlank()) {
+                return makeAbsoluteUrl(ogImage, baseUrl)
+            }
+
+            // Try secure OG image
+            val ogImageSecure = doc.select("meta[property=og:image:secure_url]").first()?.attr("content")
+            if (!ogImageSecure.isNullOrBlank()) {
+                return makeAbsoluteUrl(ogImageSecure, baseUrl)
+            }
+
+            // Try Twitter card image
+            val twitterImage = doc.select("meta[name=twitter:image]").first()?.attr("content")
+            if (!twitterImage.isNullOrBlank()) {
+                return makeAbsoluteUrl(twitterImage, baseUrl)
+            }
+
+            // Try generic meta image
+            val metaImage = doc.select("meta[name=image]").first()?.attr("content")
+            if (!metaImage.isNullOrBlank()) {
+                return makeAbsoluteUrl(metaImage, baseUrl)
+            }
+
+            null
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    private fun makeAbsoluteUrl(imageUrl: String, baseUrl: String): String {
+        return try {
+            if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+                // Prefer HTTPS over HTTP for security
+                if (imageUrl.startsWith("http://")) {
+                    imageUrl.replace("http://", "https://")
+                } else {
+                    imageUrl
+                }
+            } else {
+                val url = URL(baseUrl)
+                val protocol = if (url.protocol == "http") "https" else url.protocol
+                "$protocol://${url.host}$imageUrl"
+            }
+        } catch (e: Exception) {
+            imageUrl
         }
     }
 

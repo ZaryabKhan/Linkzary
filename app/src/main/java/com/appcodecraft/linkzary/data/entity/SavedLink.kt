@@ -15,5 +15,6 @@ data class SavedLink(
     val collectionId: Long? = null,
     val isPinned: Boolean = false,
     val saveDate: Date = Date(),
-    val favicon: String? = null
+    val favicon: String? = null,
+    val previewImageUrl: String? = null // Open Graph preview image
 )

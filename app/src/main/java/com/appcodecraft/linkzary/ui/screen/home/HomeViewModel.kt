@@ -269,7 +269,8 @@ class HomeViewModel @Inject constructor(
                     title = metadata.title,
                     url = url,
                     collectionId = collectionId,
-                    favicon = metadata.favicon
+                    favicon = metadata.favicon,
+                    previewImageUrl = metadata.previewImageUrl
                 )
 
                 linkRepository.insertLink(link)
@@ -300,7 +301,8 @@ class HomeViewModel @Inject constructor(
                     title = metadata.title,
                     url = url,
                     collectionId = collectionId,
-                    favicon = metadata.favicon
+                    favicon = metadata.favicon,
+                    previewImageUrl = metadata.previewImageUrl
                 )
 
                 linkRepository.insertLink(link)

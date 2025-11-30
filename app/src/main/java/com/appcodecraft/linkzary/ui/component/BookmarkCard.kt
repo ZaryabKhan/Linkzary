@@ -87,7 +87,7 @@ fun BookmarkCard(
     )
 
     val haptic = LocalHapticFeedback.current
-    
+
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -98,12 +98,12 @@ fun BookmarkCard(
                         if (isMultiSelectMode) {
                             onSelectClick()
                         } else {
-                            onCardClick() 
+                            onCardClick()
                         }
                     },
-                    onLongPress = { 
+                    onLongPress = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        onLongPress() 
+                        onLongPress()
                     }
                 )
             },
@@ -118,14 +118,37 @@ fun BookmarkCard(
         ),
         border = BorderStroke(
             width = if (isSelected) 2.dp else 0.5.dp,
-            color = if (isSelected) 
-                MaterialTheme.colorScheme.primary 
+            color = if (isSelected)
+                MaterialTheme.colorScheme.primary
                 else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
         )
     ) {
         Column(
-            modifier = Modifier.padding(12.dp) // Reduced padding for more compact card
+            modifier = Modifier.fillMaxWidth()
         ) {
+            // Preview Image Section (if available)
+            if (!link.previewImageUrl.isNullOrBlank()) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(link.previewImageUrl)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = "Preview for ${link.title}",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
+                    contentScale = ContentScale.Crop,
+                    onError = {
+                        // Silently fail - card will display without preview image
+                    }
+                )
+            }
+
+            // Card Content
+            Column(
+                modifier = Modifier.padding(12.dp)
+            ) {
             // Header with collection badge and actions - standardized layout
             Box(
                 modifier = Modifier.fillMaxWidth()
@@ -361,6 +384,7 @@ fun BookmarkCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                 )
             }
+            }
         }
     }
 }
@@ -385,13 +409,13 @@ fun formatSaveDate(date: Date): String {
     val now = Date()
     val diffInMillis = now.time - date.time
     val diffInDays = diffInMillis / (24 * 60 * 60 * 1000)
-    
+
     // Format for recent dates (today and yesterday) - show date and time
     val recentDateFormat = SimpleDateFormat("d MMM yyyy, h:mm a", Locale.getDefault())
-    
+
     // Format for older dates - show only date
     val olderDateFormat = SimpleDateFormat("d MMM yyyy", Locale.getDefault())
-    
+
     return when {
         diffInDays < 7 -> recentDateFormat.format(date) // Recent dates show time
         else -> olderDateFormat.format(date) // Older dates show only date
@@ -511,3 +535,4 @@ fun EnhancedBookmarkCardPreview() {
         }
     }
 }
+
