@@ -180,7 +180,7 @@ class CollectionsViewModel @Inject constructor(
         }
     }
     
-    fun createCollection(name: String, color: Int) {
+    fun createCollection(name: String, color: Int, icon: String = "Folder") {
         viewModelScope.launch {
             try {
                 _isLoading.value = true
@@ -189,6 +189,7 @@ class CollectionsViewModel @Inject constructor(
                 val collection = Collection(
                     name = name.trim(),
                     color = String.format("#%06X", color and 0xFFFFFF),
+                    icon = icon,
                     createdDate = Date()
                 )
                 

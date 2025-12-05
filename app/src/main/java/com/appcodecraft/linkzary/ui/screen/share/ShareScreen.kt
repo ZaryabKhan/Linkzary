@@ -52,6 +52,7 @@ import com.appcodecraft.linkzary.R
 import com.appcodecraft.linkzary.ui.component.CollectionOption
 import com.appcodecraft.linkzary.ui.component.CreateCollectionForm
 import com.appcodecraft.linkzary.ui.component.LinkEditorForm
+import com.appcodecraft.linkzary.ui.component.getCollectionIconVector
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -269,7 +270,7 @@ fun ShareScreen(
                             }
                         }
                         CollectionOption(
-                            icon = Icons.Default.Folder,
+                            icon = getCollectionIconVector(collection.icon),
                             name = collection.name,
                             color = colorInt,
                             isSelected = uiState.selectedCollectionId == collection.id,
@@ -324,6 +325,7 @@ fun ShareScreen(
     if (showCreateCollectionSheet) {
         var newCollectionName by remember { mutableStateOf("") }
         var newCollectionColor by remember { mutableStateOf(0xFF6366F1.toInt()) }
+        var newCollectionIcon by remember { mutableStateOf("Folder") }
         
         androidx.compose.material3.AlertDialog(
              onDismissRequest = { showCreateCollectionSheet = false },
@@ -339,13 +341,15 @@ fun ShareScreen(
                      name = newCollectionName,
                      onNameChange = { newCollectionName = it },
                      selectedColor = newCollectionColor,
-                     onColorSelected = { newCollectionColor = it }
+                     onColorSelected = { newCollectionColor = it },
+                     selectedIcon = newCollectionIcon,
+                     onIconSelected = { newCollectionIcon = it }
                  )
              },
              confirmButton = {
                  TextButton(
                      onClick = {
-                         viewModel.createCollection(newCollectionName, newCollectionColor)
+                         viewModel.createCollection(newCollectionName, newCollectionColor, newCollectionIcon)
                          showCreateCollectionSheet = false
                      },
                      enabled = newCollectionName.isNotBlank()

@@ -362,12 +362,13 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun createCollection(name: String, color: Int, onCreated: (Long) -> Unit) {
+    fun createCollection(name: String, color: Int, icon: String = "Folder", onCreated: (Long) -> Unit) {
         viewModelScope.launch {
             try {
                 val collection = Collection(
                     name = name.trim(),
                     color = String.format("#%06X", color and 0xFFFFFF),
+                    icon = icon,
                     createdDate = Date()
                 )
 

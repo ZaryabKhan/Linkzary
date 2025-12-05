@@ -97,6 +97,7 @@ import com.appcodecraft.linkzary.data.entity.SavedLink
 import com.appcodecraft.linkzary.navigation.Screen
 import com.appcodecraft.linkzary.ui.component.BookmarkCard
 import com.appcodecraft.linkzary.ui.component.CollectionOption
+import com.appcodecraft.linkzary.ui.component.getCollectionIconVector
 import com.appcodecraft.linkzary.ui.component.CreateCollectionForm
 import com.appcodecraft.linkzary.ui.component.LinkEditorForm
 import com.appcodecraft.linkzary.ui.component.SmallCollectionCard
@@ -235,10 +236,11 @@ fun EditLinkDialog(
 @Composable
 fun CreateCollectionDialog(
     onDismiss: () -> Unit,
-    onCreate: (String, Int) -> Unit
+    onCreate: (String, Int, String) -> Unit
 ) {
     var name by remember { mutableStateOf("") }
     var selectedColor by remember { mutableStateOf(0xFF6366F1.toInt()) }
+    var selectedIcon by remember { mutableStateOf("Folder") }
     val maxNameLength = 30
     val hapticFeedback = LocalHapticFeedback.current
 
@@ -283,12 +285,14 @@ fun CreateCollectionDialog(
                     name = name,
                     onNameChange = { name = it },
                     selectedColor = selectedColor,
-                    onColorSelected = { selectedColor = it }
+                    onColorSelected = { selectedColor = it },
+                    selectedIcon = selectedIcon,
+                    onIconSelected = { selectedIcon = it }
                 )
         },
         confirmButton = {
             TextButton(
-                onClick = { onCreate(name, selectedColor) },
+                onClick = { onCreate(name, selectedColor, selectedIcon) },
                 enabled = name.isNotBlank()
             ) {
                 Text(stringResource(R.string.create_collection_create))
@@ -349,7 +353,7 @@ fun CollectionSelectionDialog(
                         }
                     }
                     CollectionOption(
-                        icon = Icons.Default.Folder,
+                        icon = getCollectionIconVector(collection.icon),
                         name = collection.name,
                         color = colorInt,
                         isSelected = currentCollectionId == collection.id,
@@ -566,9 +570,9 @@ fun LinkOptionsBottomSheet(
         if (showCreateDialog) {
             CreateCollectionDialog(
                 onDismiss = { showCreateDialog = false },
-                onCreate = { name, color ->
+                onCreate = { name, color, icon ->
                     // Create collection and move link to it
-                    viewModel.createCollection(name = name, color = color) { collectionId ->
+                    viewModel.createCollection(name = name, color = color, icon = icon) { collectionId ->
                         onMoveToCollection(collectionId)
                     }
                     showCreateDialog = false
@@ -639,6 +643,7 @@ fun HomeScreen(
     var selectedTags by remember { mutableStateOf(setOf<String>()) }
     var showSortMenu by remember { mutableStateOf(false) }
     var showCollectionPicker by remember { mutableStateOf(false) }
+    var showCreateCollectionDialog by remember { mutableStateOf(false) }
 
     // Local search state to prevent bouncing
     var localSearchQuery by remember { mutableStateOf("") }
@@ -1364,6 +1369,18 @@ fun HomeScreen(
                 Spacer(modifier = Modifier.height(32.dp))
             }
         }
+    }
+
+    // Create Collection Dialog
+    if (showCreateCollectionDialog) {
+        CreateCollectionDialog(
+            onDismiss = { showCreateCollectionDialog = false },
+            onCreate = { name, color, icon ->
+                viewModel.createCollection(name, color, icon) {
+                    showCreateCollectionDialog = false
+                }
+            }
+        )
     }
 
     // Add Link Dialog

@@ -77,6 +77,8 @@ import androidx.navigation.NavController
 import com.appcodecraft.linkzary.R
 import com.appcodecraft.linkzary.data.entity.SavedLink
 import com.appcodecraft.linkzary.ui.component.BookmarkCard
+import com.appcodecraft.linkzary.ui.component.CreateCollectionForm
+import com.appcodecraft.linkzary.ui.component.getCollectionIconVector
 import com.appcodecraft.linkzary.ui.screen.home.HomeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -95,6 +97,7 @@ fun CollectionDetailScreen(
     var searchQuery by remember { mutableStateOf("") }
     val isGridView = uiState.isGridView
     var showAddLinkDialog by remember { mutableStateOf(false) }
+    var showEditCollectionDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(collectionId) {
         viewModel.loadCollectionDetails(collectionId)
@@ -146,21 +149,34 @@ fun CollectionDetailScreen(
             }
 
             // Enhanced view toggle button
-            IconButton(
-                onClick = { viewModel.toggleGridView() },
-                modifier = Modifier
-                    .size(48.dp)
-                    .background(
-                        color = if (isGridView) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f) else Color.Transparent,
-                        shape = RoundedCornerShape(12.dp)
+            Row {
+                IconButton(
+                    onClick = { showEditCollectionDialog = true }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = stringResource(R.string.collections_edit_collection),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(24.dp)
                     )
-            ) {
-                Icon(
-                    imageVector = if (isGridView) Icons.AutoMirrored.Filled.ViewList else Icons.Default.GridView,
-                    contentDescription = if (isGridView) stringResource(R.string.home_switch_to_list) else stringResource(R.string.home_switch_to_grid),
-                    tint = if (isGridView) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(24.dp)
-                )
+                }
+                
+                IconButton(
+                    onClick = { viewModel.toggleGridView() },
+                    modifier = Modifier
+                        .size(48.dp)
+                        .background(
+                            color = if (isGridView) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f) else Color.Transparent,
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                ) {
+                    Icon(
+                        imageVector = if (isGridView) Icons.AutoMirrored.Filled.ViewList else Icons.Default.GridView,
+                        contentDescription = if (isGridView) stringResource(R.string.home_switch_to_list) else stringResource(R.string.home_switch_to_grid),
+                        tint = if (isGridView) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
         }
 
@@ -295,6 +311,18 @@ fun CollectionDetailScreen(
                 contentDescription = stringResource(R.string.home_add_link)
             )
         }
+    }
+
+    // Edit Collection Dialog
+    if (showEditCollectionDialog && uiState.collection != null) {
+        EditCollectionDialog(
+            collection = uiState.collection!!,
+            onDismiss = { showEditCollectionDialog = false },
+            onSave = { updatedCollection ->
+                viewModel.updateCollection(updatedCollection)
+                showEditCollectionDialog = false
+            }
+        )
     }
 
     // Link options bottom sheet
@@ -913,7 +941,7 @@ fun CollectionSelectionDialog(
                 // Existing collections
                 items(homeUiState.allCollections) { collection ->
                     CollectionOption(
-                        icon = Icons.Default.Folder,
+                        icon = getCollectionIconVector(collection.icon),
                         name = collection.name,
                         color = collection.color.removePrefix("#").toLongOrNull(16)?.toInt() ?: 0xFF6366F1.toInt(),
                         isSelected = currentCollectionId == collection.id,

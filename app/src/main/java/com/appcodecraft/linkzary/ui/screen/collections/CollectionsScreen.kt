@@ -82,10 +82,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.appcodecraft.linkzary.R
 import com.appcodecraft.linkzary.data.entity.Collection
+import com.appcodecraft.linkzary.ui.component.CreateCollectionForm
 import com.appcodecraft.linkzary.navigation.Screen
 import com.appcodecraft.linkzary.ui.component.CollectionCard
+import com.appcodecraft.linkzary.ui.component.CollectionOption
+import com.appcodecraft.linkzary.ui.component.CreateCollectionForm
 import com.appcodecraft.linkzary.ui.component.createCollectionGradient
-import com.appcodecraft.linkzary.ui.component.getCollectionIcon
+import com.appcodecraft.linkzary.ui.component.getCollectionIconVector
 import com.appcodecraft.linkzary.ui.screen.home.OptionItem
 import com.appcodecraft.linkzary.ui.theme.LinkzaryTheme
 
@@ -435,9 +438,9 @@ fun CollectionsScreen(
     if (showCreateCollectionDialog) {
         CollectionsCreateCollectionDialog(
             onDismiss = { showCreateCollectionDialog = false },
-            onCreate = { name: String, color: String ->
+            onCreate = { name: String, color: String, icon: String ->
                 val colorInt = color.toColorInt()
-                viewModel.createCollection(name, colorInt)
+                viewModel.createCollection(name, colorInt, icon)
                 showCreateCollectionDialog = false
             }
         )
@@ -460,37 +463,18 @@ fun CollectionsScreen(
     }
 }
 
+// Replaced custom implementation with shared component usage
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CollectionsCreateCollectionDialog(
     onDismiss: () -> Unit,
-    onCreate: (String, String) -> Unit
+    onCreate: (String, String, String) -> Unit
 ) {
     var name by remember { mutableStateOf("") }
-    var selectedColor by remember { mutableStateOf("#6366F1") }
-    var showCustomColorPicker by remember { mutableStateOf(false) }
-    var customColor by remember { mutableStateOf(Color(0xFF6366F1)) }
-    val maxNameLength = 30
+    var selectedColor by remember { mutableStateOf(0xFF6366F1.toInt()) }
+    var selectedIcon by remember { mutableStateOf("Folder") }
+    
     val hapticFeedback = LocalHapticFeedback.current
-
-    val colors = listOf(
-        "#6366F1", // Indigo
-        "#EF4444", // Red
-        "#10B981", // Emerald
-        "#F59E0B", // Amber
-        "#8B5CF6", // Violet
-        "#06B6D4", // Cyan
-        "#EC4899", // Pink
-        "#84CC16", // Lime
-        "#F97316", // Orange
-        "#EAB308", // Yellow
-        "#22C55E", // Green
-        "#3B82F6", // Blue
-        "#A855F7", // Purple
-        "#E11D48", // Rose
-        "#0EA5E9", // Sky
-        "#64748B"  // Slate
-    )
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -509,200 +493,21 @@ fun CollectionsCreateCollectionDialog(
             }
         },
         text = {
-            Column {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { newValue ->
-                        if (newValue.length <= maxNameLength) {
-                            name = newValue
-                        }
-                    },
-                    label = { Text(stringResource(R.string.collections_collection_name)) },
-                    placeholder = { Text(stringResource(R.string.collections_enter_name)) },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Folder,
-                            contentDescription = stringResource(R.string.collections_collection_name),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    supportingText = {
-                        Text(
-                            text = "${name.length}/$maxNameLength",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (name.length >= maxNameLength) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = stringResource(R.string.collections_choose_color),
-                    style = MaterialTheme.typography.labelMedium
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                if (showCustomColorPicker) {
-                    // Custom color picker UI
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 8.dp)
-                    ) {
-                        // Color preview
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(40.dp)
-                                .background(customColor, RoundedCornerShape(8.dp))
-                        )
-                        
-                        Spacer(modifier = Modifier.height(8.dp))
-                        
-                        // Red slider
-                        Text("Red", style = MaterialTheme.typography.bodySmall)
-                        Slider(
-                            value = customColor.red,
-                            onValueChange = { 
-                                customColor = customColor.copy(red = it)
-                                selectedColor = String.format("#%02X%02X%02X", 
-                                    (customColor.red * 255).toInt(),
-                                    (customColor.green * 255).toInt(),
-                                    (customColor.blue * 255).toInt())
-                            },
-                            colors = SliderDefaults.colors(
-                                thumbColor = Color.Red,
-                                activeTrackColor = Color.Red.copy(alpha = 0.5f)
-                            )
-                        )
-                        
-                        // Green slider
-                        Text("Green", style = MaterialTheme.typography.bodySmall)
-                        Slider(
-                            value = customColor.green,
-                            onValueChange = { 
-                                customColor = customColor.copy(green = it)
-                                selectedColor = String.format("#%02X%02X%02X", 
-                                    (customColor.red * 255).toInt(),
-                                    (customColor.green * 255).toInt(),
-                                    (customColor.blue * 255).toInt())
-                            },
-                            colors = SliderDefaults.colors(
-                                thumbColor = Color.Green,
-                                activeTrackColor = Color.Green.copy(alpha = 0.5f)
-                            )
-                        )
-                        
-                        // Blue slider
-                        Text("Blue", style = MaterialTheme.typography.bodySmall)
-                        Slider(
-                            value = customColor.blue,
-                            onValueChange = { 
-                                customColor = customColor.copy(blue = it)
-                                selectedColor = String.format("#%02X%02X%02X", 
-                                    (customColor.red * 255).toInt(),
-                                    (customColor.green * 255).toInt(),
-                                    (customColor.blue * 255).toInt())
-                            },
-                            colors = SliderDefaults.colors(
-                                thumbColor = Color.Blue,
-                                activeTrackColor = Color.Blue.copy(alpha = 0.5f)
-                            )
-                        )
-                        
-                        // Back button
-                        TextButton(
-                            onClick = { showCustomColorPicker = false },
-                            modifier = Modifier.align(Alignment.End)
-                        ) {
-                            Text("Back to Presets")
-                        }
-                    }
-                } else {
-                    // Predefined colors grid
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(8),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.height(120.dp)
-                    ) {
-                        items(colors) { color ->
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier.size(32.dp)
-                            ) {
-                                FilterChip(
-                                    onClick = { 
-                                        if (selectedColor != color) {
-                                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            selectedColor = color 
-                                        }
-                                    },
-                                    label = { },
-                                    selected = selectedColor == color,
-                                    modifier = Modifier.size(32.dp),
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        containerColor = Color(color.toColorInt()),
-                                        selectedContainerColor = Color(color.toColorInt())
-                                    ),
-                                    border = FilterChipDefaults.filterChipBorder(
-                                        enabled = true,
-                                        selected = selectedColor == color,
-                                        borderColor = if (selectedColor == color) MaterialTheme.colorScheme.primary else Color.Transparent,
-                                        borderWidth = if (selectedColor == color) 2.dp else 0.dp
-                                    )
-                                )
-                                
-                                // Selection indicator
-                                if (selectedColor == color) {
-                                    Icon(
-                                        imageVector = Icons.Default.Check,
-                                        contentDescription = "Selected",
-                                        tint = Color.White,
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                }
-                            }
-                        }
-                        
-                        // Custom color option
-                        item {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                                    .clickable { 
-                                        hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        showCustomColorPicker = true 
-                                        // Initialize custom color picker with current selection
-                                        try {
-                                            customColor = Color(selectedColor.toColorInt())
-                                        } catch (e: Exception) {
-                                            customColor = Color(0xFF6366F1) // Default to Indigo if parsing fails
-                                        }
-                                    }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Palette,
-                                    contentDescription = "Custom Color",
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            }
-                        }
-                    }
-                }
-            }
+            CreateCollectionForm(
+                name = name,
+                onNameChange = { name = it },
+                selectedColor = selectedColor,
+                onColorSelected = { selectedColor = it },
+                selectedIcon = selectedIcon,
+                onIconSelected = { selectedIcon = it }
+            )
         },
         confirmButton = {
             TextButton(
-                onClick = { onCreate(name, selectedColor) },
+                onClick = { 
+                    val hexColor = String.format("#%06X", selectedColor and 0xFFFFFF)
+                    onCreate(name, hexColor, selectedIcon) 
+                },
                 enabled = name.isNotBlank()
             ) {
                 Text(stringResource(R.string.common_create))
@@ -752,7 +557,7 @@ fun CollectionOptionsBottomSheet(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = getCollectionIcon(collection.name),
+                        imageVector = getCollectionIconVector(collection.icon),
                         contentDescription = stringResource(R.string.collections_collection_icon),
                         tint = Color.White,
                         modifier = Modifier.size(20.dp)
@@ -843,6 +648,7 @@ fun CollectionOptionsBottomSheet(
     }
 }
 
+// Replaced custom implementation with shared component usage
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditCollectionDialog(
@@ -851,36 +657,16 @@ fun EditCollectionDialog(
     onSave: (Collection) -> Unit
 ) {
     var name by remember { mutableStateOf(collection.name) }
-    var selectedColor by remember { mutableStateOf(collection.color) }
-    var showCustomColorPicker by remember { mutableStateOf(false) }
-    var customColor by remember { 
+    var selectedColor by remember { 
         mutableStateOf(try {
-            Color(collection.color.toColorInt())
+            android.graphics.Color.parseColor(collection.color)
         } catch (e: Exception) {
-            Color(0xFF6366F1) // Default to Indigo if parsing fails
-        })
+            0xFF6366F1.toInt()
+        }) 
     }
-    val maxNameLength = 30
+    var selectedIcon by remember { mutableStateOf(collection.icon) }
+    
     val hapticFeedback = LocalHapticFeedback.current
-
-    val colors = listOf(
-        "#6366F1", // Indigo
-        "#EF4444", // Red
-        "#10B981", // Emerald
-        "#F59E0B", // Amber
-        "#8B5CF6", // Violet
-        "#06B6D4", // Cyan
-        "#EC4899", // Pink
-        "#84CC16", // Lime
-        "#F97316", // Orange
-        "#EAB308", // Yellow
-        "#22C55E", // Green
-        "#3B82F6", // Blue
-        "#A855F7", // Purple
-        "#E11D48", // Rose
-        "#0EA5E9", // Sky
-        "#64748B"  // Slate
-    )
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -899,207 +685,31 @@ fun EditCollectionDialog(
             }
         },
         text = {
-            Column {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { newValue ->
-                        if (newValue.length <= maxNameLength) {
-                            name = newValue
-                        }
-                    },
-                    label = { Text(stringResource(R.string.collections_collection_name)) },
-                    placeholder = { Text(stringResource(R.string.collections_enter_collection_name)) },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Folder,
-                            contentDescription = stringResource(R.string.collections_collection_name),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    supportingText = {
-                        Text(
-                            text = "${name.length}/$maxNameLength",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (name.length >= maxNameLength) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = stringResource(R.string.collections_choose_color),
-                    style = MaterialTheme.typography.labelMedium
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                if (showCustomColorPicker) {
-                    // Custom color picker UI
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 8.dp)
-                    ) {
-                        // Color preview
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(40.dp)
-                                .background(customColor, RoundedCornerShape(8.dp))
-                        )
-                        
-                        Spacer(modifier = Modifier.height(8.dp))
-                        
-                        // Red slider
-                        Text("Red", style = MaterialTheme.typography.bodySmall)
-                        Slider(
-                            value = customColor.red,
-                            onValueChange = { 
-                                customColor = customColor.copy(red = it)
-                                selectedColor = String.format("#%02X%02X%02X", 
-                                    (customColor.red * 255).toInt(),
-                                    (customColor.green * 255).toInt(),
-                                    (customColor.blue * 255).toInt())
-                            },
-                            colors = SliderDefaults.colors(
-                                thumbColor = Color.Red,
-                                activeTrackColor = Color.Red.copy(alpha = 0.5f)
-                            )
-                        )
-                        
-                        // Green slider
-                        Text("Green", style = MaterialTheme.typography.bodySmall)
-                        Slider(
-                            value = customColor.green,
-                            onValueChange = { 
-                                customColor = customColor.copy(green = it)
-                                selectedColor = String.format("#%02X%02X%02X", 
-                                    (customColor.red * 255).toInt(),
-                                    (customColor.green * 255).toInt(),
-                                    (customColor.blue * 255).toInt())
-                            },
-                            colors = SliderDefaults.colors(
-                                thumbColor = Color.Green,
-                                activeTrackColor = Color.Green.copy(alpha = 0.5f)
-                            )
-                        )
-                        
-                        // Blue slider
-                        Text("Blue", style = MaterialTheme.typography.bodySmall)
-                        Slider(
-                            value = customColor.blue,
-                            onValueChange = { 
-                                customColor = customColor.copy(blue = it)
-                                selectedColor = String.format("#%02X%02X%02X", 
-                                    (customColor.red * 255).toInt(),
-                                    (customColor.green * 255).toInt(),
-                                    (customColor.blue * 255).toInt())
-                            },
-                            colors = SliderDefaults.colors(
-                                thumbColor = Color.Blue,
-                                activeTrackColor = Color.Blue.copy(alpha = 0.5f)
-                            )
-                        )
-                        
-                        // Back button
-                        TextButton(
-                            onClick = { showCustomColorPicker = false },
-                            modifier = Modifier.align(Alignment.End)
-                        ) {
-                            Text("Back to Presets")
-                        }
-                    }
-                } else {
-                    // Predefined colors grid
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(8),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.height(120.dp)
-                    ) {
-                        items(colors) { color ->
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier.size(32.dp)
-                            ) {
-                                FilterChip(
-                                    onClick = { 
-                                        if (selectedColor != color) {
-                                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            selectedColor = color 
-                                        }
-                                    },
-                                    label = { },
-                                    selected = selectedColor == color,
-                                    modifier = Modifier.size(32.dp),
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        containerColor = Color(color.toColorInt()),
-                                        selectedContainerColor = Color(color.toColorInt())
-                                    ),
-                                    border = FilterChipDefaults.filterChipBorder(
-                                        enabled = true,
-                                        selected = selectedColor == color,
-                                        borderColor = if (selectedColor == color) MaterialTheme.colorScheme.primary else Color.Transparent,
-                                        borderWidth = if (selectedColor == color) 2.dp else 0.dp
-                                    )
-                                )
-                                
-                                // Selection indicator
-                                if (selectedColor == color) {
-                                    Icon(
-                                        imageVector = Icons.Default.Check,
-                                        contentDescription = "Selected",
-                                        tint = Color.White,
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                }
-                            }
-                        }
-                        
-                        // Custom color option
-                        item {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                                    .clickable { 
-                                        hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        showCustomColorPicker = true 
-                                        // Initialize custom color picker with current selection
-                                        try {
-                                            customColor = Color(selectedColor.toColorInt())
-                                        } catch (e: Exception) {
-                                            customColor = Color(0xFF6366F1) // Default to Indigo if parsing fails
-                                        }
-                                    }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Palette,
-                                    contentDescription = "Custom Color",
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            }
-                        }
-                    }
-                }
-            }
+            CreateCollectionForm(
+                name = name,
+                onNameChange = { name = it },
+                selectedColor = selectedColor,
+                onColorSelected = { selectedColor = it },
+                selectedIcon = selectedIcon,
+                onIconSelected = { selectedIcon = it }
+            )
         },
         confirmButton = {
             TextButton(
                 onClick = {
+                    val hexColor = String.format("#%06X", selectedColor and 0xFFFFFF)
                     val updatedCollection = collection.copy(
                         name = name.trim(),
-                        color = selectedColor
+                        color = hexColor,
+                        icon = selectedIcon
                     )
                     onSave(updatedCollection)
                 },
-                enabled = name.isNotBlank() && (name.trim() != collection.name || selectedColor != collection.color)
+                enabled = name.isNotBlank() && (
+                    name.trim() != collection.name || 
+                    String.format("#%06X", selectedColor and 0xFFFFFF) != collection.color ||
+                    selectedIcon != collection.icon
+                )
             ) {
                 Text(stringResource(R.string.common_save))
             }

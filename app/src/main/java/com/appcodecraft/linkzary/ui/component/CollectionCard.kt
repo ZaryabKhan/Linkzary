@@ -17,9 +17,26 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Book
+import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Flight
 import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.Gamepad
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Movie
+import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.SportsSoccer
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Work
+import androidx.compose.material.icons.outlined.Folder
+import androidx.compose.material.icons.outlined.Work
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -59,11 +76,25 @@ fun createCollectionGradient(colorHex: String): Brush {
 }
 
 // Helper function to get collection icon based on name
-fun getCollectionIcon(name: String): ImageVector {
-    return when {
-        name.contains("tech", ignoreCase = true) || 
-        name.contains("code", ignoreCase = true) || 
-        name.contains("dev", ignoreCase = true) -> Icons.Default.Link
+@Composable
+fun getCollectionIconVector(iconName: String): ImageVector {
+    return when (iconName) {
+        "Folder" -> Icons.Default.Folder
+        "Work" -> Icons.Default.Work
+        "School" -> Icons.Default.School
+        "Home" -> Icons.Default.Home
+        "Star" -> Icons.Default.Star
+        "Favorite" -> Icons.Default.Favorite
+        "Code" -> Icons.Default.Code
+        "Book" -> Icons.Default.Book
+        "Music" -> Icons.Default.MusicNote
+        "Movie" -> Icons.Default.Movie
+        "Image" -> Icons.Default.Image
+        "Map" -> Icons.Default.Map
+        "Shopping" -> Icons.Default.ShoppingCart
+        "Travel" -> Icons.Default.Flight
+        "Sports" -> Icons.Default.SportsSoccer
+        "Game" -> Icons.Default.Gamepad
         else -> Icons.Default.Folder
     }
 }
@@ -127,7 +158,7 @@ fun CollectionCard(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.Folder,
+                    imageVector = getCollectionIconVector(collection.icon),
                     contentDescription = null,
                     tint = Color.White,
                     modifier = Modifier.size(28.dp)
@@ -210,7 +241,7 @@ fun SmallCollectionCard(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = getCollectionIcon(collection.name),
+                    imageVector = getCollectionIconVector(collection.icon),
                     contentDescription = stringResource(R.string.collections_collection_icon),
                     tint = Color.White,
                     modifier = Modifier.size(20.dp)

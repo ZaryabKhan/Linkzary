@@ -196,9 +196,28 @@ class CollectionDetailViewModel @Inject constructor(
             }
         }
         
+        
         _uiState.value = _uiState.value.copy(
             searchQuery = query,
             filteredLinks = filteredLinks
         )
+    }
+
+    fun updateCollection(collection: Collection) {
+        viewModelScope.launch {
+            try {
+                _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+                collectionRepository.updateCollection(collection)
+                _uiState.value = _uiState.value.copy(
+                    collection = collection, // Update local state immediately
+                    isLoading = false
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = e.message ?: "Failed to update collection"
+                )
+            }
+        }
     }
 }

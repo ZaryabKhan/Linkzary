@@ -10,5 +10,6 @@ data class Collection(
     val id: Long = 0,
     val name: String,
     val color: String, // Hex color code
+    val icon: String = "Folder", // Icon name from Material Icons
     val createdDate: Date = Date()
 )

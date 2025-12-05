@@ -15,9 +15,24 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Flight
 import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.Gamepad
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.Movie
+import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.SportsSoccer
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -48,6 +63,8 @@ fun CreateCollectionForm(
     onNameChange: (String) -> Unit,
     selectedColor: Int,
     onColorSelected: (Int) -> Unit,
+    selectedIcon: String = "Folder",
+    onIconSelected: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var showCustomColorPicker by remember { mutableStateOf(false) }
@@ -74,6 +91,26 @@ fun CreateCollectionForm(
         0xFF64748B.toInt()  // Slate
     )
 
+    // Available icons
+    val icons = listOf(
+        "Folder" to Icons.Default.Folder,
+        "Work" to Icons.Default.Work,
+        "School" to Icons.Default.School,
+        "Home" to Icons.Default.Home,
+        "Star" to Icons.Default.Star,
+        "Favorite" to Icons.Default.Favorite,
+        "Code" to Icons.Default.Code,
+        "Book" to Icons.Default.Book,
+        "Music" to Icons.Default.MusicNote,
+        "Movie" to Icons.Default.Movie,
+        "Image" to Icons.Default.Image,
+        "Map" to Icons.Default.Map,
+        "Shopping" to Icons.Default.ShoppingCart,
+        "Travel" to Icons.Default.Flight,
+        "Sports" to Icons.Default.SportsSoccer,
+        "Game" to Icons.Default.Gamepad
+    )
+
     Column(modifier = modifier) {
         OutlinedTextField(
             value = name,
@@ -85,9 +122,11 @@ fun CreateCollectionForm(
             label = { Text(stringResource(R.string.create_collection_name_label)) },
             placeholder = { Text(stringResource(R.string.create_collection_name_placeholder)) },
             leadingIcon = {
+                // Show selected icon here dynamically
+                val currentIcon = icons.find { it.first == selectedIcon }?.second ?: Icons.Default.Folder
                 Icon(
-                    imageVector = Icons.Default.Folder,
-                    contentDescription = stringResource(R.string.create_collection_name_hint),
+                    imageVector = currentIcon,
+                    contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },
@@ -101,6 +140,55 @@ fun CreateCollectionForm(
                 )
             }
         )
+
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        // Icon Selection Section
+        Text(
+            text = "Choose Icon",
+            style = MaterialTheme.typography.labelMedium
+        )
+        
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(8),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.height(80.dp)
+        ) {
+            items(icons) { (iconName, iconVector) ->
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    FilterChip(
+                        onClick = {
+                            if (selectedIcon != iconName) {
+                                hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                                onIconSelected(iconName)
+                            }
+                        },
+                        label = { },
+                        selected = selectedIcon == iconName,
+                        modifier = Modifier.size(32.dp),
+                        leadingIcon = {
+                             Icon(
+                                imageVector = iconVector,
+                                contentDescription = iconName,
+                                modifier = Modifier.size(16.dp),
+                                tint = if (selectedIcon == iconName) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                             )
+                        },
+                        colors = FilterChipDefaults.filterChipColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha=0.3f),
+                            selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer
+                        ),
+                        border = null
+                    )
+                }
+            }
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
