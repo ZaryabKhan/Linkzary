@@ -6,6 +6,7 @@ import com.appcodecraft.linkzary.data.entity.Collection
 import com.appcodecraft.linkzary.data.entity.SavedLink
 import com.appcodecraft.linkzary.data.repository.CollectionRepository
 import com.appcodecraft.linkzary.data.repository.LinkRepository
+import com.appcodecraft.linkzary.util.ArticleContentExtractor
 import com.appcodecraft.linkzary.util.UrlMetadataExtractor
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,7 +34,8 @@ data class ShareUiState(
 class ShareViewModel @Inject constructor(
     private val linkRepository: LinkRepository,
     private val collectionRepository: CollectionRepository,
-    private val urlMetadataExtractor: UrlMetadataExtractor
+    private val urlMetadataExtractor: UrlMetadataExtractor,
+    private val articleContentExtractor: ArticleContentExtractor
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ShareUiState())
@@ -109,8 +111,10 @@ class ShareViewModel @Inject constructor(
                 val state = _uiState.value
 
                 // Re-fetch metadata for favicon/image if needed, or just use what we have
-                // optimize: we could store the full metadata in state to avoid re-fetching
                 val metadata = urlMetadataExtractor.extractMetadata(state.url)
+                
+                // Extract article content
+                val content = articleContentExtractor.extractContent(state.url)
 
                 val link = SavedLink(
                     title = state.title,
@@ -119,7 +123,9 @@ class ShareViewModel @Inject constructor(
                     tags = state.tags,
                     collectionId = state.selectedCollectionId,
                     favicon = metadata.favicon,
-                    previewImageUrl = metadata.previewImageUrl
+                    previewImageUrl = metadata.previewImageUrl,
+                    textContent = content,
+                    isOfflineAvailable = content != null
                 )
 
                 linkRepository.insertLink(link)

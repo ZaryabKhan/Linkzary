@@ -7,6 +7,7 @@ import com.appcodecraft.linkzary.data.entity.SavedLink
 import com.appcodecraft.linkzary.data.preferences.UserPreferencesManager
 import com.appcodecraft.linkzary.data.repository.CollectionRepository
 import com.appcodecraft.linkzary.data.repository.LinkRepository
+import com.appcodecraft.linkzary.util.ArticleContentExtractor
 import com.appcodecraft.linkzary.util.UrlMetadataExtractor
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -50,6 +51,7 @@ class HomeViewModel @Inject constructor(
     private val linkRepository: LinkRepository,
     private val collectionRepository: CollectionRepository,
     private val urlMetadataExtractor: UrlMetadataExtractor,
+    private val articleContentExtractor: ArticleContentExtractor,
     private val userPreferencesManager: UserPreferencesManager
 ) : ViewModel() {
 
@@ -264,13 +266,16 @@ class HomeViewModel @Inject constructor(
                 _error.value = null
 
                 val metadata = urlMetadataExtractor.extractMetadata(url)
+                val content = articleContentExtractor.extractContent(url)
 
                 val link = SavedLink(
                     title = metadata.title,
                     url = url,
                     collectionId = collectionId,
                     favicon = metadata.favicon,
-                    previewImageUrl = metadata.previewImageUrl
+                    previewImageUrl = metadata.previewImageUrl,
+                    textContent = content,
+                    isOfflineAvailable = content != null
                 )
 
                 linkRepository.insertLink(link)
@@ -296,13 +301,16 @@ class HomeViewModel @Inject constructor(
                 }
 
                 val metadata = urlMetadataExtractor.extractMetadata(url)
+                val content = articleContentExtractor.extractContent(url)
 
                 val link = SavedLink(
                     title = metadata.title,
                     url = url,
                     collectionId = collectionId,
                     favicon = metadata.favicon,
-                    previewImageUrl = metadata.previewImageUrl
+                    previewImageUrl = metadata.previewImageUrl,
+                    textContent = content,
+                    isOfflineAvailable = content != null
                 )
 
                 linkRepository.insertLink(link)

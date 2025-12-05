@@ -16,5 +16,7 @@ data class SavedLink(
     val isPinned: Boolean = false,
     val saveDate: Date = Date(),
     val favicon: String? = null,
-    val previewImageUrl: String? = null // Open Graph preview image
+    val previewImageUrl: String? = null, // Open Graph preview image
+    val textContent: String? = null, // Extracted article text for offline reading
+    val isOfflineAvailable: Boolean = false
 )

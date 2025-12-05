@@ -459,6 +459,7 @@ fun LinkOptionsBottomSheet(
     onDelete: () -> Unit,
     onTogglePin: () -> Unit,
     onMoveToCollection: (Long?) -> Unit,
+    onReaderMode: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     var showEditDialog by remember { mutableStateOf(false) }
@@ -487,6 +488,19 @@ fun LinkOptionsBottomSheet(
                 subtitle = stringResource(R.string.link_edit_subtitle),
                 onClick = { showEditDialog = true }
             )
+
+            // Reader Mode option
+            if (link.isOfflineAvailable) {
+                OptionItem(
+                    icon = Icons.AutoMirrored.Filled.Notes, // Using Notes as a proxy for Reader
+                    title = "Reader Mode", // Hardcoded for now, should be string resource
+                    subtitle = "Read offline content",
+                    onClick = {
+                        onReaderMode()
+                        onDismiss()
+                    }
+                )
+            }
 
             // Pin/Unpin option
             OptionItem(
@@ -1382,6 +1396,12 @@ fun HomeScreen(
             },
             onMoveToCollection = { collectionId ->
                 viewModel.moveToCollection(link.id, collectionId)
+                selectedLink = null
+            },
+            onReaderMode = {
+                if (navController != null) {
+                    navController.navigate(Screen.Reader.createRoute(link.id))
+                }
                 selectedLink = null
             },
             viewModel = viewModel

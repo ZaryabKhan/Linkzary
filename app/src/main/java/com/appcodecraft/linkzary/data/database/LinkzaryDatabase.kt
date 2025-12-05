@@ -13,7 +13,7 @@ import com.appcodecraft.linkzary.data.entity.SavedLink
 
 @Database(
     entities = [SavedLink::class, Collection::class],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 @TypeConverters(DateConverter::class)
@@ -28,6 +28,14 @@ abstract class LinkzaryDatabase : RoomDatabase() {
             override fun migrate(db: SupportSQLiteDatabase) {
                 // Add previewImageUrl column to saved_links table
                 db.execSQL("ALTER TABLE saved_links ADD COLUMN previewImageUrl TEXT DEFAULT NULL")
+            }
+        }
+
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Add textContent and isOfflineAvailable columns
+                db.execSQL("ALTER TABLE saved_links ADD COLUMN textContent TEXT DEFAULT NULL")
+                db.execSQL("ALTER TABLE saved_links ADD COLUMN isOfflineAvailable INTEGER NOT NULL DEFAULT 0")
             }
         }
     }

@@ -26,7 +26,7 @@ object DatabaseModule {
             LinkzaryDatabase::class.java,
             LinkzaryDatabase.DATABASE_NAME
         )
-            .addMigrations(LinkzaryDatabase.MIGRATION_1_2)
+            .addMigrations(LinkzaryDatabase.MIGRATION_1_2, LinkzaryDatabase.MIGRATION_2_3)
             .setJournalMode(RoomDatabase.JournalMode.WRITE_AHEAD_LOGGING)
             .setQueryExecutor(java.util.concurrent.Executors.newFixedThreadPool(4))
             .enableMultiInstanceInvalidation()
