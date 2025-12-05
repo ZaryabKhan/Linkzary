@@ -96,6 +96,9 @@ import com.appcodecraft.linkzary.R
 import com.appcodecraft.linkzary.data.entity.SavedLink
 import com.appcodecraft.linkzary.navigation.Screen
 import com.appcodecraft.linkzary.ui.component.BookmarkCard
+import com.appcodecraft.linkzary.ui.component.CollectionOption
+import com.appcodecraft.linkzary.ui.component.CreateCollectionForm
+import com.appcodecraft.linkzary.ui.component.LinkEditorForm
 import com.appcodecraft.linkzary.ui.component.SmallCollectionCard
 import com.appcodecraft.linkzary.ui.theme.LinkzaryTheme
 
@@ -192,73 +195,16 @@ fun EditLinkDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.edit_link_title)) },
         text = {
-            Column {
-                OutlinedTextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    label = { Text(stringResource(R.string.edit_link_title_label)) },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Title,
-                            contentDescription = stringResource(R.string.edit_link_title_label),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                OutlinedTextField(
-                    value = url,
-                    onValueChange = { url = it },
-                    label = { Text(stringResource(R.string.edit_link_url_label)) },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Link,
-                            contentDescription = stringResource(R.string.edit_link_url_label),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                OutlinedTextField(
-                    value = note,
-                    onValueChange = { note = it },
-                    label = { Text(stringResource(R.string.edit_link_note_label)) },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.Notes,
-                            contentDescription = stringResource(R.string.edit_link_note_label),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    maxLines = 3
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                OutlinedTextField(
-                    value = tags,
-                    onValueChange = { tags = it },
-                    label = { Text(stringResource(R.string.edit_link_tags_label)) },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Tag,
-                            contentDescription = stringResource(R.string.edit_link_tags_label),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-            }
+            LinkEditorForm(
+                title = title,
+                onTitleChange = { title = it },
+                url = url,
+                onUrlChange = { url = it },
+                note = note,
+                onNoteChange = { note = it },
+                tags = tags,
+                onTagsChange = { tags = it }
+            )
         },
         confirmButton = {
             TextButton(
@@ -293,8 +239,6 @@ fun CreateCollectionDialog(
 ) {
     var name by remember { mutableStateOf("") }
     var selectedColor by remember { mutableStateOf(0xFF6366F1.toInt()) }
-    var showCustomColorPicker by remember { mutableStateOf(false) }
-    var customColor by remember { mutableStateOf(Color(0xFF6366F1)) }
     val maxNameLength = 30
     val hapticFeedback = LocalHapticFeedback.current
 
@@ -334,195 +278,13 @@ fun CreateCollectionDialog(
             }
         },
         text = {
-            Column {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { newValue ->
-                        if (newValue.length <= maxNameLength) {
-                            name = newValue
-                        }
-                    },
-                    label = { Text(stringResource(R.string.create_collection_name_label)) },
-                    placeholder = { Text(stringResource(R.string.create_collection_name_placeholder)) },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Folder,
-                            contentDescription = stringResource(R.string.create_collection_name_hint),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    supportingText = {
-                        Text(
-                            text = "${name.length}/$maxNameLength",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (name.length >= maxNameLength) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                
+                CreateCollectionForm(
+                    name = name,
+                    onNameChange = { name = it },
+                    selectedColor = selectedColor,
+                    onColorSelected = { selectedColor = it }
                 )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = stringResource(R.string.create_collection_choose_color),
-                    style = MaterialTheme.typography.labelMedium
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                if (showCustomColorPicker) {
-                    // Custom color picker UI
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 8.dp)
-                    ) {
-                        // Color preview
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(40.dp)
-                                .background(customColor, RoundedCornerShape(8.dp))
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        // Red slider
-                        Text("Red", style = MaterialTheme.typography.bodySmall)
-                        Slider(
-                            value = customColor.red,
-                            onValueChange = {
-                                customColor = customColor.copy(red = it)
-                                selectedColor = android.graphics.Color.rgb(
-                                    (customColor.red * 255).toInt(),
-                                    (customColor.green * 255).toInt(),
-                                    (customColor.blue * 255).toInt()
-                                )
-                            },
-                            colors = SliderDefaults.colors(
-                                thumbColor = Color.Red,
-                                activeTrackColor = Color.Red.copy(alpha = 0.5f)
-                            )
-                        )
-
-                        // Green slider
-                        Text("Green", style = MaterialTheme.typography.bodySmall)
-                        Slider(
-                            value = customColor.green,
-                            onValueChange = {
-                                customColor = customColor.copy(green = it)
-                                selectedColor = android.graphics.Color.rgb(
-                                    (customColor.red * 255).toInt(),
-                                    (customColor.green * 255).toInt(),
-                                    (customColor.blue * 255).toInt()
-                                )
-                            },
-                            colors = SliderDefaults.colors(
-                                thumbColor = Color.Green,
-                                activeTrackColor = Color.Green.copy(alpha = 0.5f)
-                            )
-                        )
-
-                        // Blue slider
-                        Text("Blue", style = MaterialTheme.typography.bodySmall)
-                        Slider(
-                            value = customColor.blue,
-                            onValueChange = {
-                                customColor = customColor.copy(blue = it)
-                                selectedColor = android.graphics.Color.rgb(
-                                    (customColor.red * 255).toInt(),
-                                    (customColor.green * 255).toInt(),
-                                    (customColor.blue * 255).toInt()
-                                )
-                            },
-                            colors = SliderDefaults.colors(
-                                thumbColor = Color.Blue,
-                                activeTrackColor = Color.Blue.copy(alpha = 0.5f)
-                            )
-                        )
-
-                        // Back button
-                        TextButton(
-                            onClick = { showCustomColorPicker = false },
-                            modifier = Modifier.align(Alignment.End)
-                        ) {
-                            Text("Back to Presets")
-                        }
-                    }
-                } else {
-                    // Predefined colors grid
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(8),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.height(120.dp)
-                    ) {
-                        items(colors) { color ->
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier.size(32.dp)
-                            ) {
-                                FilterChip(
-                                    onClick = {
-                                        if (selectedColor != color) {
-                                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            selectedColor = color
-                                        }
-                                    },
-                                    label = { },
-                                    selected = selectedColor == color,
-                                    modifier = Modifier.size(32.dp),
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        containerColor = Color(color),
-                                        selectedContainerColor = Color(color)
-                                    ),
-                                    border = FilterChipDefaults.filterChipBorder(
-                                        enabled = true,
-                                        selected = selectedColor == color,
-                                        borderColor = if (selectedColor == color) MaterialTheme.colorScheme.primary else Color.Transparent,
-                                        borderWidth = if (selectedColor == color) 2.dp else 0.dp
-                                    )
-                                )
-
-                                // Selection indicator
-                                if (selectedColor == color) {
-                                    Icon(
-                                        imageVector = Icons.Default.Check,
-                                        contentDescription = "Selected",
-                                        tint = Color.White,
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                }
-                            }
-                        }
-
-                        // Custom color option
-                        item {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                                    .clickable {
-                                        hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        showCustomColorPicker = true
-                                        // Initialize custom color picker with current selection
-                                        customColor = Color(selectedColor)
-                                    }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Palette,
-                                    contentDescription = "Custom Color",
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            }
-                        }
-                    }
-                }
-            }
         },
         confirmButton = {
             TextButton(
@@ -540,54 +302,6 @@ fun CreateCollectionDialog(
     )
 }
 
-@Composable
-fun CollectionOption(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    name: String,
-    color: Int,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    Surface(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = name,
-                tint = Color(color),
-                modifier = Modifier.size(24.dp)
-            )
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Text(
-                text = name,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.weight(1f)
-            )
-
-            if (isSelected) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = stringResource(R.string.cd_selected),
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-        }
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

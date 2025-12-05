@@ -43,47 +43,17 @@ class MainActivity : ComponentActivity() {
             WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED
         )
 
-        // Handle shared URL from intent
-        val sharedUrl = when {
-            intent.action == Intent.ACTION_SEND && intent.type == "text/plain" -> {
-                intent.getStringExtra(Intent.EXTRA_TEXT)
-            }
-            intent.action == Intent.ACTION_VIEW -> {
-                intent.dataString
-            }
-            else -> null
-        }
-
         setContent {
             LinkzaryTheme(userPreferencesManager = userPreferencesManager) {
                 LinkzaryApp(
-                    sharedUrl = sharedUrl,
+                    sharedUrl = null,
                     userPreferencesManager = userPreferencesManager
                 )
             }
         }
     }
 
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        setIntent(intent)
-
-        // Handle new shared URL when app is already running
-        val sharedUrl = when {
-            intent.action == Intent.ACTION_SEND && intent.type == "text/plain" -> {
-                intent.getStringExtra(Intent.EXTRA_TEXT)
-            }
-            intent.action == Intent.ACTION_VIEW -> {
-                intent.dataString
-            }
-            else -> null
-        }
-
-        if (!sharedUrl.isNullOrBlank()) {
-            // Recreate the activity with the new shared URL
-            recreate()
-        }
-    }
+    // onNewIntent removed as sharing is handled by ShareActivity
 
     override fun attachBaseContext(newBase: Context?) {
         super.attachBaseContext(newBase?.let { context ->

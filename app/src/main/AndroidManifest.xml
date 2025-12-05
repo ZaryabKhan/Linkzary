@@ -26,7 +26,14 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            
+        </activity>
+
+        <activity
+            android:name=".ui.activity.ShareActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Linkzary.Transparent"
+            android:excludeFromRecents="true"
+            android:taskAffinity="">
             <!-- Handle shared text/URLs -->
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
