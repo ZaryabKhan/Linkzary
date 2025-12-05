@@ -127,7 +127,9 @@ fun BookmarkCard(
             modifier = Modifier.fillMaxWidth()
         ) {
             // Preview Image Section (if available)
-            if (!link.previewImageUrl.isNullOrBlank()) {
+            var showPreviewFallback by remember { mutableStateOf(false) }
+            
+            if (!link.previewImageUrl.isNullOrBlank() && !showPreviewFallback) {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(link.previewImageUrl)
@@ -140,9 +142,32 @@ fun BookmarkCard(
                         .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
                     contentScale = ContentScale.Crop,
                     onError = {
-                        // Silently fail - card will display without preview image
+                        // Show fallback UI on error
+                        showPreviewFallback = true
                     }
                 )
+            } else {
+                // Fallback UI for missing images
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
+                        .background(generateColorFromDomain(domain).copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = domain.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() },
+                        style = MaterialTheme.typography.headlineSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.sp
+                        ),
+                        color = generateColorFromDomain(domain),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
             }
 
             // Card Content

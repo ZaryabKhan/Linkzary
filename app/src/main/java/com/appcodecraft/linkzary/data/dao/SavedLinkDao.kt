@@ -14,6 +14,9 @@ interface SavedLinkDao {
     @Query("SELECT * FROM saved_links ORDER BY isPinned DESC, saveDate DESC")
     fun getAllLinks(): Flow<List<SavedLink>>
 
+    @Query("SELECT * FROM saved_links")
+    fun getAllLinksSync(): List<SavedLink>
+
     @Query("SELECT * FROM saved_links WHERE collectionId = :collectionId ORDER BY isPinned DESC, saveDate DESC")
     fun getLinksByCollection(collectionId: Long): Flow<List<SavedLink>>
 

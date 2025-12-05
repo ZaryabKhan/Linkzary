@@ -35,6 +35,8 @@ import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.Star
@@ -100,6 +102,8 @@ fun SettingsScreen(
     val importProgress by importExportViewModel.importProgress.collectAsState()
     val importResult by importExportViewModel.importResult.collectAsState()
     val importPreview by importExportViewModel.importPreview.collectAsState()
+    
+    val metadataRefreshProgress by viewModel.metadataRefreshProgress.collectAsState()
     
     val hasDonated by donationViewModel.hasDonated.collectAsState()
     
@@ -192,6 +196,17 @@ fun SettingsScreen(
                 SettingsSectionHeader(stringResource(R.string.settings_data))
             }
             
+            item {
+                SettingsItem(
+                    icon = Icons.Default.Refresh,
+                    title = "Force Metadata Refresh", // Hardcoded string as requested/placeholder
+                    subtitle = "Update images and titles for all saved links",
+                    onClick = {
+                        viewModel.refreshMetadata()
+                    }
+                )
+            }
+
             item {
                 SettingsItem(
                     icon = Icons.Default.Upload,
@@ -300,6 +315,25 @@ fun SettingsScreen(
         }
     }
     
+    // Metadata Refresh Progress Dialog
+    if (metadataRefreshProgress != null) {
+        AlertDialog(
+            onDismissRequest = { /* Prevent dismissal while refreshing */ },
+            title = { Text("Refreshing Metadata") },
+            text = {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    CircularProgressIndicator()
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text("${metadataRefreshProgress!!.first} / ${metadataRefreshProgress!!.second} links processed")
+                }
+            },
+            confirmButton = {}
+        )
+    }
+
     // Language Dialog
     if (showLanguageDialog) {
         LanguageSelectionDialog(

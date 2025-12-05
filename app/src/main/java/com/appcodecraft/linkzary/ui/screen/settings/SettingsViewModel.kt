@@ -6,6 +6,8 @@ import com.appcodecraft.linkzary.data.repository.CollectionRepository
 import com.appcodecraft.linkzary.data.repository.LinkRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -19,6 +21,10 @@ class SettingsViewModel @Inject constructor(
     private val _isClearing = MutableStateFlow(false)
 
     private val _clearDataResult = MutableStateFlow<ClearDataResult?>(null)
+    val clearDataResult: StateFlow<ClearDataResult?> = _clearDataResult.asStateFlow()
+
+    private val _metadataRefreshProgress = MutableStateFlow<Pair<Int, Int>?>(null) // (current, total)
+    val metadataRefreshProgress: StateFlow<Pair<Int, Int>?> = _metadataRefreshProgress.asStateFlow()
 
     fun clearAllData() {
         viewModelScope.launch {
@@ -58,6 +64,26 @@ class SettingsViewModel @Inject constructor(
                 )
             } finally {
                 _isClearing.value = false
+            }
+        }
+    }
+
+    fun refreshMetadata() {
+        if (_metadataRefreshProgress.value != null) return // Already refreshing
+
+        viewModelScope.launch {
+            try {
+                // Initial progress
+                _metadataRefreshProgress.value = 0 to 0
+                
+                linkRepository.refreshAllMetadata { current, total ->
+                    _metadataRefreshProgress.value = current to total
+                }
+            } catch (e: Exception) {
+                // Handle error if needed (maybe show toast via side effect)
+            } finally {
+                // Done
+                _metadataRefreshProgress.value = null
             }
         }
     }
