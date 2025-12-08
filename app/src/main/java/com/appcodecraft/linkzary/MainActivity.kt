@@ -1,7 +1,6 @@
 package com.appcodecraft.linkzary
 
 import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
