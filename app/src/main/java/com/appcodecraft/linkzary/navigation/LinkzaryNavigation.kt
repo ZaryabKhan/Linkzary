@@ -77,9 +77,6 @@ fun LinkzaryNavigation(
                 onNavigateToTags = {
                     navController.navigate(Screen.Tags.route)
                 },
-                onNavigateToRssFeeds = {
-                    navController.navigate(Screen.RssFeeds.route)
-                },
                 onNavigateToStats = {
                     navController.navigate(Screen.Stats.route)
                 }

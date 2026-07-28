@@ -119,4 +119,34 @@ interface SavedLinkDao {
             updateTags(link.id, updatedTags)
         }
     }
+
+    @Transaction
+    suspend fun deleteTag(tag: String) {
+        // Remove the tag from any link that contains it
+        val links = getAllLinksSync()
+        links.filter { link ->
+            link.tags.split(",").map { it.trim() }.any { it == tag }
+        }.forEach { link ->
+            val updatedTags = link.tags.split(",")
+                .map { it.trim() }
+                .filter { it != tag }
+                .joinToString(",")
+            updateTags(link.id, updatedTags)
+        }
+    }
+
+    @Transaction
+    suspend fun deleteTags(tags: List<String>) {
+        val tagSet = tags.toSet()
+        val links = getAllLinksSync()
+        links.filter { link ->
+            link.tags.split(",").map { it.trim() }.any { it in tagSet }
+        }.forEach { link ->
+            val updatedTags = link.tags.split(",")
+                .map { it.trim() }
+                .filter { it !in tagSet }
+                .joinToString(",")
+            updateTags(link.id, updatedTags)
+        }
+    }
 }

@@ -89,7 +89,6 @@ fun SettingsScreen(
     userPreferencesManager: UserPreferencesManager,
     onNavigateToDonation: () -> Unit = {},
     onNavigateToTags: () -> Unit = {},
-    onNavigateToRssFeeds: () -> Unit = {},
     onNavigateToStats: () -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -242,15 +241,6 @@ fun SettingsScreen(
                 )
             }
 
-            item {
-                SettingsItem(
-                    icon = Icons.Default.Feedback,
-                    title = stringResource(R.string.rss_feeds),
-                    subtitle = "Subscribe to RSS feeds",
-                    onClick = onNavigateToRssFeeds
-                )
-            }
-            
             // Privacy Section
             item {
                 Spacer(modifier = Modifier.height(16.dp))

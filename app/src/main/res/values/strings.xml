@@ -564,6 +564,14 @@
     <string name="renaming_tag_from">Renaming \"%s\" to:</string>
     <string name="new_tag_name">New tag name</string>
     <string name="rename">Rename</string>
+    <string name="tags_selected_count">%d selected</string>
+    <string name="tags_select_all">Select all</string>
+    <string name="tags_delete_selected">Delete selected</string>
+    <string name="tags_search_placeholder">Search tags…</string>
+    <string name="tags_no_match">No tags match your search</string>
+    <string name="tags_summary">%1$d tags • %2$d links total</string>
+    <string name="tags_more_options">More options</string>
+    <string name="tags_delete_tag">Delete tag</string>
 
     <!-- Search History -->
     <string name="recent_searches">Recent Searches</string>

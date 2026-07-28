@@ -137,4 +137,12 @@ class LinkRepository @Inject constructor(
     suspend fun renameTag(oldTag: String, newTag: String) = withContext(Dispatchers.IO) {
         savedLinkDao.renameTag(oldTag, newTag)
     }
+
+    suspend fun deleteTag(tag: String) = withContext(Dispatchers.IO) {
+        savedLinkDao.deleteTag(tag)
+    }
+
+    suspend fun deleteTags(tags: List<String>) = withContext(Dispatchers.IO) {
+        savedLinkDao.deleteTags(tags)
+    }
 }

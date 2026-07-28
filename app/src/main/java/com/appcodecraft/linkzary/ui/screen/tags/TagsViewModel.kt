@@ -25,6 +25,9 @@ data class TagsUiState(
     val isRenaming: Boolean = false,
     val renamingFrom: String = "",
     val renamingTo: String = "",
+    val isMultiSelectMode: Boolean = false,
+    val selectedTags: Set<String> = emptySet(),
+    val searchQuery: String = "",
     val errorMessage: String? = null,
     val successMessage: String? = null
 )
@@ -63,6 +66,20 @@ class TagsViewModel @Inject constructor(
             }
         }
     }
+
+    fun updateSearchQuery(query: String) {
+        _uiState.value = _uiState.value.copy(searchQuery = query)
+    }
+
+    val filteredTags: List<TagInfo>
+        get() {
+            val query = _uiState.value.searchQuery.trim()
+            return if (query.isBlank()) {
+                _uiState.value.tags
+            } else {
+                _uiState.value.tags.filter { it.name.contains(query, ignoreCase = true) }
+            }
+        }
 
     fun selectTag(tag: TagInfo?) {
         _uiState.value = _uiState.value.copy(selectedTag = tag)
@@ -119,6 +136,82 @@ class TagsViewModel @Inject constructor(
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     errorMessage = "Failed to rename tag: ${e.message}"
+                )
+            }
+        }
+    }
+
+    fun enterMultiSelectMode(initialTag: String? = null) {
+        val selected = if (initialTag != null) setOf(initialTag) else emptySet()
+        _uiState.value = _uiState.value.copy(
+            isMultiSelectMode = true,
+            selectedTags = selected,
+            errorMessage = null,
+            successMessage = null
+        )
+    }
+
+    fun toggleTagSelection(tag: String) {
+        val current = _uiState.value.selectedTags
+        _uiState.value = _uiState.value.copy(
+            selectedTags = if (current.contains(tag)) current - tag else current + tag
+        )
+    }
+
+    fun selectAllTags() {
+        _uiState.value = _uiState.value.copy(
+            selectedTags = filteredTags.map { it.name }.toSet()
+        )
+    }
+
+    fun exitMultiSelectMode() {
+        _uiState.value = _uiState.value.copy(
+            isMultiSelectMode = false,
+            selectedTags = emptySet()
+        )
+    }
+
+    fun deleteSelectedTags() {
+        val tags = _uiState.value.selectedTags.toList()
+        if (tags.isEmpty()) return
+
+        viewModelScope.launch {
+            try {
+                linkRepository.deleteTags(tags)
+                _uiState.value = _uiState.value.copy(
+                    isMultiSelectMode = false,
+                    selectedTags = emptySet(),
+                    successMessage = "Deleted ${tags.size} tag(s) from ${getAffectedLinksCount(tags)} link(s)",
+                    errorMessage = null
+                )
+                loadTags()
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    errorMessage = "Failed to delete tags: ${e.message}"
+                )
+            }
+        }
+    }
+
+    private fun getAffectedLinksCount(tags: List<String>): Int {
+        val tagSet = tags.toSet()
+        return _uiState.value.tags
+            .filter { it.name in tagSet }
+            .sumOf { it.count }
+    }
+
+    fun deleteSingleTag(tag: String) {
+        viewModelScope.launch {
+            try {
+                linkRepository.deleteTag(tag)
+                _uiState.value = _uiState.value.copy(
+                    successMessage = "Deleted tag '$tag'",
+                    errorMessage = null
+                )
+                loadTags()
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    errorMessage = "Failed to delete tag: ${e.message}"
                 )
             }
         }
