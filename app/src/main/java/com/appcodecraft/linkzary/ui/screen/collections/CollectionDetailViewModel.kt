@@ -183,7 +183,8 @@ class CollectionDetailViewModel @Inject constructor(
                     title = metadata.title,
                     url = url,
                     collectionId = _uiState.value.collection?.id,
-                    favicon = metadata.favicon
+                    favicon = metadata.favicon,
+                    previewImageUrl = metadata.previewImageUrl
                 )
                 
                 linkRepository.insertLink(link)

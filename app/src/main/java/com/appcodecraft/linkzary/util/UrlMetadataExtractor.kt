@@ -73,17 +73,16 @@ class UrlMetadataExtractor @Inject constructor(
 
     private fun makeAbsoluteUrl(imageUrl: String, baseUrl: String): String {
         return try {
-            if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
-                // Prefer HTTPS over HTTP for security
-                if (imageUrl.startsWith("http://")) {
-                    imageUrl.replace("http://", "https://")
-                } else {
-                    imageUrl
+            when {
+                imageUrl.startsWith("https://") -> imageUrl
+                imageUrl.startsWith("http://") -> imageUrl.replace("http://", "https://")
+                imageUrl.startsWith("//") -> "https:$imageUrl"
+                imageUrl.startsWith("data:") -> imageUrl
+                else -> {
+                    val url = URL(baseUrl)
+                    val path = if (imageUrl.startsWith("/")) imageUrl else "/$imageUrl"
+                    "https://${url.host}$path"
                 }
-            } else {
-                val url = URL(baseUrl)
-                val protocol = if (url.protocol == "http") "https" else url.protocol
-                "$protocol://${url.host}$imageUrl"
             }
         } catch (e: Exception) {
             imageUrl
@@ -92,20 +91,21 @@ class UrlMetadataExtractor @Inject constructor(
 
     private fun extractFavicon(doc: org.jsoup.nodes.Document, baseUrl: String): String? {
         return try {
-            // Try to find favicon link
             val faviconLink = doc.select("link[rel~=(?i)^(shortcut )?icon]").first()
             if (faviconLink != null) {
                 val href = faviconLink.attr("href")
-                if (href.startsWith("http")) {
-                    href
-                } else {
-                    val url = URL(baseUrl)
-                    "${url.protocol}://${url.host}$href"
+                when {
+                    href.startsWith("http://") || href.startsWith("https://") -> href
+                    href.startsWith("//") -> "https:$href"
+                    else -> {
+                        val url = URL(baseUrl)
+                        val path = if (href.startsWith("/")) href else "/$href"
+                        "https://${url.host}$path"
+                    }
                 }
             } else {
-                // Fallback to default favicon location
                 val url = URL(baseUrl)
-                "${url.protocol}://${url.host}/favicon.ico"
+                "https://${url.host}/favicon.ico"
             }
         } catch (e: Exception) {
             null

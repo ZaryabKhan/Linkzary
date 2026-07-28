@@ -30,7 +30,8 @@ data class ExportLink(
     val isPinned: Boolean,
     val createdAt: String,
     val updatedAt: String,
-    val faviconUrl: String?
+    val faviconUrl: String?,
+    val previewImageUrl: String? = null
 )
 
 data class ImportPreview(

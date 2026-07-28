@@ -23,8 +23,11 @@ class SettingsViewModel @Inject constructor(
     private val _clearDataResult = MutableStateFlow<ClearDataResult?>(null)
     val clearDataResult: StateFlow<ClearDataResult?> = _clearDataResult.asStateFlow()
 
-    private val _metadataRefreshProgress = MutableStateFlow<Pair<Int, Int>?>(null) // (current, total)
+    private val _metadataRefreshProgress = MutableStateFlow<Pair<Int, Int>?>(null)
     val metadataRefreshProgress: StateFlow<Pair<Int, Int>?> = _metadataRefreshProgress.asStateFlow()
+
+    private val _isMetadataDialogHidden = MutableStateFlow(false)
+    val isMetadataDialogHidden: StateFlow<Boolean> = _isMetadataDialogHidden.asStateFlow()
 
     fun clearAllData() {
         viewModelScope.launch {
@@ -32,7 +35,6 @@ class SettingsViewModel @Inject constructor(
                 _isClearing.value = true
                 _clearDataResult.value = null
                 
-                // Validate that we have data to clear
                 val linkCount = linkRepository.getAllLinks().first().size
                 val collectionCount = collectionRepository.getAllCollections().first().size
                 
@@ -41,12 +43,9 @@ class SettingsViewModel @Inject constructor(
                     return@launch
                 }
                 
-                // Clear data in proper order (links first, then collections)
-                // This prevents foreign key constraint issues
                 linkRepository.deleteAllLinks()
                 collectionRepository.deleteAllCollections()
                 
-                // Verify data was actually cleared
                 val remainingLinks = linkRepository.getAllLinks().first().size
                 val remainingCollections = collectionRepository.getAllCollections().first().size
                 
@@ -69,23 +68,28 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun refreshMetadata() {
-        if (_metadataRefreshProgress.value != null) return // Already refreshing
+        if (_metadataRefreshProgress.value != null) return
+
+        _isMetadataDialogHidden.value = false
 
         viewModelScope.launch {
             try {
-                // Initial progress
                 _metadataRefreshProgress.value = 0 to 0
                 
                 linkRepository.refreshAllMetadata { current, total ->
                     _metadataRefreshProgress.value = current to total
                 }
             } catch (e: Exception) {
-                // Handle error if needed (maybe show toast via side effect)
+                // Handle error if needed
             } finally {
-                // Done
                 _metadataRefreshProgress.value = null
+                _isMetadataDialogHidden.value = false
             }
         }
+    }
+
+    fun dismissMetadataDialog() {
+        _isMetadataDialogHidden.value = true
     }
 
 }

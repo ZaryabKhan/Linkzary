@@ -123,7 +123,8 @@ fun BookmarkCard(
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             // Preview Image Section with overlay badges
-            var showPreviewFallback by remember { mutableStateOf(false) }
+            // Key on both link.id and previewImageUrl so fallback resets when URL updates
+            var showPreviewFallback by remember(link.id, link.previewImageUrl) { mutableStateOf(false) }
 
             Box(
                 modifier = Modifier
@@ -136,6 +137,8 @@ fun BookmarkCard(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(link.previewImageUrl)
                             .crossfade(true)
+                            .memoryCachePolicy(coil.request.CachePolicy.ENABLED)
+                            .diskCachePolicy(coil.request.CachePolicy.ENABLED)
                             .build(),
                         contentDescription = "Preview for ${link.title}",
                         modifier = Modifier.fillMaxSize(),

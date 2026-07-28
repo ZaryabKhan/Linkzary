@@ -107,6 +107,7 @@ fun SettingsScreen(
     val importPreview by importExportViewModel.importPreview.collectAsState()
     
     val metadataRefreshProgress by viewModel.metadataRefreshProgress.collectAsState()
+    val isMetadataDialogHidden by viewModel.isMetadataDialogHidden.collectAsState()
     
     val hasDonated by donationViewModel.hasDonated.collectAsState()
     
@@ -342,10 +343,10 @@ fun SettingsScreen(
         }
     }
     
-    // Metadata Refresh Progress Dialog
-    if (metadataRefreshProgress != null) {
+    // Metadata Refresh Progress (runs in background, dismissible)
+    if (metadataRefreshProgress != null && !isMetadataDialogHidden) {
         AlertDialog(
-            onDismissRequest = { /* Prevent dismissal while refreshing */ },
+            onDismissRequest = { viewModel.dismissMetadataDialog() },
             title = { Text("Refreshing Metadata") },
             text = {
                 Column(
@@ -355,9 +356,19 @@ fun SettingsScreen(
                     CircularProgressIndicator()
                     Spacer(modifier = Modifier.height(16.dp))
                     Text("${metadataRefreshProgress!!.first} / ${metadataRefreshProgress!!.second} links processed")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Refresh continues in background",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             },
-            confirmButton = {}
+            confirmButton = {
+                TextButton(onClick = { viewModel.dismissMetadataDialog() }) {
+                    Text("Hide")
+                }
+            }
         )
     }
 

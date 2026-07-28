@@ -143,6 +143,8 @@ fun CollectionsScreen(
                 )
             }
 
+            Spacer(modifier = Modifier.width(4.dp))
+
             // Sort menu
             Box {
                 IconButton(

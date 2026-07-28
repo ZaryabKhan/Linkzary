@@ -99,13 +99,14 @@ class ImportExportService @Inject constructor() {
                     id = link.id,
                     url = link.url,
                     title = link.title,
-                    description = link.note, // Use note as description
+                    description = link.note,
                     collectionId = link.collectionId,
                     collectionName = collection?.name,
                     isPinned = link.isPinned,
                     createdAt = dateFormat.format(link.saveDate),
                     updatedAt = dateFormat.format(link.saveDate),
-                    faviconUrl = link.favicon
+                    faviconUrl = link.favicon,
+                    previewImageUrl = link.previewImageUrl
                 )
             }
             
@@ -140,7 +141,7 @@ class ImportExportService @Inject constructor() {
     ): Boolean = withContext(Dispatchers.IO) {
         try {
             val csvBuilder = StringBuilder()
-            csvBuilder.appendLine("URL,Title,Description,Collection,IsPinned,CreatedAt,UpdatedAt,FaviconUrl")
+            csvBuilder.appendLine("URL,Title,Description,Collection,IsPinned,CreatedAt,UpdatedAt,FaviconUrl,PreviewImageUrl")
             
             links.forEach { link ->
                 val collection = collections.find { it.id == link.collectionId }
@@ -152,7 +153,8 @@ class ImportExportService @Inject constructor() {
                     "${link.isPinned}," +
                     "${escapeCsvValue(dateFormat.format(link.saveDate))}," +
                     "${escapeCsvValue(dateFormat.format(link.saveDate))}," +
-                    escapeCsvValue(link.favicon ?: "")
+                    "${escapeCsvValue(link.favicon ?: "")}," +
+                    escapeCsvValue(link.previewImageUrl ?: "")
                 )
             }
             
@@ -502,7 +504,8 @@ class ImportExportService @Inject constructor() {
                     note = exportLink.description ?: "",
                     collectionId = newCollectionId,
                     isPinned = exportLink.isPinned,
-                    favicon = exportLink.faviconUrl
+                    favicon = exportLink.faviconUrl,
+                    previewImageUrl = exportLink.previewImageUrl
                 )
 
                 onLinkInsert(newLink)
@@ -649,6 +652,9 @@ class ImportExportService @Inject constructor() {
                     val faviconUrl = if (columns.size > 7) {
                         columns[7].trim().removeSurrounding("\"").takeIf { it.isNotEmpty() }
                     } else null
+                    val previewImageUrl = if (columns.size > 8) {
+                        columns[8].trim().removeSurrounding("\"").takeIf { it.isNotEmpty() }
+                    } else null
                     
                     val isDuplicate = existingLinks.any { it.url == url }
 
@@ -661,7 +667,8 @@ class ImportExportService @Inject constructor() {
                             note = description ?: "",
                             collectionId = collectionId,
                             isPinned = isPinned,
-                            favicon = faviconUrl
+                            favicon = faviconUrl,
+                            previewImageUrl = previewImageUrl
                         )
                         
                         onLinkInsert(newLink)
