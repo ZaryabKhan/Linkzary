@@ -216,9 +216,9 @@ fun SmallCollectionCard(
 ) {
     Card(
         modifier = modifier
-            .width(120.dp)
+            .width(130.dp)
             .clickable { onCardClick() },
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),

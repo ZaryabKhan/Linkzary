@@ -1,6 +1,5 @@
 package com.appcodecraft.linkzary.ui.component
 
-import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -11,10 +10,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -24,11 +25,10 @@ import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PushPin
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -62,7 +62,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BookmarkCard(
     modifier: Modifier = Modifier,
@@ -76,19 +75,7 @@ fun BookmarkCard(
     onLongPress: () -> Unit = {},
     onSelectClick: () -> Unit = {}
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
     val domain = extractDomain(link.url)
-    var showDomainFallbackIcon by remember { mutableStateOf(false) }
-
-    // Generate favicon URLs with multiple fallbacks
-    // The AsyncImage will try the first. If it fails, onError is called.
-    val faviconUrls = listOf(
-        "https://www.google.com/s2/favicons?domain=${domain}&sz=64",
-        "https://${domain}/favicon.ico",
-        "https://icons.duckduckgo.com/ip3/${domain}.ico",
-        "https://www.google.com/s2/favicons?domain=${domain}&sz=32"
-    )
-
     val haptic = LocalHapticFeedback.current
 
     Card(
@@ -97,7 +84,6 @@ fun BookmarkCard(
             .pointerInput(isMultiSelectMode, onCardClick, onSelectClick, onLongPress) {
                 detectTapGestures(
                     onTap = {
-                        Log.d("BookmarkCard", "Card tapped - isMultiSelectMode: $isMultiSelectMode")
                         if (isMultiSelectMode) {
                             onSelectClick()
                         } else {
@@ -110,12 +96,12 @@ fun BookmarkCard(
                     }
                 )
             },
-        shape = RoundedCornerShape(12.dp), // Reduced corner radius for more compact look
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = 2.dp, // Reduced elevation for more compact appearance
+            defaultElevation = 2.dp,
             pressedElevation = 4.dp,
             hoveredElevation = 3.dp
         ),
@@ -123,76 +109,66 @@ fun BookmarkCard(
             width = if (isSelected) 2.dp else 0.5.dp,
             color = if (isSelected)
                 MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
+            else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
         )
     ) {
-        Column(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            // Preview Image Section (if available)
+        Column(modifier = Modifier.fillMaxWidth()) {
+            // Preview Image Section with overlay badges
             var showPreviewFallback by remember { mutableStateOf(false) }
-            
-            if (!link.previewImageUrl.isNullOrBlank() && !showPreviewFallback) {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(link.previewImageUrl)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = "Preview for ${link.title}",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(180.dp)
-                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
-                    contentScale = ContentScale.Crop,
-                    onError = {
-                        // Show fallback UI on error
-                        showPreviewFallback = true
-                    }
-                )
-            } else {
-                // Fallback UI for missing images
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(180.dp)
-                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
-                        .background(generateColorFromDomain(domain).copy(alpha = 0.15f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = domain.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() },
-                        style = MaterialTheme.typography.headlineSmall.copy(
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 1.sp
-                        ),
-                        color = generateColorFromDomain(domain),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(16.dp)
-                    )
-                }
-            }
 
-            // Card Content
-            Column(
-                modifier = Modifier.padding(12.dp)
-            ) {
-            // Header with collection badge and actions - standardized layout
             Box(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(220.dp)
+                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
             ) {
-                // Collection badge or selection indicator - positioned at start
-                if (isMultiSelectMode) {
-                    // Selection indicator
+                if (!link.previewImageUrl.isNullOrBlank() && !showPreviewFallback) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(link.previewImageUrl)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Preview for ${link.title}",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop,
+                        onError = { showPreviewFallback = true }
+                    )
+                } else {
+                    // Fallback: domain-colored box with domain name
                     Box(
                         modifier = Modifier
-                            .align(Alignment.CenterStart)
-                            .size(24.dp)
+                            .fillMaxSize()
+                            .background(generateColorFromDomain(domain).copy(alpha = 0.12f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = domain.replaceFirstChar {
+                                if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
+                            },
+                            style = MaterialTheme.typography.headlineSmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.sp
+                            ),
+                            color = generateColorFromDomain(domain),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+                }
+
+                // Multi-select checkbox overlay (top-left)
+                if (isMultiSelectMode) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(12.dp)
+                            .size(28.dp)
                             .background(
-                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                                color = if (isSelected) MaterialTheme.colorScheme.primary
+                                else Color.Black.copy(alpha = 0.4f),
                                 shape = CircleShape
-                            )
-                            .padding(4.dp),
+                            ),
                         contentAlignment = Alignment.Center
                     ) {
                         if (isSelected) {
@@ -200,271 +176,203 @@ fun BookmarkCard(
                                 imageVector = Icons.Default.Check,
                                 contentDescription = stringResource(R.string.home_selected),
                                 tint = MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier.size(16.dp)
+                                modifier = Modifier.size(18.dp)
                             )
                         }
                     }
-                } else if (collectionName != null && collectionColor != null) {
-                    // Regular collection badge when not in multi-select mode
-                    val parsedCollectionColor = runCatching { Color(collectionColor.toColorInt()) }
-                        .getOrDefault(MaterialTheme.colorScheme.primary)
-                    Box(
+                }
+
+                // Pin overlay (top-right) — only when not in multi-select
+                if (link.isPinned && !isMultiSelectMode) {
+                    Surface(
                         modifier = Modifier
-                            .align(Alignment.CenterStart)
-                            .background(
-                                color = parsedCollectionColor.copy(alpha = 0.15f),
-                                shape = RoundedCornerShape(6.dp) // Smaller radius for compact look
-                            )
-                            .padding(horizontal = 8.dp, vertical = 3.dp) // Reduced padding
+                            .align(Alignment.TopEnd)
+                            .padding(12.dp),
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
+                        shadowElevation = 2.dp
                     ) {
-                        Text(
-                            text = collectionName,
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 10.sp // Slightly smaller font
-                            ),
-                            color = parsedCollectionColor,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                        Icon(
+                            imageVector = Icons.Default.PushPin,
+                            contentDescription = stringResource(R.string.home_pinned),
+                            modifier = Modifier.padding(6.dp).size(16.dp),
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
 
-                // Actions row - always positioned at end
-                Row(
-                    modifier = Modifier.align(Alignment.TopEnd),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(2.dp) // Reduced spacing
-                ) {
-                    if (link.isPinned) {
-                        Icon(
-                            imageVector = Icons.Default.PushPin,
-                            contentDescription = stringResource(R.string.home_pinned),
-                            modifier = Modifier.size(14.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-
-                    if (link.isAlive == false) {
-                        Icon(
-                            imageVector = Icons.Default.Error,
-                            contentDescription = stringResource(R.string.link_broken),
-                            modifier = Modifier.size(14.dp),
-                            tint = MaterialTheme.colorScheme.error
-                        )
-                    }
-
-                    Box(
+                // Collection badge overlay (bottom-left)
+                if (collectionName != null && collectionColor != null && !isMultiSelectMode) {
+                    val parsedColor = runCatching { Color(collectionColor.toColorInt()) }
+                        .getOrDefault(MaterialTheme.colorScheme.primary)
+                    Surface(
                         modifier = Modifier
-                            .size(24.dp)
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null
-                            ) { onMoreClick() },
-                        contentAlignment = Alignment.Center
+                            .align(Alignment.BottomStart)
+                            .padding(12.dp),
+                        shape = RoundedCornerShape(8.dp),
+                        color = parsedColor.copy(alpha = 0.85f),
+                        shadowElevation = 2.dp
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.MoreVert,
-                            contentDescription = stringResource(R.string.home_more_options),
-                            modifier = Modifier.size(14.dp), // Smaller icon
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        Text(
+                            text = collectionName,
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontWeight = FontWeight.SemiBold
+                            ),
+                            color = Color.White,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
                         )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp)) // Reduced spacing
-
-            // Site icon and domain info - more compact layout
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp) // Reduced spacing
-            ) {
-                // Site favicon with fallback logic - smaller size
-                Box(
-                    modifier = Modifier
-                        .size(32.dp) // Smaller icon size
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
-                    contentAlignment = Alignment.Center
+            // Card Content
+            Column(modifier = Modifier.padding(16.dp)) {
+                // Domain + broken link indicator
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    if (showDomainFallbackIcon) {
-                        // Display generated fallback icon (first letter of domain)
-                        FallbackSiteIcon(domain = domain, modifier = Modifier.size(32.dp))
-                    } else {
-                        // Try loading the favicon
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(faviconUrls.first())
-                                .crossfade(true)
-                                .build(),
-                            contentDescription = "Site icon for $domain",
-                            modifier = Modifier.size(20.dp), // Smaller icon
-                            contentScale = ContentScale.Fit,
-                            onError = {
-                                // If loading fails, show the domain fallback
-                                showDomainFallbackIcon = true
-                            }
+                    if (link.isAlive == false) {
+                        Icon(
+                            imageVector = Icons.Default.Error,
+                            contentDescription = stringResource(R.string.link_broken),
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.error
                         )
+                        Spacer(modifier = Modifier.width(4.dp))
                     }
-                }
-
-                // Domain and URL info - more compact
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
                     Text(
                         text = domain,
                         style = MaterialTheme.typography.labelMedium.copy(
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 11.sp // Smaller font size
+                            fontWeight = FontWeight.SemiBold
                         ),
                         color = MaterialTheme.colorScheme.primary,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-
-                    Text(
-                        text = link.url,
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            fontSize = 10.sp // Smaller font size
-                        ),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-
-                    // Add a little text snippet of saved link when icon loading fails
-                    if (showDomainFallbackIcon && link.title.isNotBlank()) {
-                        Text(
-                            text = link.title.take(30) + if (link.title.length > 30) "..." else "",
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                fontSize = 10.sp // Smaller font size
-                            ),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.padding(top = 2.dp) // Reduced padding
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp)) // Reduced spacing
-
-            // Title with read/archive status indicator
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                // Read status indicator dot/badge
-                when (link.readStatus) {
-                    "READ" -> {
-                        Icon(
-                            imageVector = Icons.Default.Done,
-                            contentDescription = stringResource(R.string.cd_read_status_read),
-                            modifier = Modifier.size(14.dp),
-                            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
-                        )
-                    }
-                    "ARCHIVED" -> {
-                        Icon(
-                            imageVector = Icons.Default.Archive,
-                            contentDescription = stringResource(R.string.cd_read_status_archived),
-                            modifier = Modifier.size(14.dp),
-                            tint = MaterialTheme.colorScheme.outline
-                        )
-                    }
-                    else -> {
-                        // Unread - small filled dot
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .background(
-                                    color = MaterialTheme.colorScheme.primary,
-                                    shape = CircleShape
-                                )
-                        )
-                    }
                 }
 
-                Text(
-                    text = link.title,
-                    style = MaterialTheme.typography.titleSmall.copy( // Changed from titleMedium to titleSmall
-                        fontWeight = if (link.readStatus == "UNREAD") FontWeight.SemiBold else FontWeight.Normal,
-                        lineHeight = 18.sp // Reduced line height
-                    ),
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    color = if (link.readStatus == "READ" || link.readStatus == "ARCHIVED") {
-                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                    } else {
-                        MaterialTheme.colorScheme.onSurface
-                    },
-                    modifier = Modifier.weight(1f)
-                )
-            }
+                Spacer(modifier = Modifier.height(8.dp))
 
-            // Description/Note - more compact
-            if (link.note.isNotBlank()) {
-                Spacer(modifier = Modifier.height(6.dp)) // Reduced spacing
-                Text(
-                    text = link.note,
-                    style = MaterialTheme.typography.bodySmall.copy(
-                        lineHeight = 16.sp, // Reduced line height
-                        fontSize = 11.sp // Smaller font size
-                    ),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-                    maxLines = 2, // Reduced from 3 to 2 lines for more compact display
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-
-            // Tags with more compact styling
-            if (link.tags.isNotBlank()) {
-                Spacer(modifier = Modifier.height(6.dp)) // Reduced spacing
+                // Title with read status indicator
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp) // Reduced spacing
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    link.tags.split(",").take(3).forEach { tag ->
-                        if (tag.isNotBlank()) {
-                            Text(
-                                text = "#${tag.trim()}",
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontWeight = FontWeight.Medium,
-                                    fontSize = 9.sp // Smaller font size
-                                ),
-                                color = MaterialTheme.colorScheme.primary,
+                    when (link.readStatus) {
+                        "READ" -> {
+                            Icon(
+                                imageVector = Icons.Default.Done,
+                                contentDescription = stringResource(R.string.cd_read_status_read),
+                                modifier = Modifier.size(18.dp),
+                                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+                            )
+                        }
+                        "ARCHIVED" -> {
+                            Icon(
+                                imageVector = Icons.Default.Archive,
+                                contentDescription = stringResource(R.string.cd_read_status_archived),
+                                modifier = Modifier.size(18.dp),
+                                tint = MaterialTheme.colorScheme.outline
+                            )
+                        }
+                        else -> {
+                            Box(
                                 modifier = Modifier
-                                    .clip(RoundedCornerShape(4.dp)) // Smaller corner radius
-                                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f))
-                                    .padding(horizontal = 4.dp, vertical = 1.dp) // Reduced padding
+                                    .size(10.dp)
+                                    .background(
+                                        color = MaterialTheme.colorScheme.primary,
+                                        shape = CircleShape
+                                    )
                             )
                         }
                     }
+
+                    Text(
+                        text = link.title,
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = if (link.readStatus == "UNREAD") FontWeight.SemiBold else FontWeight.Normal,
+                            lineHeight = 22.sp
+                        ),
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        color = if (link.readStatus == "READ" || link.readStatus == "ARCHIVED") {
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        } else {
+                            MaterialTheme.colorScheme.onSurface
+                        },
+                        modifier = Modifier.weight(1f)
+                    )
                 }
-            }
 
-            Spacer(modifier = Modifier.height(6.dp)) // Reduced spacing
+                // Note
+                if (link.note.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = link.note,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
 
-            // Footer with enhanced date - more compact
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = formatSaveDate(link.saveDate),
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 9.sp // Smaller font size
-                    ),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                )
-            }
+                // Tags
+                if (link.tags.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        link.tags.split(",").take(3).forEach { tag ->
+                            if (tag.isNotBlank()) {
+                                Text(
+                                    text = "#${tag.trim()}",
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontWeight = FontWeight.Medium
+                                    ),
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f))
+                                        .padding(horizontal = 8.dp, vertical = 3.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Footer: date + more button
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = formatSaveDate(link.saveDate),
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontWeight = FontWeight.Medium
+                        ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
+
+                    IconButton(
+                        onClick = onMoreClick,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = stringResource(R.string.home_more_options),
+                            modifier = Modifier.size(18.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        )
+                    }
+                }
             }
         }
     }
@@ -491,21 +399,17 @@ fun formatSaveDate(date: Date): String {
     val diffInMillis = now.time - date.time
     val diffInDays = diffInMillis / (24 * 60 * 60 * 1000)
 
-    // Format for recent dates (today and yesterday) - show date and time
     val recentDateFormat = SimpleDateFormat("d MMM yyyy, h:mm a", Locale.getDefault())
-
-    // Format for older dates - show only date
     val olderDateFormat = SimpleDateFormat("d MMM yyyy", Locale.getDefault())
 
     return when {
-        diffInDays < 7 -> recentDateFormat.format(date) // Recent dates show time
-        else -> olderDateFormat.format(date) // Older dates show only date
+        diffInDays < 7 -> recentDateFormat.format(date)
+        else -> olderDateFormat.format(date)
     }
 }
 
 /**
  * Fallback site icon composable
- * Displays the first letter of the domain on a colored circle.
  */
 @Composable
 fun FallbackSiteIcon(
@@ -553,10 +457,9 @@ fun generateColorFromDomain(domain: String): Color {
 @Composable
 fun EnhancedBookmarkCardPreview() {
     LinkzaryTheme {
-        // Subtle background for the preview to better showcase cards
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            color = MaterialTheme.colorScheme.background // Use theme background, should be slightly different from surface
+            color = MaterialTheme.colorScheme.background
         ) {
             Column(
                 modifier = Modifier
@@ -572,7 +475,7 @@ fun EnhancedBookmarkCardPreview() {
                         note = "An amazing collection of modern UI designs with clean layouts and stunning visual hierarchy. Perfect for reference.",
                         tags = "design, ui, inspiration",
                         isPinned = true,
-                        saveDate = Date(System.currentTimeMillis() - 86400000) // Yesterday
+                        saveDate = Date(System.currentTimeMillis() - 86400000)
                     ),
                     collectionName = "Design",
                     collectionColor = "#6366F1",
@@ -585,10 +488,10 @@ fun EnhancedBookmarkCardPreview() {
                         id = 2,
                         title = "Advanced React Patterns and Hooks",
                         url = "https://github.com/react-patterns/advanced-hooks",
-                        note = "", // Empty note
+                        note = "",
                         tags = "react, hooks, patterns, javascript",
                         isPinned = false,
-                        saveDate = Date(System.currentTimeMillis() - 172800000) // 2 days ago
+                        saveDate = Date(System.currentTimeMillis() - 172800000)
                     ),
                     collectionName = "Development",
                     collectionColor = "#10B981",
@@ -596,18 +499,17 @@ fun EnhancedBookmarkCardPreview() {
                     onMoreClick = { }
                 )
 
-                // Card with no collection name or tags to show adaptation
                 BookmarkCard(
                     link = SavedLink(
                         id = 3,
                         title = "A Simple Guide to Healthy Eating",
                         url = "https://www.health.org/simple-nutrition-guide",
                         note = "Quick tips for balancing your diet and staying energized throughout the day. Very practical.",
-                        tags = "", // Empty tags
+                        tags = "",
                         isPinned = false,
-                        saveDate = Date(System.currentTimeMillis() - 604800000) // 7 days ago
+                        saveDate = Date(System.currentTimeMillis() - 604800000)
                     ),
-                    collectionName = null, // No collection
+                    collectionName = null,
                     collectionColor = null,
                     onCardClick = { },
                     onMoreClick = { }
@@ -616,4 +518,3 @@ fun EnhancedBookmarkCardPreview() {
         }
     }
 }
-
