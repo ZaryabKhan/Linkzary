@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Feedback
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.InsertChart
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.Palette
@@ -86,7 +87,10 @@ fun SettingsScreen(
     importExportViewModel: ImportExportViewModel = hiltViewModel(),
     donationViewModel: DonationViewModel = hiltViewModel(),
     userPreferencesManager: UserPreferencesManager,
-    onNavigateToDonation: () -> Unit = {}
+    onNavigateToDonation: () -> Unit = {},
+    onNavigateToTags: () -> Unit = {},
+    onNavigateToRssFeeds: () -> Unit = {},
+    onNavigateToStats: () -> Unit = {}
 ) {
     val context = LocalContext.current
     
@@ -228,6 +232,24 @@ fun SettingsScreen(
                     }
                 )
             }
+
+            item {
+                SettingsItem(
+                    icon = Icons.Default.Star,
+                    title = stringResource(R.string.tags),
+                    subtitle = "Manage and rename your tags",
+                    onClick = onNavigateToTags
+                )
+            }
+
+            item {
+                SettingsItem(
+                    icon = Icons.Default.Feedback,
+                    title = stringResource(R.string.rss_feeds),
+                    subtitle = "Subscribe to RSS feeds",
+                    onClick = onNavigateToRssFeeds
+                )
+            }
             
             // Privacy Section
             item {
@@ -255,6 +277,21 @@ fun SettingsScreen(
                         showClearDataDialog = true
                     },
                     isDestructive = true
+                )
+            }
+            
+            // Statistics Section
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                SettingsSectionHeader(stringResource(R.string.settings_stats))
+            }
+            
+            item {
+                SettingsItem(
+                    icon = Icons.Default.InsertChart,
+                    title = stringResource(R.string.settings_stats),
+                    subtitle = stringResource(R.string.settings_stats_description),
+                    onClick = onNavigateToStats
                 )
             }
             

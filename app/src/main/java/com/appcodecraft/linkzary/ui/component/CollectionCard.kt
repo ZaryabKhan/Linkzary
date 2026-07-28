@@ -63,7 +63,8 @@ import java.util.Date
 // Helper function to create gradient from collection color
 @Composable
 fun createCollectionGradient(colorHex: String): Brush {
-    val baseColor = Color(colorHex.toColorInt())
+    val baseColor = runCatching { Color(colorHex.toColorInt()) }
+        .getOrDefault(MaterialTheme.colorScheme.primary)
     val lighterColor = baseColor.copy(alpha = 0.7f)
     val darkerColor = baseColor.copy(alpha = 0.9f)
     
@@ -108,9 +109,9 @@ fun CollectionCard(
     // Static interaction source for click handling only
     val interactionSource = remember { MutableInteractionSource() }
     
-    // Static values for better performance
-    val elevation = 2.dp
-    val containerColor = MaterialTheme.colorScheme.surface
+    // Safely parse collection color, falling back to primary if invalid
+    val collectionColor = runCatching { Color(collection.color.toColorInt()) }
+        .getOrDefault(MaterialTheme.colorScheme.primary)
 
     Card(
         modifier = modifier
@@ -147,8 +148,8 @@ fun CollectionCard(
                     .background(
                         brush = Brush.linearGradient(
                             colors = listOf(
-                                Color(collection.color.toColorInt()),
-                                Color(collection.color.toColorInt()).copy(alpha = 0.8f)
+                                collectionColor,
+                                collectionColor.copy(alpha = 0.8f)
                             )
                         )
                     ),

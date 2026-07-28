@@ -18,9 +18,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -202,11 +206,13 @@ fun BookmarkCard(
                     }
                 } else if (collectionName != null && collectionColor != null) {
                     // Regular collection badge when not in multi-select mode
+                    val parsedCollectionColor = runCatching { Color(collectionColor.toColorInt()) }
+                        .getOrDefault(MaterialTheme.colorScheme.primary)
                     Box(
                         modifier = Modifier
                             .align(Alignment.CenterStart)
                             .background(
-                                color = Color(collectionColor.toColorInt()).copy(alpha = 0.15f),
+                                color = parsedCollectionColor.copy(alpha = 0.15f),
                                 shape = RoundedCornerShape(6.dp) // Smaller radius for compact look
                             )
                             .padding(horizontal = 8.dp, vertical = 3.dp) // Reduced padding
@@ -217,7 +223,7 @@ fun BookmarkCard(
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 10.sp // Slightly smaller font
                             ),
-                            color = Color(collectionColor.toColorInt()),
+                            color = parsedCollectionColor,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -236,6 +242,15 @@ fun BookmarkCard(
                             contentDescription = stringResource(R.string.home_pinned),
                             modifier = Modifier.size(14.dp),
                             tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+                    if (link.isAlive == false) {
+                        Icon(
+                            imageVector = Icons.Default.Error,
+                            contentDescription = stringResource(R.string.link_broken),
+                            modifier = Modifier.size(14.dp),
+                            tint = MaterialTheme.colorScheme.error
                         )
                     }
 
@@ -338,17 +353,59 @@ fun BookmarkCard(
 
             Spacer(modifier = Modifier.height(8.dp)) // Reduced spacing
 
-            // Title - more compact but still prominent
-            Text(
-                text = link.title,
-                style = MaterialTheme.typography.titleSmall.copy( // Changed from titleMedium to titleSmall
-                    fontWeight = FontWeight.SemiBold,
-                    lineHeight = 18.sp // Reduced line height
-                ),
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            // Title with read/archive status indicator
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                // Read status indicator dot/badge
+                when (link.readStatus) {
+                    "READ" -> {
+                        Icon(
+                            imageVector = Icons.Default.Done,
+                            contentDescription = stringResource(R.string.cd_read_status_read),
+                            modifier = Modifier.size(14.dp),
+                            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+                        )
+                    }
+                    "ARCHIVED" -> {
+                        Icon(
+                            imageVector = Icons.Default.Archive,
+                            contentDescription = stringResource(R.string.cd_read_status_archived),
+                            modifier = Modifier.size(14.dp),
+                            tint = MaterialTheme.colorScheme.outline
+                        )
+                    }
+                    else -> {
+                        // Unread - small filled dot
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .background(
+                                    color = MaterialTheme.colorScheme.primary,
+                                    shape = CircleShape
+                                )
+                        )
+                    }
+                }
+
+                Text(
+                    text = link.title,
+                    style = MaterialTheme.typography.titleSmall.copy( // Changed from titleMedium to titleSmall
+                        fontWeight = if (link.readStatus == "UNREAD") FontWeight.SemiBold else FontWeight.Normal,
+                        lineHeight = 18.sp // Reduced line height
+                    ),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    color = if (link.readStatus == "READ" || link.readStatus == "ARCHIVED") {
+                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    } else {
+                        MaterialTheme.colorScheme.onSurface
+                    },
+                    modifier = Modifier.weight(1f)
+                )
+            }
 
             // Description/Note - more compact
             if (link.note.isNotBlank()) {

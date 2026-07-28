@@ -32,6 +32,13 @@ enum class LinkSortOrder {
     PINNED_FIRST
 }
 
+enum class ReadStatusFilter {
+    ALL,
+    UNREAD,
+    READ,
+    ARCHIVED
+}
+
 data class HomeUiState(
     val links: List<SavedLink> = emptyList(),
     val recentCollections: List<Collection> = emptyList(),
@@ -39,6 +46,10 @@ data class HomeUiState(
     val collectionsWithCounts: Map<Long, Int> = emptyMap(),
     val searchQuery: String = "",
     val sortOrder: LinkSortOrder = LinkSortOrder.PINNED_FIRST,
+    val readStatusFilter: ReadStatusFilter = ReadStatusFilter.ALL,
+    val unreadCount: Int = 0,
+    val readCount: Int = 0,
+    val archivedCount: Int = 0,
     val isLoading: Boolean = false,
     val error: String? = null,
     val isMultiSelectMode: Boolean = false,
@@ -57,8 +68,10 @@ class HomeViewModel @Inject constructor(
 
     private val _searchQuery = MutableStateFlow("")
     private val _sortOrder = MutableStateFlow(
-        LinkSortOrder.valueOf(userPreferencesManager.getHomeSortOrder())
+        runCatching { LinkSortOrder.valueOf(userPreferencesManager.getHomeSortOrder()) }
+            .getOrDefault(LinkSortOrder.PINNED_FIRST)
     )
+    private val _readStatusFilter = MutableStateFlow(ReadStatusFilter.ALL)
     private val _isLoading = MutableStateFlow(false)
     private val _error = MutableStateFlow<String?>(null)
     private val _isMultiSelectMode = MutableStateFlow(false)
@@ -66,6 +79,7 @@ class HomeViewModel @Inject constructor(
     private val _batchOperationMessage = MutableStateFlow<String?>(null)
 
     val isGridView: StateFlow<Boolean> = userPreferencesManager.isHomeGridView
+    val searchHistory: StateFlow<List<String>> = userPreferencesManager.searchHistory
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<HomeUiState> = combine(
@@ -79,6 +93,7 @@ class HomeViewModel @Inject constructor(
         collectionRepository.getRecentCollections(),
         collectionRepository.getAllCollections(),
         _sortOrder,
+        _readStatusFilter,
         _isLoading,
         _error,
         _isMultiSelectMode,
@@ -89,21 +104,39 @@ class HomeViewModel @Inject constructor(
         val recentCollections = flows[1] as List<Collection>
         val allCollections = flows[2] as List<Collection>
         val sortOrder = flows[3] as LinkSortOrder
-        val isLoading = flows[4] as Boolean
-        val error = flows[5] as String?
-        val isMultiSelectMode = flows[6] as Boolean
-        val selectedLinks = flows[7] as Set<Long>
-        val batchOperationMessage = flows[8] as String?
+        val readStatusFilter = flows[4] as ReadStatusFilter
+        val isLoading = flows[5] as Boolean
+        val error = flows[6] as String?
+        val isMultiSelectMode = flows[7] as Boolean
+        val selectedLinks = flows[8] as Set<Long>
+        val batchOperationMessage = flows[9] as String?
+
+        // Count by read status
+        val unreadCount = links.count { it.readStatus == "UNREAD" }
+        val readCount = links.count { it.readStatus == "READ" }
+        val archivedCount = links.count { it.readStatus == "ARCHIVED" }
+
+        // Apply read status filter (only when not searching)
+        val filteredLinks = if (_searchQuery.value.isBlank()) {
+            when (readStatusFilter) {
+                ReadStatusFilter.ALL -> links
+                ReadStatusFilter.UNREAD -> links.filter { it.readStatus == "UNREAD" }
+                ReadStatusFilter.READ -> links.filter { it.readStatus == "READ" }
+                ReadStatusFilter.ARCHIVED -> links.filter { it.readStatus == "ARCHIVED" }
+            }
+        } else {
+            links
+        }
 
         val sortedLinks = when (sortOrder) {
-            LinkSortOrder.PINNED_FIRST -> links.sortedWith(
+            LinkSortOrder.PINNED_FIRST -> filteredLinks.sortedWith(
                 compareByDescending<SavedLink> { it.isPinned }
                     .thenByDescending { it.saveDate }
             )
-            LinkSortOrder.DATE_DESC -> links.sortedByDescending { it.saveDate }
-            LinkSortOrder.DATE_ASC -> links.sortedBy { it.saveDate }
-            LinkSortOrder.TITLE_ASC -> links.sortedBy { it.title.lowercase() }
-            LinkSortOrder.TITLE_DESC -> links.sortedByDescending { it.title.lowercase() }
+            LinkSortOrder.DATE_DESC -> filteredLinks.sortedByDescending { it.saveDate }
+            LinkSortOrder.DATE_ASC -> filteredLinks.sortedBy { it.saveDate }
+            LinkSortOrder.TITLE_ASC -> filteredLinks.sortedBy { it.title.lowercase() }
+            LinkSortOrder.TITLE_DESC -> filteredLinks.sortedByDescending { it.title.lowercase() }
         }
 
         HomeUiState(
@@ -113,6 +146,10 @@ class HomeViewModel @Inject constructor(
             collectionsWithCounts = emptyMap(), // Will be populated by separate flow
             searchQuery = _searchQuery.value,
             sortOrder = sortOrder,
+            readStatusFilter = readStatusFilter,
+            unreadCount = unreadCount,
+            readCount = readCount,
+            archivedCount = archivedCount,
             isLoading = isLoading,
             error = error,
             isMultiSelectMode = isMultiSelectMode,
@@ -166,9 +203,27 @@ class HomeViewModel @Inject constructor(
         _searchQuery.value = query
     }
 
+    fun saveSearchQuery(query: String) {
+        if (query.isNotBlank()) {
+            userPreferencesManager.addSearchQuery(query)
+        }
+    }
+
+    fun clearSearchHistory() {
+        userPreferencesManager.clearSearchHistory()
+    }
+
+    fun removeSearchQuery(query: String) {
+        userPreferencesManager.removeSearchQuery(query)
+    }
+
     fun setSortOrder(sortOrder: LinkSortOrder) {
         _sortOrder.value = sortOrder
         userPreferencesManager.setHomeSortOrder(sortOrder.name)
+    }
+
+    fun setReadStatusFilter(filter: ReadStatusFilter) {
+        _readStatusFilter.value = filter
     }
 
     fun toggleGridView() {
@@ -338,6 +393,32 @@ class HomeViewModel @Inject constructor(
                 linkRepository.updatePinStatus(link.id, !link.isPinned)
             } catch (e: Exception) {
                 _error.value = "Failed to update pin status: ${e.message}"
+            }
+        }
+    }
+
+    fun toggleReadStatus(link: SavedLink) {
+        viewModelScope.launch {
+            try {
+                val newStatus = when (link.readStatus) {
+                    "UNREAD" -> "READ"
+                    "READ" -> "ARCHIVED"
+                    "ARCHIVED" -> "UNREAD"
+                    else -> "UNREAD"
+                }
+                linkRepository.updateReadStatus(link.id, newStatus)
+            } catch (e: Exception) {
+                _error.value = "Failed to update read status: ${e.message}"
+            }
+        }
+    }
+
+    fun toggleOfflineStatus(link: SavedLink) {
+        viewModelScope.launch {
+            try {
+                linkRepository.updateOfflineStatus(link.id, !link.isOfflineAvailable)
+            } catch (e: Exception) {
+                _error.value = "Failed to update offline status: ${e.message}"
             }
         }
     }

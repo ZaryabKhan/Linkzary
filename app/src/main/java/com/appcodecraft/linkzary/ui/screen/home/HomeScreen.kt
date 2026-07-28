@@ -2,6 +2,7 @@ package com.appcodecraft.linkzary.ui.screen.home
 
 import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,24 +28,30 @@ import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CreateNewFolder
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.filled.MarkEmailUnread
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SortByAlpha
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -77,6 +84,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -84,9 +95,10 @@ import com.appcodecraft.linkzary.R
 import com.appcodecraft.linkzary.data.entity.SavedLink
 import com.appcodecraft.linkzary.navigation.Screen
 import com.appcodecraft.linkzary.ui.component.BookmarkCard
-import com.appcodecraft.linkzary.ui.component.CollectionOption
 import com.appcodecraft.linkzary.ui.component.CreateCollectionForm
-import com.appcodecraft.linkzary.ui.component.LinkEditorForm
+import com.appcodecraft.linkzary.ui.component.EditLinkDialog
+import com.appcodecraft.linkzary.ui.component.OptionItem
+import com.appcodecraft.linkzary.ui.component.CollectionSelectionDialog
 import com.appcodecraft.linkzary.ui.component.SmallCollectionCard
 import com.appcodecraft.linkzary.ui.component.getCollectionIconVector
 import com.appcodecraft.linkzary.ui.theme.LinkzaryTheme
@@ -170,58 +182,6 @@ fun AddLinkDialog(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditLinkDialog(
-    link: SavedLink,
-    onDismiss: () -> Unit,
-    onSave: (SavedLink) -> Unit
-) {
-    var title by remember { mutableStateOf(link.title) }
-    var url by remember { mutableStateOf(link.url) }
-    var note by remember { mutableStateOf(link.note) }
-    var tags by remember { mutableStateOf(link.tags) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.edit_link_title)) },
-        text = {
-            LinkEditorForm(
-                title = title,
-                onTitleChange = { title = it },
-                url = url,
-                onUrlChange = { url = it },
-                note = note,
-                onNoteChange = { note = it },
-                tags = tags,
-                onTagsChange = { tags = it }
-            )
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    onSave(
-                        link.copy(
-                            title = title,
-                            url = url,
-                            note = note,
-                            tags = tags
-                        )
-                    )
-                },
-                enabled = title.isNotBlank() && url.isNotBlank()
-            ) {
-                Text(stringResource(R.string.edit_link_save))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.edit_link_cancel))
-            }
-        }
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
 fun CreateCollectionDialog(
     onDismiss: () -> Unit,
     onCreate: (String, Int, String) -> Unit
@@ -297,153 +257,6 @@ fun CreateCollectionDialog(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CollectionSelectionDialog(
-    currentCollectionId: Long?,
-    onDismiss: () -> Unit,
-    onCollectionSelected: (Long?) -> Unit,
-    onCreateNew: () -> Unit = {},
-    viewModel: HomeViewModel = hiltViewModel()
-) {
-    val uiState by viewModel.combinedUiState.collectAsStateWithLifecycle()
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = stringResource(R.string.move_link_title),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.SemiBold
-            )
-        },
-        text = {
-            LazyColumn(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                // No Collection option
-                item {
-                    CollectionOption(
-                        icon = Icons.Default.FolderOpen,
-                        name = stringResource(R.string.move_link_no_collection),
-                        color = MaterialTheme.colorScheme.outline.value.toInt(),
-                        isSelected = currentCollectionId == null,
-                        onClick = { onCollectionSelected(null) }
-                    )
-                }
-
-                // Existing collections
-                items(uiState.allCollections) { collection ->
-                    val colorInt = remember(collection.color) {
-                        try {
-                            android.graphics.Color.parseColor(collection.color)
-                        } catch (e: IllegalArgumentException) {
-                            0xFF6366F1.toInt() // default color
-                        }
-                    }
-                    CollectionOption(
-                        icon = getCollectionIconVector(collection.icon),
-                        name = collection.name,
-                        color = colorInt,
-                        isSelected = currentCollectionId == collection.id,
-                        onClick = { onCollectionSelected(collection.id) }
-                    )
-                }
-
-                // Create new collection option
-                item {
-                    Surface(
-                        onClick = { onCreateNew() },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.CreateNewFolder,
-                                contentDescription = stringResource(R.string.cd_create_new_collection),
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(24.dp)
-                            )
-
-                            Spacer(modifier = Modifier.width(16.dp))
-
-                            Text(
-                                text = stringResource(R.string.move_link_create_new),
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.move_link_cancel))
-            }
-        }
-    )
-}
-
-@Composable
-fun OptionItem(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    title: String,
-    subtitle: String,
-    onClick: () -> Unit,
-    isDestructive: Boolean = false
-) {
-    Surface(
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surface
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = title,
-                tint = if (isDestructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.size(24.dp)
-            )
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium,
-                    color = if (isDestructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (isDestructive) MaterialTheme.colorScheme.error.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
 fun LinkOptionsBottomSheet(
     link: SavedLink,
     onDismiss: () -> Unit,
@@ -452,6 +265,8 @@ fun LinkOptionsBottomSheet(
     onTogglePin: () -> Unit,
     onMoveToCollection: (Long?) -> Unit,
     onReaderMode: () -> Unit,
+    onToggleOffline: (SavedLink) -> Unit,
+    onToggleReadStatus: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     var showEditDialog by remember { mutableStateOf(false) }
@@ -484,15 +299,52 @@ fun LinkOptionsBottomSheet(
             // Reader Mode option
             if (link.isOfflineAvailable) {
                 OptionItem(
-                    icon = Icons.AutoMirrored.Filled.Notes, // Using Notes as a proxy for Reader
-                    title = "Reader Mode", // Hardcoded for now, should be string resource
-                    subtitle = "Read offline content",
+                    icon = Icons.AutoMirrored.Filled.Notes,
+                    title = stringResource(R.string.reader_mode),
+                    subtitle = stringResource(R.string.reader_mode_subtitle),
                     onClick = {
                         onReaderMode()
                         onDismiss()
                     }
                 )
             }
+
+            // Save for Offline option
+            OptionItem(
+                icon = Icons.Default.Star,
+                title = if (link.isOfflineAvailable) stringResource(R.string.remove_from_offline) else stringResource(R.string.save_for_offline),
+                subtitle = if (link.isOfflineAvailable) "Remove offline content" else "Save content for offline reading",
+                onClick = {
+                    onToggleOffline(link)
+                    onDismiss()
+                }
+            )
+
+            // Read Status option (cycles UNREAD → READ → ARCHIVED)
+            OptionItem(
+                icon = when (link.readStatus) {
+                    "UNREAD" -> Icons.Default.Done
+                    "READ" -> Icons.Default.Archive
+                    "ARCHIVED" -> Icons.Default.MarkEmailUnread
+                    else -> Icons.Default.Done
+                },
+                title = when (link.readStatus) {
+                    "UNREAD" -> stringResource(R.string.link_mark_read_title)
+                    "READ" -> stringResource(R.string.link_archive_title)
+                    "ARCHIVED" -> stringResource(R.string.link_mark_unread_title)
+                    else -> stringResource(R.string.link_mark_read_title)
+                },
+                subtitle = when (link.readStatus) {
+                    "UNREAD" -> stringResource(R.string.link_mark_read_subtitle)
+                    "READ" -> stringResource(R.string.link_archive_subtitle)
+                    "ARCHIVED" -> stringResource(R.string.link_mark_unread_subtitle)
+                    else -> stringResource(R.string.link_mark_read_subtitle)
+                },
+                onClick = {
+                    onToggleReadStatus()
+                    onDismiss()
+                }
+            )
 
             // Pin/Unpin option
             OptionItem(
@@ -542,17 +394,18 @@ fun LinkOptionsBottomSheet(
     // Collection Selection Dialog
     if (showCollectionDialog) {
         var showCreateDialog by remember { mutableStateOf(false) }
+        val allCollections by viewModel.combinedUiState.collectAsStateWithLifecycle()
 
         CollectionSelectionDialog(
             currentCollectionId = link.collectionId,
+            allCollections = allCollections.allCollections,
             onDismiss = { showCollectionDialog = false },
             onCollectionSelected = { collectionId ->
                 onMoveToCollection(collectionId)
                 showCollectionDialog = false
                 onDismiss()
             },
-            onCreateNew = { showCreateDialog = true },
-            viewModel = viewModel
+            onCreateNew = { showCreateDialog = true }
         )
 
         if (showCreateDialog) {
@@ -635,6 +488,10 @@ fun HomeScreen(
 
     // Local search state to prevent bouncing
     var localSearchQuery by remember { mutableStateOf("") }
+    var isSearchFocused by remember { mutableStateOf(false) }
+    val searchFocusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
+    val searchHistory by viewModel.searchHistory.collectAsStateWithLifecycle()
 
     val uriHandler = LocalUriHandler.current
     val scrollState = rememberScrollState()
@@ -830,39 +687,199 @@ fun HomeScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         // Search bar with improved state management
-        OutlinedTextField(
-            value = localSearchQuery,
-            onValueChange = { newQuery ->
-                localSearchQuery = newQuery
-                // Use a slight delay to debounce the search
-                viewModel.updateSearchQuery(newQuery)
-            },
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text(stringResource(R.string.home_search_bookmarks)) },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = stringResource(R.string.home_search),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            },
-            trailingIcon = if (localSearchQuery.isNotEmpty()) {
-                {
-                    IconButton(
-                        onClick = {
-                            localSearchQuery = ""
-                            viewModel.updateSearchQuery("")
+        Box(modifier = Modifier.fillMaxWidth()) {
+            OutlinedTextField(
+                value = localSearchQuery,
+                onValueChange = { newQuery ->
+                    localSearchQuery = newQuery
+                    viewModel.updateSearchQuery(newQuery)
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(searchFocusRequester)
+                    .onFocusChanged { focusState ->
+                        if (!focusState.isFocused && localSearchQuery.isNotBlank()) {
+                            viewModel.saveSearchQuery(localSearchQuery)
                         }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Clear,
-                            contentDescription = stringResource(R.string.home_clear_search),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        isSearchFocused = focusState.isFocused
+                    },
+                placeholder = { Text(stringResource(R.string.home_search_bookmarks)) },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = stringResource(R.string.home_search),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                },
+                trailingIcon = if (localSearchQuery.isNotEmpty()) {
+                    {
+                        IconButton(
+                            onClick = {
+                                localSearchQuery = ""
+                                viewModel.updateSearchQuery("")
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Clear,
+                                contentDescription = stringResource(R.string.home_clear_search),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                } else null,
+                singleLine = true
+            )
+
+            // Search history dropdown
+            if (isSearchFocused && localSearchQuery.isEmpty() && searchHistory.isNotEmpty()) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 56.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
+                ) {
+                    Column(modifier = Modifier.padding(8.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = stringResource(R.string.recent_searches),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                            )
+                            TextButton(
+                                onClick = {
+                                    viewModel.clearSearchHistory()
+                                    isSearchFocused = false
+                                }
+                            ) {
+                                Text(stringResource(R.string.clear_history))
+                            }
+                        }
+                        searchHistory.take(5).forEach { query ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        localSearchQuery = query
+                                        viewModel.updateSearchQuery(query)
+                                        isSearchFocused = false
+                                        focusManager.clearFocus()
+                                    }
+                                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    Icons.Default.History,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = query,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                IconButton(
+                                    onClick = { viewModel.removeSearchQuery(query) },
+                                    modifier = Modifier.size(24.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = "Remove",
+                                        modifier = Modifier.size(14.dp),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
-            } else null
-        )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Read status filter section
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            FilterChip(
+                onClick = { viewModel.setReadStatusFilter(ReadStatusFilter.ALL) },
+                label = {
+                    val count = uiState.unreadCount + uiState.readCount + uiState.archivedCount
+                    Text(stringResource(R.string.filter_all) + " ($count)")
+                },
+                selected = uiState.readStatusFilter == ReadStatusFilter.ALL,
+                leadingIcon = if (uiState.readStatusFilter == ReadStatusFilter.ALL) {
+                    {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                } else null
+            )
+            FilterChip(
+                onClick = { viewModel.setReadStatusFilter(ReadStatusFilter.UNREAD) },
+                label = {
+                    Text(stringResource(R.string.filter_unread) + " (${uiState.unreadCount})")
+                },
+                selected = uiState.readStatusFilter == ReadStatusFilter.UNREAD,
+                leadingIcon = if (uiState.readStatusFilter == ReadStatusFilter.UNREAD) {
+                    {
+                        Icon(
+                            imageVector = Icons.Default.MarkEmailUnread,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                } else null
+            )
+            FilterChip(
+                onClick = { viewModel.setReadStatusFilter(ReadStatusFilter.READ) },
+                label = {
+                    Text(stringResource(R.string.filter_read) + " (${uiState.readCount})")
+                },
+                selected = uiState.readStatusFilter == ReadStatusFilter.READ,
+                leadingIcon = if (uiState.readStatusFilter == ReadStatusFilter.READ) {
+                    {
+                        Icon(
+                            imageVector = Icons.Default.Done,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                } else null
+            )
+            FilterChip(
+                onClick = { viewModel.setReadStatusFilter(ReadStatusFilter.ARCHIVED) },
+                label = {
+                    Text(stringResource(R.string.filter_archived) + " (${uiState.archivedCount})")
+                },
+                selected = uiState.readStatusFilter == ReadStatusFilter.ARCHIVED,
+                leadingIcon = if (uiState.readStatusFilter == ReadStatusFilter.ARCHIVED) {
+                    {
+                        Icon(
+                            imageVector = Icons.Default.Archive,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                } else null
+            )
+        }
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -1185,7 +1202,7 @@ fun HomeScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "${uiState.selectedLinks.size} selected",
+                        text = stringResource(R.string.multi_select_count_selected, uiState.selectedLinks.size),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -1198,7 +1215,7 @@ fun HomeScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.DriveFileMove,
-                                contentDescription = "Move to collection",
+                                contentDescription = stringResource(R.string.multi_select_move_to_collection),
                                 tint = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
@@ -1210,7 +1227,7 @@ fun HomeScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Delete,
-                                contentDescription = "Delete selected",
+                                contentDescription = stringResource(R.string.multi_select_delete_selected),
                                 tint = MaterialTheme.colorScheme.error
                             )
                         }
@@ -1222,7 +1239,7 @@ fun HomeScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Close,
-                                contentDescription = "Cancel selection",
+                                contentDescription = stringResource(R.string.multi_select_cancel_selection),
                                 tint = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
@@ -1260,7 +1277,7 @@ fun HomeScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Move ${uiState.selectedLinks.size} bookmarks to:",
+                    text = stringResource(R.string.batch_move_bookmarks_to, uiState.selectedLinks.size),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -1295,7 +1312,7 @@ fun HomeScreen(
                             )
                             Spacer(modifier = Modifier.width(16.dp))
                             Text(
-                                text = "Uncategorized",
+                                text = stringResource(R.string.batch_uncategorized),
                                 style = MaterialTheme.typography.bodyLarge
                             )
                         }
@@ -1350,7 +1367,7 @@ fun HomeScreen(
                     onClick = { showCollectionPicker = false },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.common_cancel))
                 }
 
                 // Extra space at bottom for better UX
@@ -1407,6 +1424,14 @@ fun HomeScreen(
                 if (navController != null) {
                     navController.navigate(Screen.Reader.createRoute(link.id))
                 }
+                selectedLink = null
+            },
+            onToggleOffline = { linkToToggle ->
+                viewModel.toggleOfflineStatus(linkToToggle)
+                selectedLink = null
+            },
+            onToggleReadStatus = {
+                viewModel.toggleReadStatus(link)
                 selectedLink = null
             },
             viewModel = viewModel

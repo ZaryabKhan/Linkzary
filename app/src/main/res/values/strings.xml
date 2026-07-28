@@ -54,8 +54,25 @@
     <string name="link_unpin_subtitle">Remove from pinned links</string>
     <string name="link_move_title">Move to Collection</string>
     <string name="link_move_subtitle">Organize in a collection</string>
+    <string name="link_mark_read_title">Mark as Read</string>
+    <string name="link_mark_read_subtitle">Move to the read list</string>
+    <string name="link_mark_unread_title">Mark as Unread</string>
+    <string name="link_mark_unread_subtitle">Move back to unread</string>
+    <string name="link_archive_title">Archive</string>
+    <string name="link_archive_subtitle">Hide from main list</string>
+    <string name="link_unarchive_title">Unarchive</string>
+    <string name="link_unarchive_subtitle">Restore from archive</string>
     <string name="link_delete_title">Delete</string>
     <string name="link_delete_subtitle">Remove this link permanently</string>
+
+    <!-- Read Status / Archive Filter -->
+    <string name="filter_all">All</string>
+    <string name="filter_unread">Unread</string>
+    <string name="filter_read">Read</string>
+    <string name="filter_archived">Archived</string>
+    <string name="cd_read_status_unread">Unread</string>
+    <string name="cd_read_status_read">Read</string>
+    <string name="cd_read_status_archived">Archived</string>
 
     <!-- Edit Link Dialog -->
     <string name="edit_link_title">Edit Link</string>
@@ -475,5 +492,110 @@
     <string name="unknown">Unknown</string>
     <string name="version_1_0">1.0</string>
     <string name="only_lz_format">Only files exported from Linkzary are currently supported. Third-party .json or .csv formats may not work as expected.</string>
+    <!-- Reader Mode -->
+    <string name="reader_mode">Reader Mode</string>
+    <string name="reader_mode_subtitle">Read offline content</string>
+    <string name="reader_no_content">No offline content available for this link.</string>
+    <string name="reader_link_not_found">Link not found</string>
 
+    <!-- Multi-select / Batch Operations -->
+    <string name="multi_select_count_selected">%d selected</string>
+    <string name="multi_select_move_to_collection">Move to collection</string>
+    <string name="multi_select_delete_selected">Delete selected</string>
+    <string name="multi_select_cancel_selection">Cancel selection</string>
+    <string name="batch_move_bookmarks_to">Move %d bookmarks to:</string>
+    <string name="batch_uncategorized">Uncategorized</string>
+
+    <!-- Settings - Metadata Refresh -->
+    <string name="settings_force_metadata_refresh">Force Metadata Refresh</string>
+    <string name="settings_force_metadata_refresh_subtitle">Update images and titles for all saved links</string>
+    <string name="settings_refreshing_metadata">Refreshing Metadata</string>
+    <string name="settings_metadata_progress">%1$d / %2$d links processed</string>
+
+    <!-- Settings - Donation -->
+    <string name="settings_thank_you_for_support">Thank you for your support!</string>
+    <string name="settings_already_donated">You\'ve already donated to support Linkzary\'s development</string>
+    <string name="settings_donate_more">Donate More</string>
+
+    <!-- Donation Screen -->
+    <string name="donation_support_linkzary">Support Linkzary</string>
+    <string name="donation_more_options_below">More options below</string>
+    <string name="donation_thank_you_title">Thank You for Your Support!</string>
+    <string name="donation_support_development_title">Support Linkzary Development</string>
+    <string name="donation_thank_you_message">Your contribution helps us continue improving Linkzary. We truly appreciate your support!</string>
+    <string name="donation_support_message">Your support helps us continue developing and improving Linkzary. Choose any amount you\'d like to donate:</string>
+    <string name="donation_choose_amount">Choose Your Donation Amount</string>
+    <string name="donation_options_count">%d options</string>
+    <string name="donation_processing">Processing…</string>
+    <string name="donate_price">Donate %s</string>
+    <string name="donation_options_unavailable">Donation options temporarily unavailable</string>
+    <string name="donation_technical_difficulties">We\'re experiencing technical difficulties. Please try again in a few minutes or restart the app.</string>
+    <string name="donation_connection_error">Connection Error</string>
+    <string name="donation_connection_error_message">Unable to load donation options. Please check your internet connection and try again.</string>
+    <string name="donation_loading_options">Loading donation options…</string>
+    <string name="donation_thank_you_emoji">Thank you for considering a donation!</string>
+    <string name="donation_support_free_message">Your support helps keep Linkzary free and continuously improving for everyone.</string>
+
+    <!-- Theme Selection -->
+    <string name="theme_selection_choose">Choose Theme</string>
+
+    <!-- Share Screen -->
+    <string name="share_collection_label">Collection</string>
+    <string name="share_change_collection">Change</string>
+
+    <!-- Misc -->
+    <string name="collections_total_links_count">%d total links</string>
+    <string name="placeholder_url">https://example.com</string>
+    <string name="preview_for_title">Preview for %s</string>
+    <string name="site_icon_for_domain">Site icon for %s</string>
+    <string name="choose_icon">Choose Icon</string>
+    <string name="color_red">Red</string>
+    <string name="color_green">Green</string>
+    <string name="color_blue">Blue</string>
+    <string name="back_to_presets">Back to Presets</string>
+    <string name="custom_color">Custom Color</string>
+
+    <!-- Tags Screen -->
+    <string name="tags">Tags</string>
+    <string name="no_tags">No tags yet</string>
+    <string name="no_tags_subtitle">Tags are created when you add them to your links</string>
+    <string name="links_count">%d links</string>
+    <string name="rename_tag">Rename Tag</string>
+    <string name="renaming_tag_from">Renaming \"%s\" to:</string>
+    <string name="new_tag_name">New tag name</string>
+    <string name="rename">Rename</string>
+
+    <!-- Search History -->
+    <string name="recent_searches">Recent Searches</string>
+    <string name="clear_history">Clear History</string>
+
+    <!-- Offline Reading -->
+    <string name="save_for_offline">Save for Offline</string>
+    <string name="remove_from_offline">Remove from Offline</string>
+    <string name="offline_saved">Saved for offline reading</string>
+    <string name="offline_removed">Removed from offline storage</string>
+
+    <!-- Link Health -->
+    <string name="link_broken">Link appears broken</string>
+    <string name="link_alive">Link is working</string>
+    <string name="checking_links">Checking links…</string>
+
+    <!-- RSS Feeds -->
+    <string name="rss_feeds">RSS Feeds</string>
+    <string name="rss_add_feed">Add Feed</string>
+    <string name="rss_feed_url">Feed URL</string>
+    <string name="rss_no_feeds">No RSS feeds</string>
+    <string name="rss_no_feeds_subtitle">Subscribe to RSS feeds to stay updated</string>
+    <string name="rss_feed_added">Feed added successfully</string>
+    <string name="rss_feed_exists">Feed already exists</string>
+    <string name="rss_invalid_url">Please enter a valid URL</string>
+    <string name="rss_items">%d items</string>
+    <string name="rss_unread_items">%d unread</string>
+    <string name="rss_save_link">Save Link</string>
+    <string name="rss_saved">Link saved to bookmarks</string>
+    <string name="rss_delete_feed">Delete Feed</string>
+    <string name="rss_delete_feed_message">Are you sure you want to delete this feed and all its items?</string>
+
+    <string name="settings_stats">Statistics</string>
+    <string name="settings_stats_description">View your reading stats and insights</string>
 </resources>

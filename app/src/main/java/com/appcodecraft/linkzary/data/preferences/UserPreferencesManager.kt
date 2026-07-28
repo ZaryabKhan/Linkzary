@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import org.json.JSONArray
 
 enum class ThemeMode {
     LIGHT, DARK, SYSTEM;
@@ -47,6 +48,10 @@ class UserPreferencesManager(context: Context) {
     // Donation preferences
     private val _hasDonated = MutableStateFlow(getHasDonated())
     val hasDonated: StateFlow<Boolean> = _hasDonated.asStateFlow()
+
+    // Search history
+    private val _searchHistory = MutableStateFlow(getSearchHistory())
+    val searchHistory: StateFlow<List<String>> = _searchHistory.asStateFlow()
 
     // Home screen preferences
     fun setHomeGridView(isGridView: Boolean) {
@@ -141,6 +146,49 @@ class UserPreferencesManager(context: Context) {
     private fun getHasDonated(): Boolean {
         return sharedPreferences.getBoolean(KEY_HAS_DONATED, false)
     }
+
+    // Search history methods
+    fun addSearchQuery(query: String) {
+        if (query.isBlank()) return
+        val current = getSearchHistory().toMutableList()
+        current.remove(query)
+        current.add(0, query)
+        if (current.size > MAX_SEARCH_HISTORY) {
+            current.subList(MAX_SEARCH_HISTORY, current.size).clear()
+        }
+        val jsonArray = JSONArray(current)
+        sharedPreferences.edit()
+            .putString(KEY_SEARCH_HISTORY, jsonArray.toString())
+            .apply()
+        _searchHistory.value = current
+    }
+
+    fun removeSearchQuery(query: String) {
+        val current = getSearchHistory().toMutableList()
+        current.remove(query)
+        val jsonArray = JSONArray(current)
+        sharedPreferences.edit()
+            .putString(KEY_SEARCH_HISTORY, jsonArray.toString())
+            .apply()
+        _searchHistory.value = current
+    }
+
+    fun clearSearchHistory() {
+        sharedPreferences.edit()
+            .remove(KEY_SEARCH_HISTORY)
+            .apply()
+        _searchHistory.value = emptyList()
+    }
+
+    private fun getSearchHistory(): List<String> {
+        val json = sharedPreferences.getString(KEY_SEARCH_HISTORY, null) ?: return emptyList()
+        return try {
+            val jsonArray = JSONArray(json)
+            (0 until jsonArray.length()).map { jsonArray.getString(it) }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
     
     companion object {
         private const val KEY_THEME_MODE = "theme_mode"
@@ -151,5 +199,7 @@ class UserPreferencesManager(context: Context) {
         private const val KEY_HAS_DONATED = "has_donated"
         private const val KEY_HOME_SORT_ORDER = "home_sort_order"
         private const val KEY_COLLECTIONS_SORT_ORDER = "collections_sort_order"
+        private const val KEY_SEARCH_HISTORY = "search_history"
+        private const val MAX_SEARCH_HISTORY = 10
     }
 }

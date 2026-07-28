@@ -1,9 +1,6 @@
 package com.appcodecraft.linkzary.ui.screen.collections
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,11 +13,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items as lazyColumnItems
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -31,6 +27,7 @@ import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CreateNewFolder
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -63,19 +60,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.toColorInt
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.appcodecraft.linkzary.R
 import com.appcodecraft.linkzary.data.entity.SavedLink
 import com.appcodecraft.linkzary.ui.component.BookmarkCard
+import com.appcodecraft.linkzary.ui.component.EditLinkDialog
+import com.appcodecraft.linkzary.ui.component.OptionItem
+import com.appcodecraft.linkzary.ui.component.CollectionSelectionDialog
 import com.appcodecraft.linkzary.ui.component.getCollectionIconVector
 import com.appcodecraft.linkzary.ui.screen.home.HomeViewModel
 
@@ -202,7 +200,8 @@ fun CollectionDetailScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Content
+        // Content - wrapped with weight to fill remaining space
+        Box(modifier = Modifier.weight(1f)) {
         when {
             uiState.isLoading -> {
                 Box(
@@ -268,10 +267,25 @@ fun CollectionDetailScreen(
                                 link = link,
                                 collectionName = uiState.collection?.name ?: "",
                                 collectionColor = uiState.collection?.color ?: "#FF6200EE",
-                                onCardClick = { uriHandler.openUri(link.url) },
+                                isMultiSelectMode = uiState.isMultiSelectMode,
+                                isSelected = uiState.selectedLinks.contains(link.id),
+                                onCardClick = {
+                                    if (uiState.isMultiSelectMode) {
+                                        viewModel.toggleLinkSelection(link.id)
+                                    } else {
+                                        uriHandler.openUri(link.url)
+                                    }
+                                },
                                 onMoreClick = {
                                     selectedLink = link
-                                }
+                                },
+                                onLongPress = {
+                                    viewModel.startMultiSelectWithToggle(link.id)
+                                },
+                                onSelectClick = {
+                                    viewModel.toggleLinkSelection(link.id)
+                                },
+                                modifier = Modifier.fillMaxWidth()
                             )
                         }
                     }
@@ -279,15 +293,98 @@ fun CollectionDetailScreen(
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(filteredLinks) { link ->
+                        lazyColumnItems(filteredLinks) { link ->
                             BookmarkCard(
                                 link = link,
                                 collectionName = uiState.collection?.name ?: "",
                                 collectionColor = uiState.collection?.color ?: "#FF6200EE",
-                                onCardClick = { uriHandler.openUri(link.url) },
+                                isMultiSelectMode = uiState.isMultiSelectMode,
+                                isSelected = uiState.selectedLinks.contains(link.id),
+                                onCardClick = {
+                                    if (uiState.isMultiSelectMode) {
+                                        viewModel.toggleLinkSelection(link.id)
+                                    } else {
+                                        uriHandler.openUri(link.url)
+                                    }
+                                },
                                 onMoreClick = {
                                     selectedLink = link
+                                },
+                                onLongPress = {
+                                    viewModel.startMultiSelectWithToggle(link.id)
+                                },
+                                onSelectClick = {
+                                    viewModel.toggleLinkSelection(link.id)
                                 }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        }
+    }
+
+        // Add Floating Action Button for adding bookmarks directly to this collection
+        if (!uiState.isMultiSelectMode) {
+            androidx.compose.material3.FloatingActionButton(
+                onClick = { showAddLinkDialog = true },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp),
+                containerColor = MaterialTheme.colorScheme.primary
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = stringResource(R.string.home_add_link)
+                )
+            }
+        }
+
+        // Contextual Action Bar for Multi-Select Mode
+        if (uiState.isMultiSelectMode) {
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                color = MaterialTheme.colorScheme.primaryContainer,
+                shape = RoundedCornerShape(16.dp),
+                shadowElevation = 8.dp
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(R.string.multi_select_count_selected, uiState.selectedLinks.size),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        IconButton(
+                            onClick = { viewModel.batchDeleteLinks() },
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = stringResource(R.string.multi_select_delete_selected),
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
+
+                        IconButton(
+                            onClick = { viewModel.exitMultiSelectMode() },
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = stringResource(R.string.multi_select_cancel_selection),
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
                     }
@@ -296,18 +393,10 @@ fun CollectionDetailScreen(
         }
     }
 
-        // Add Floating Action Button for adding bookmarks directly to this collection
-        androidx.compose.material3.FloatingActionButton(
-            onClick = { showAddLinkDialog = true },
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(16.dp),
-            containerColor = MaterialTheme.colorScheme.primary
-        ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = stringResource(R.string.home_add_link)
-            )
+    // Batch operation message
+    LaunchedEffect(uiState.batchOperationMessage) {
+        uiState.batchOperationMessage?.let {
+            viewModel.clearBatchOperationMessage()
         }
     }
 
@@ -356,188 +445,6 @@ fun CollectionDetailScreen(
             }
         )
     }
-}
-
-@Composable
-fun CollectionOption(
-    icon: ImageVector,
-    name: String,
-    color: Int,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    Surface(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        color = if (isSelected) {
-            MaterialTheme.colorScheme.primaryContainer
-        } else {
-            MaterialTheme.colorScheme.surface
-        },
-        border = if (isSelected) {
-            BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
-        } else {
-            BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
-        }
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .background(
-                        color = Color(color),
-                        shape = CircleShape
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(16.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Text(
-                text = name,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                color = if (isSelected) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.onSurface
-                }
-            )
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            if (isSelected) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = stringResource(R.string.common_selected),
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun CreateCollectionDialog(
-    onDismiss: () -> Unit,
-    onCreate: (String, Int) -> Unit
-) {
-    var name by remember { mutableStateOf("") }
-    var selectedColor by remember { mutableStateOf("#6366F1") }
-
-    val colors = listOf(
-        "#6366F1", "#8B5CF6", "#EC4899", "#EF4444",
-        "#F97316", "#EAB308", "#22C55E", "#06B6D4",
-        "#3B82F6", "#6366F1", "#8B5CF6", "#EC4899"
-    )
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.CreateNewFolder,
-                    contentDescription = stringResource(R.string.common_create),
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = stringResource(R.string.collections_create_collection),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
-        },
-        text = {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text(stringResource(R.string.collections_collection_name)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-
-                Text(
-                    text = stringResource(R.string.collections_choose_color),
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium
-                )
-
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(6),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.height(80.dp)
-                ) {
-                    items(colors) { color ->
-                        Box(
-                            modifier = Modifier
-                                .size(32.dp)
-                                .background(
-                                    color = Color(color.toColorInt()),
-                                    shape = CircleShape
-                                )
-                                .border(
-                                    width = if (selectedColor == color) 3.dp else 0.dp,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    shape = CircleShape
-                                )
-                                .clickable { selectedColor = color },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            if (selectedColor == color) {
-                                Icon(
-                                    imageVector = Icons.Default.Check,
-                                    contentDescription = stringResource(R.string.common_selected),
-                                    tint = Color.White,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                        if (name.isNotBlank()) {
-                            onCreate(name.trim(), selectedColor.toColorInt())
-                        }
-                    },
-                enabled = name.isNotBlank()
-            ) {
-                Text(stringResource(R.string.common_create))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.common_cancel))
-            }
-        }
-    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -692,9 +599,11 @@ private fun CollectionLinkOptionsBottomSheet(
     // Collection Selection Dialog
     if (showCollectionDialog) {
         var showCreateDialog by remember { mutableStateOf(false) }
+        val allCollections by homeViewModel.combinedUiState.collectAsStateWithLifecycle()
 
         CollectionSelectionDialog(
             currentCollectionId = link.collectionId,
+            allCollections = allCollections.allCollections,
             onDismiss = { showCollectionDialog = false },
             onCollectionSelected = { collectionId ->
                 onMoveToCollection(collectionId)
@@ -705,16 +614,15 @@ private fun CollectionLinkOptionsBottomSheet(
         )
 
         if (showCreateDialog) {
-            CreateCollectionDialog(
+            com.appcodecraft.linkzary.ui.screen.home.CreateCollectionDialog(
                 onDismiss = { showCreateDialog = false },
-                onCreate = { name: String, color: Int ->
+                onCreate = { name: String, color: Int, icon: String ->
                     // Use the HomeViewModel from the parent composable
-                    homeViewModel.createCollection(name = name, color = color) { newCollectionId ->
-                        // Move the link to the new collection if needed
-                        link.collectionId?.let { oldCollectionId ->
-                            if (oldCollectionId != newCollectionId) {
-                                onMoveToCollection(newCollectionId)
-                            }
+                    homeViewModel.createCollection(name = name, color = color, icon = icon) { newCollectionId ->
+                        // Move the link to the new collection
+                        // Always move (handles both null and non-null old collectionId)
+                        if (link.collectionId != newCollectionId) {
+                            onMoveToCollection(newCollectionId)
                         }
                     }
                     showCreateDialog = false
@@ -764,281 +672,5 @@ private fun CollectionLinkOptionsBottomSheet(
                 }
             }
         )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun EditLinkDialog(
-    link: SavedLink,
-    onDismiss: () -> Unit,
-    onSave: (SavedLink) -> Unit
-) {
-    var title by remember { mutableStateOf(link.title) }
-    var url by remember { mutableStateOf(link.url) }
-    var note by remember { mutableStateOf(link.note) }
-    var tags by remember { mutableStateOf(link.tags) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = stringResource(R.string.common_edit),
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(stringResource(R.string.collections_edit_link))
-            }
-        },
-        text = {
-            Column {
-                OutlinedTextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    label = { Text(stringResource(R.string.home_title)) },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Title,
-                            contentDescription = stringResource(R.string.home_title),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                OutlinedTextField(
-                    value = url,
-                    onValueChange = { url = it },
-                    label = { Text(stringResource(R.string.home_url)) },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Link,
-                            contentDescription = stringResource(R.string.home_url),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                OutlinedTextField(
-                    value = note,
-                    onValueChange = { note = it },
-                    label = { Text(stringResource(R.string.home_note_optional)) },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.Notes,
-                            contentDescription = stringResource(R.string.home_note),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    maxLines = 3
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                OutlinedTextField(
-                    value = tags,
-                    onValueChange = { tags = it },
-                    label = { Text(stringResource(R.string.home_tags_comma_separated)) },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Tag,
-                            contentDescription = stringResource(R.string.home_tags),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    onSave(
-                        link.copy(
-                            title = title,
-                            url = url,
-                            note = note,
-                            tags = tags
-                        )
-                    )
-                },
-                enabled = title.isNotBlank() && url.isNotBlank()
-            ) {
-                Text(stringResource(R.string.common_save))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.common_cancel))
-            }
-        }
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun CollectionSelectionDialog(
-    currentCollectionId: Long?,
-    onDismiss: () -> Unit,
-    onCollectionSelected: (Long?) -> Unit,
-    onCreateNew: () -> Unit
-) {
-    val homeViewModel: HomeViewModel = hiltViewModel()
-    val homeUiState by homeViewModel.combinedUiState.collectAsStateWithLifecycle()
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.DriveFileMove,
-                    contentDescription = stringResource(R.string.collections_move),
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = stringResource(R.string.collections_move_to_collection),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
-        },
-        text = {
-            LazyColumn(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                // No Collection option
-                item {
-                    CollectionOption(
-                        icon = Icons.Default.FolderOpen,
-                        name = stringResource(R.string.collections_no_collection),
-                        color = MaterialTheme.colorScheme.outline.value.toInt(),
-                        isSelected = currentCollectionId == null,
-                        onClick = { onCollectionSelected(null) }
-                    )
-                }
-
-                // Existing collections
-                items(homeUiState.allCollections) { collection ->
-                    CollectionOption(
-                        icon = getCollectionIconVector(collection.icon),
-                        name = collection.name,
-                        color = collection.color.removePrefix("#").toLongOrNull(16)?.toInt() ?: 0xFF6366F1.toInt(),
-                        isSelected = currentCollectionId == collection.id,
-                        onClick = { onCollectionSelected(collection.id) }
-                    )
-                }
-
-                // Create new collection option
-                item {
-                    Surface(
-                        onClick = { onCreateNew() },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.CreateNewFolder,
-                                contentDescription = stringResource(R.string.collections_create_new_collection),
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(24.dp)
-                            )
-
-                            Spacer(modifier = Modifier.width(16.dp))
-
-                            Text(
-                                text = stringResource(R.string.collections_create_new_collection),
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.common_cancel))
-            }
-        }
-    )
-
-    // We don't need to handle the create dialog here anymore
-    // It's now handled by the parent component through onCreateNew callback
-}
-
-@Composable
-fun OptionItem(
-    icon: ImageVector,
-    title: String,
-    subtitle: String,
-    onClick: () -> Unit,
-    isDestructive: Boolean = false
-) {
-    Surface(
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surface
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = title,
-                tint = if (isDestructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.size(24.dp)
-            )
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium,
-                    color = if (isDestructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (isDestructive) MaterialTheme.colorScheme.error.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
     }
 }

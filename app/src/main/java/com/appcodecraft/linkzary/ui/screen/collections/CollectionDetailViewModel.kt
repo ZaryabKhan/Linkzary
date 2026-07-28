@@ -23,7 +23,10 @@ data class CollectionDetailUiState(
     val errorMessage: String = "",
     val searchQuery: String = "",
     val filteredLinks: List<SavedLink> = emptyList(),
-    val isGridView: Boolean = false
+    val isGridView: Boolean = false,
+    val isMultiSelectMode: Boolean = false,
+    val selectedLinks: Set<Long> = emptySet(),
+    val batchOperationMessage: String? = null
 )
 
 @HiltViewModel
@@ -42,7 +45,15 @@ class CollectionDetailViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(isLoading = true, error = null, errorMessage = "")
             
             try {
-                val collectionIdLong = collectionId.toLong()
+                val collectionIdLong = collectionId.toLongOrNull()
+                if (collectionIdLong == null) {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = "Invalid collection ID",
+                        errorMessage = "Invalid collection ID"
+                    )
+                    return@launch
+                }
                 
                 // Load collection details
                 val collection = collectionRepository.getCollectionById(collectionIdLong)
@@ -209,7 +220,7 @@ class CollectionDetailViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(isLoading = true, error = null)
                 collectionRepository.updateCollection(collection)
                 _uiState.value = _uiState.value.copy(
-                    collection = collection, // Update local state immediately
+                    collection = collection,
                     isLoading = false
                 )
             } catch (e: Exception) {
@@ -219,5 +230,86 @@ class CollectionDetailViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    fun enterMultiSelectMode(linkId: Long? = null) {
+        _uiState.value = _uiState.value.copy(
+            isMultiSelectMode = true,
+            selectedLinks = if (linkId != null) setOf(linkId) else emptySet()
+        )
+    }
+
+    fun exitMultiSelectMode() {
+        _uiState.value = _uiState.value.copy(
+            isMultiSelectMode = false,
+            selectedLinks = emptySet()
+        )
+    }
+
+    fun toggleLinkSelection(linkId: Long) {
+        val current = _uiState.value.selectedLinks
+        val newSelection = if (current.contains(linkId)) current - linkId else current + linkId
+        _uiState.value = _uiState.value.copy(selectedLinks = newSelection)
+        if (newSelection.isEmpty()) {
+            exitMultiSelectMode()
+        }
+    }
+
+    fun startMultiSelectWithToggle(linkId: Long) {
+        if (!_uiState.value.isMultiSelectMode) {
+            _uiState.value = _uiState.value.copy(
+                isMultiSelectMode = true,
+                selectedLinks = setOf(linkId)
+            )
+        } else {
+            toggleLinkSelection(linkId)
+        }
+    }
+
+    fun batchDeleteLinks() {
+        viewModelScope.launch {
+            try {
+                val count = _uiState.value.selectedLinks.size
+                linkRepository.deleteLinksByIds(_uiState.value.selectedLinks.toList())
+                _uiState.value = _uiState.value.copy(
+                    batchOperationMessage = "Deleted $count bookmarks",
+                    isMultiSelectMode = false,
+                    selectedLinks = emptySet()
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = e.message ?: "Failed to delete links"
+                )
+            }
+        }
+    }
+
+    fun batchMoveToCollection(collectionId: Long?) {
+        viewModelScope.launch {
+            try {
+                val count = _uiState.value.selectedLinks.size
+                _uiState.value.selectedLinks.forEach { linkId ->
+                    linkRepository.moveToCollection(linkId, collectionId)
+                }
+                val collectionName = if (collectionId == null) {
+                    "Uncategorized"
+                } else {
+                    collectionRepository.getCollectionById(collectionId)?.name ?: "Unknown"
+                }
+                _uiState.value = _uiState.value.copy(
+                    batchOperationMessage = "Moved $count bookmarks to $collectionName",
+                    isMultiSelectMode = false,
+                    selectedLinks = emptySet()
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = e.message ?: "Failed to move links"
+                )
+            }
+        }
+    }
+
+    fun clearBatchOperationMessage() {
+        _uiState.value = _uiState.value.copy(batchOperationMessage = null)
     }
 }

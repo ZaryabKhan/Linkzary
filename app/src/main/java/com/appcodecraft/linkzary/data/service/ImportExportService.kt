@@ -493,9 +493,9 @@ class ImportExportService @Inject constructor() {
         exportData.links.forEachIndexed { index, exportLink ->
             val isDuplicate = existingLinks.any { it.url == exportLink.url }
             
-            if (!isDuplicate || mode == ImportMode.IMPORT_ONLY) {
+            if (!isDuplicate) {
                 val newCollectionId = exportLink.collectionId?.let { collectionIdMap[it] }
-                
+
                 val newLink = SavedLink(
                     url = exportLink.url,
                     title = exportLink.title,
@@ -504,7 +504,7 @@ class ImportExportService @Inject constructor() {
                     isPinned = exportLink.isPinned,
                     favicon = exportLink.faviconUrl
                 )
-                
+
                 onLinkInsert(newLink)
                 importedLinks++
             } else {
@@ -651,8 +651,8 @@ class ImportExportService @Inject constructor() {
                     } else null
                     
                     val isDuplicate = existingLinks.any { it.url == url }
-                    
-                    if (!isDuplicate || mode == ImportMode.IMPORT_ONLY) {
+
+                    if (!isDuplicate) {
                         val collectionId = collectionName?.let { collectionNameToIdMap[it] }
                         
                         val newLink = SavedLink(

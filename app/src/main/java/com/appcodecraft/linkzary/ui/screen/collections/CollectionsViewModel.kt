@@ -42,7 +42,8 @@ class CollectionsViewModel @Inject constructor(
     
     private val _searchQuery = MutableStateFlow("")
     private val _sortOrder = MutableStateFlow(
-        SortOrder.valueOf(userPreferencesManager.getCollectionsSortOrder())
+        runCatching { SortOrder.valueOf(userPreferencesManager.getCollectionsSortOrder()) }
+            .getOrDefault(SortOrder.NAME_ASC)
     )
     private val _isLoading = MutableStateFlow(false)
     private val _isRefreshing = MutableStateFlow(false)
@@ -222,7 +223,9 @@ class CollectionsViewModel @Inject constructor(
             try {
                 _isLoading.value = true
                 _error.value = null
-                
+
+                // Unlink all links from this collection before deleting it
+                linkRepository.unlinkLinksFromCollection(collection.id)
                 collectionRepository.deleteCollection(collection)
             } catch (e: Exception) {
                 _error.value = "Failed to delete collection: ${e.message}"

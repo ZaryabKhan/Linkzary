@@ -4,6 +4,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -13,7 +14,10 @@ import com.appcodecraft.linkzary.ui.screen.collections.CollectionDetailScreen
 import com.appcodecraft.linkzary.ui.screen.collections.CollectionsScreen
 import com.appcodecraft.linkzary.ui.screen.donation.DonationScreen
 import com.appcodecraft.linkzary.ui.screen.home.HomeScreen
+import com.appcodecraft.linkzary.ui.screen.rss.RssFeedsScreen
 import com.appcodecraft.linkzary.ui.screen.settings.SettingsScreen
+import com.appcodecraft.linkzary.ui.screen.stats.StatsScreen
+import com.appcodecraft.linkzary.ui.screen.tags.TagsScreen
 
 @Composable
 fun LinkzaryNavigation(
@@ -69,6 +73,15 @@ fun LinkzaryNavigation(
                 userPreferencesManager = userPreferencesManager,
                 onNavigateToDonation = {
                     navController.navigate(Screen.Donation.route)
+                },
+                onNavigateToTags = {
+                    navController.navigate(Screen.Tags.route)
+                },
+                onNavigateToRssFeeds = {
+                    navController.navigate(Screen.RssFeeds.route)
+                },
+                onNavigateToStats = {
+                    navController.navigate(Screen.Stats.route)
                 }
             )
         }
@@ -92,36 +105,55 @@ fun LinkzaryNavigation(
         ) { backStackEntry ->
             val linkId = backStackEntry.arguments?.getString("linkId")?.toLongOrNull()
             if (linkId != null) {
-                // We need to fetch the link. 
-                // Ideally passing the whole link might be cleaner but NavArg is okay.
-                // Or we can get it from a shared ViewModel or fetching from Repository in ReaderScreen/ViewModel.
-                // For simplicity, let's create a ReaderViewModel or pass logic.
-                // Wait, I didn't create a ReaderViewModel. I should probably have one to fetch the link.
-                // Or I can misuse HomeViewModel if I pass it, but better to fetch.
-                
-                // Let's quickly create a ReaderViewModel or simpler: 
-                // Just fetch it in the Composable using a LaunchedEffect if we didn't make a VM.
-                // But ReaderScreen expects a `SavedLink` object.
-                // So I need to fetch it.
-                
-                // Let's modify LinkzaryNavigation to construct the ReaderScreen 
-                // with a temporary loading state or fetch logic.
-                
-                // Actually, let's use hiltViewModel() inside ReaderScreen to fetch the link by ID.
-                // I need to update ReaderScreen to accept linkId instead of SavedLink, OR fetching it.
-                // Let's Go with: Modify ReaderScreen to take Link ID and fetch it.
-                
                 com.appcodecraft.linkzary.ui.screen.reader.ReaderScreenWrapper(
                     linkId = linkId,
                     onBackClick = { navController.popBackStack() }
                 )
+            } else {
+                // Invalid linkId — navigate back instead of showing a blank screen
+                LaunchedEffect(Unit) {
+                    navController.popBackStack()
+                }
             }
+        }
+
+        composable(
+            route = Screen.Tags.route,
+            enterTransition = { fadeIn(animationSpec = tween(200)) },
+            exitTransition = { fadeOut(animationSpec = tween(200)) }
+        ) {
+            TagsScreen(
+                onBackClick = { navController.popBackStack() },
+                onTagClick = { tag ->
+                    navController.navigate(Screen.Home.createRouteWithSearch(tag))
+                }
+            )
+        }
+
+        composable(
+            route = Screen.RssFeeds.route,
+            enterTransition = { fadeIn(animationSpec = tween(200)) },
+            exitTransition = { fadeOut(animationSpec = tween(200)) }
+        ) {
+            RssFeedsScreen(
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = Screen.Stats.route,
+            enterTransition = { fadeIn(animationSpec = tween(200)) },
+            exitTransition = { fadeOut(animationSpec = tween(200)) }
+        ) {
+            StatsScreen()
         }
     }
 }
 
 sealed class Screen(val route: String, val title: String) {
-    object Home : Screen("home", "Home")
+    object Home : Screen("home", "Home") {
+        fun createRouteWithSearch(query: String) = "home?search=$query"
+    }
     object Collections : Screen("collections", "Collections")
     object CollectionDetail : Screen("collection_detail/{collectionId}", "Collection Detail") {
         fun createRoute(collectionId: String) = "collection_detail/$collectionId"
@@ -131,4 +163,7 @@ sealed class Screen(val route: String, val title: String) {
     object Reader : Screen("reader/{linkId}", "Reader Mode") {
         fun createRoute(linkId: Long) = "reader/$linkId"
     }
+    object Tags : Screen("tags", "Tags")
+    object RssFeeds : Screen("rss_feeds", "RSS Feeds")
+    object Stats : Screen("stats", "Stats")
 }

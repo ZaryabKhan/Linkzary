@@ -79,7 +79,7 @@ import com.appcodecraft.linkzary.ui.component.CollectionCard
 import com.appcodecraft.linkzary.ui.component.CreateCollectionForm
 import com.appcodecraft.linkzary.ui.component.createCollectionGradient
 import com.appcodecraft.linkzary.ui.component.getCollectionIconVector
-import com.appcodecraft.linkzary.ui.screen.home.OptionItem
+import com.appcodecraft.linkzary.ui.component.OptionItem
 import com.appcodecraft.linkzary.ui.theme.LinkzaryTheme
 
 @OptIn(ExperimentalMaterial3Api::class)

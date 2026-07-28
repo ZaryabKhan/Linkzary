@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.appcodecraft.linkzary.data.dao.CollectionDao
+import com.appcodecraft.linkzary.data.dao.RssFeedDao
 import com.appcodecraft.linkzary.data.dao.SavedLinkDao
 import com.appcodecraft.linkzary.data.database.LinkzaryDatabase
 import com.appcodecraft.linkzary.data.service.ImportExportService
@@ -26,10 +27,12 @@ object DatabaseModule {
             LinkzaryDatabase::class.java,
             LinkzaryDatabase.DATABASE_NAME
         )
-            .addMigrations(
-                LinkzaryDatabase.MIGRATION_1_2, 
+                        .addMigrations(
+                LinkzaryDatabase.MIGRATION_1_2,
                 LinkzaryDatabase.MIGRATION_2_3,
-                LinkzaryDatabase.MIGRATION_3_4
+                LinkzaryDatabase.MIGRATION_3_4,
+                LinkzaryDatabase.MIGRATION_4_5,
+                LinkzaryDatabase.MIGRATION_5_6
             )
             .setJournalMode(RoomDatabase.JournalMode.WRITE_AHEAD_LOGGING)
             .setQueryExecutor(java.util.concurrent.Executors.newFixedThreadPool(4))
@@ -45,6 +48,11 @@ object DatabaseModule {
     @Provides
     fun provideCollectionDao(database: LinkzaryDatabase): CollectionDao {
         return database.collectionDao()
+    }
+
+    @Provides
+    fun provideRssFeedDao(database: LinkzaryDatabase): RssFeedDao {
+        return database.rssFeedDao()
     }
 
     @Provides
