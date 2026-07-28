@@ -23,11 +23,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CreateNewFolder
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Schedule
@@ -43,6 +43,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -55,6 +56,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -94,333 +96,280 @@ fun CollectionsScreen(
     val isGridView by viewModel.isGridView.collectAsState()
     var showSortMenu by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp)
-    ) {
-        Spacer(modifier = Modifier.height(16.dp))
+    // Pre-compute collection lookup map
+    val collectionMap by remember(uiState.collectionsWithCounts) {
+        derivedStateOf { uiState.collectionsWithCounts }
+    }
 
-        // Header with enhanced controls
+    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+
+        // Custom header (matches HomeScreen style)
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 8.dp, top = 20.dp, bottom = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Folder,
-                        contentDescription = stringResource(R.string.navigation_collections),
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(28.dp)
+            Icon(
+                imageVector = Icons.Default.Folder,
+                contentDescription = stringResource(R.string.navigation_collections),
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = stringResource(R.string.nav_collections),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(1f)
+            )
+
+            // View toggle
+            IconButton(
+                onClick = { viewModel.toggleGridView() },
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(
+                        color = if (isGridView) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f)
+                        else Color.Transparent,
+                        shape = RoundedCornerShape(10.dp)
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = stringResource(R.string.nav_collections),
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.FolderOpen,
-                        contentDescription = stringResource(R.string.collections_collections_count),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = stringResource(R.string.collections_count_info, uiState.collections.size, uiState.collectionsWithCounts.values.sum()),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    if (uiState.collectionsWithCounts.isNotEmpty()) {
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "•",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Icon(
-                            imageVector = Icons.Default.Link,
-                            contentDescription = stringResource(R.string.collections_total_links),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "${uiState.collectionsWithCounts.values.sum()} total links",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
+            ) {
+                Icon(
+                    imageVector = if (isGridView) Icons.AutoMirrored.Filled.ViewList else Icons.Default.GridView,
+                    contentDescription = if (isGridView) stringResource(R.string.home_switch_list_view) else stringResource(R.string.home_switch_grid_view),
+                    tint = if (isGridView) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(20.dp)
+                )
             }
 
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Enhanced view mode toggle
+            // Sort menu
+            Box {
                 IconButton(
-                            onClick = { viewModel.toggleGridView() },
+                    onClick = { showSortMenu = true },
                     modifier = Modifier
                         .size(40.dp)
                         .background(
-                            color = if (isGridView) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f) else Color.Transparent,
-                            shape = RoundedCornerShape(12.dp)
+                            color = if (showSortMenu) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.8f)
+                            else Color.Transparent,
+                            shape = RoundedCornerShape(10.dp)
                         )
                 ) {
                     Icon(
-                        imageVector = if (isGridView) Icons.AutoMirrored.Filled.ViewList else Icons.Default.GridView,
-                        contentDescription = if (isGridView) stringResource(R.string.home_switch_list_view) else stringResource(R.string.home_switch_grid_view),
-                        tint = if (isGridView) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(24.dp)
+                        imageVector = Icons.AutoMirrored.Filled.Sort,
+                        contentDescription = stringResource(R.string.home_sort_options),
+                        tint = if (showSortMenu) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp)
                     )
                 }
 
-                // Enhanced sort menu
-                Box {
-                    IconButton(
-                        onClick = { showSortMenu = true },
-                        modifier = Modifier
-                            .size(40.dp)
-                            .background(
-                                color = if (showSortMenu) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.8f) else Color.Transparent,
-                                shape = RoundedCornerShape(12.dp)
-                            )
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.Sort,
-                            contentDescription = stringResource(R.string.home_sort_options),
-                            tint = if (showSortMenu) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-
-                    DropdownMenu(
-                        expanded = showSortMenu,
-                        onDismissRequest = { showSortMenu = false }
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.collections_sort_name_az)) },
-                            onClick = {
-                                viewModel.setSortOrder(SortOrder.NAME_ASC)
-                                showSortMenu = false
-                            },
-                            leadingIcon = {
-                                Icon(Icons.Default.SortByAlpha, contentDescription = null)
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.collections_sort_name_za)) },
-                            onClick = {
-                                viewModel.setSortOrder(SortOrder.NAME_DESC)
-                                showSortMenu = false
-                            },
-                            leadingIcon = {
-                                Icon(Icons.Default.SortByAlpha, contentDescription = null)
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.collections_sort_most_links)) },
-                            onClick = {
-                                viewModel.setSortOrder(SortOrder.LINK_COUNT_DESC)
-                                showSortMenu = false
-                            },
-                            leadingIcon = {
-                                Icon(Icons.Default.Link, contentDescription = null)
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.collections_sort_recently_created)) },
-                            onClick = {
-                                viewModel.setSortOrder(SortOrder.DATE_DESC)
-                                showSortMenu = false
-                            },
-                            leadingIcon = {
-                                Icon(Icons.Default.Schedule, contentDescription = null)
-                            }
-                        )
-                    }
-                }
-
-                FloatingActionButton(
-                    onClick = { showCreateCollectionDialog = true },
-                    modifier = Modifier.size(48.dp),
-                    containerColor = MaterialTheme.colorScheme.primary
+                DropdownMenu(
+                    expanded = showSortMenu,
+                    onDismissRequest = { showSortMenu = false }
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = stringResource(R.string.collections_create_collection)
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.collections_sort_name_az)) },
+                        onClick = { viewModel.setSortOrder(SortOrder.NAME_ASC); showSortMenu = false },
+                        leadingIcon = { Icon(Icons.Default.SortByAlpha, contentDescription = null) }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.collections_sort_name_za)) },
+                        onClick = { viewModel.setSortOrder(SortOrder.NAME_DESC); showSortMenu = false },
+                        leadingIcon = { Icon(Icons.Default.SortByAlpha, contentDescription = null) }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.collections_sort_most_links)) },
+                        onClick = { viewModel.setSortOrder(SortOrder.LINK_COUNT_DESC); showSortMenu = false },
+                        leadingIcon = { Icon(Icons.Default.Link, contentDescription = null) }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.collections_sort_recently_created)) },
+                        onClick = { viewModel.setSortOrder(SortOrder.DATE_DESC); showSortMenu = false },
+                        leadingIcon = { Icon(Icons.Default.Schedule, contentDescription = null) }
                     )
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        // Main content
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 72.dp)
+                .padding(horizontal = 16.dp),
+            contentPadding = PaddingValues(bottom = 100.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Search bar
+            item(key = "search") {
+                Box(modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
+                    OutlinedTextField(
+                        value = uiState.searchQuery,
+                        onValueChange = viewModel::updateSearchQuery,
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text(stringResource(R.string.collections_search_placeholder)) },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = stringResource(R.string.common_search),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
+                        singleLine = true,
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                }
+            }
 
-        // Search bar
-        OutlinedTextField(
-            value = uiState.searchQuery,
-            onValueChange = viewModel::updateSearchQuery,
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text(stringResource(R.string.collections_search_placeholder)) },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = stringResource(R.string.common_search)
-                )
-            },
-            shape = RoundedCornerShape(12.dp),
-            singleLine = true
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Collections content
-        when {
-            uiState.isLoading -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    contentAlignment = Alignment.Center
+            // Sort info chips
+            item(key = "info") {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        CircularProgressIndicator()
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = stringResource(R.string.collections_loading),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                    FilterChip(
+                        onClick = {},
+                        label = {
+                            val count = uiState.collections.size
+                            Text(stringResource(R.string.nav_collections) + " ($count)")
+                        },
+                        selected = true,
+                        leadingIcon = { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                    )
+                    if (uiState.collectionsWithCounts.values.sum() > 0) {
+                        FilterChip(
+                            onClick = {},
+                            label = {
+                                Text("${uiState.collectionsWithCounts.values.sum()} ${stringResource(R.string.collections_total_links).lowercase()}")
+                            },
+                            selected = false,
+                            leadingIcon = { Icon(Icons.Default.Link, contentDescription = null, modifier = Modifier.size(16.dp)) }
                         )
                     }
                 }
             }
 
-            uiState.collections.isEmpty() -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.padding(32.dp)
+            // Loading state
+            if (uiState.isLoading) {
+                item(key = "loading") {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().height(200.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            imageVector = if (uiState.searchQuery.isBlank())
-                                Icons.Outlined.FolderOpen else Icons.Outlined.SearchOff,
-                            contentDescription = null,
-                            modifier = Modifier.size(64.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                        )
+                        CircularProgressIndicator()
+                    }
+                }
+            }
 
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Text(
-                            text = if (uiState.searchQuery.isBlank())
-                                stringResource(R.string.collections_empty_state) else stringResource(R.string.collections_no_results),
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontWeight = FontWeight.Medium
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text(
-                            text = if (uiState.searchQuery.isBlank())
-                                stringResource(R.string.collections_empty_description)
-                            else stringResource(R.string.collections_no_results_description),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
-                        )
-
-                        if (uiState.searchQuery.isBlank()) {
-                            Spacer(modifier = Modifier.height(24.dp))
-
-                            Button(
-                                onClick = { showCreateCollectionDialog = true },
-                                modifier = Modifier.fillMaxWidth(0.6f)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Add,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp)
+            // Empty state
+            if (!uiState.isLoading && uiState.collections.isEmpty()) {
+                item(key = "empty") {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().height(200.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                imageVector = if (uiState.searchQuery.isBlank())
+                                    Icons.Outlined.FolderOpen else Icons.Outlined.SearchOff,
+                                contentDescription = null,
+                                modifier = Modifier.size(48.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = if (uiState.searchQuery.isBlank())
+                                    stringResource(R.string.collections_empty_state)
+                                else stringResource(R.string.collections_no_results),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            if (uiState.searchQuery.isBlank()) {
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = stringResource(R.string.collections_empty_description),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(stringResource(R.string.collections_create_collection))
                             }
                         }
                     }
                 }
             }
 
-            else -> {
+            // Collections grid/list
+            if (!uiState.isLoading && uiState.collections.isNotEmpty()) {
                 if (isGridView) {
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(2),
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        contentPadding = PaddingValues(bottom = 16.dp),
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        items(uiState.collections) { collection ->
-                            CollectionCard(
-                                collection = collection,
-                                linkCount = uiState.collectionsWithCounts[collection.id] ?: 0,
-                                onCardClick = {
-                                    navController?.navigate(
-                                        Screen.CollectionDetail.createRoute(collection.id.toString())
-                                    )
-                                },
-                                onMoreClick = {
-                                    selectedCollection = collection
-                                }
-                            )
+                    item(key = "grid-spacer") {
+                        Spacer(modifier = Modifier.height(4.dp))
+                    }
+                    items(
+                        items = uiState.collections.chunked(2),
+                        key = { chunk -> chunk.joinToString(",") { it.id.toString() } }
+                    ) { rowCollections ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            rowCollections.forEach { collection ->
+                                CollectionCard(
+                                    collection = collection,
+                                    linkCount = collectionMap[collection.id] ?: 0,
+                                    onCardClick = {
+                                        navController?.navigate(
+                                            Screen.CollectionDetail.createRoute(collection.id.toString())
+                                        )
+                                    },
+                                    onMoreClick = { selectedCollection = collection },
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                            if (rowCollections.size == 1) {
+                                Spacer(modifier = Modifier.weight(1f))
+                            }
                         }
                     }
                 } else {
-                    LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                        contentPadding = PaddingValues(bottom = 16.dp),
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        items(uiState.collections) { collection ->
-                            CollectionCard(
-                                collection = collection,
-                                linkCount = uiState.collectionsWithCounts[collection.id] ?: 0,
-                                onCardClick = {
-                                    navController?.navigate(
-                                        Screen.CollectionDetail.createRoute(collection.id.toString())
-                                    )
-                                },
-                                onMoreClick = {
-                                    selectedCollection = collection
-                                }
-                            )
-                        }
+                    items(
+                        items = uiState.collections,
+                        key = { it.id }
+                    ) { collection ->
+                        CollectionCard(
+                            collection = collection,
+                            linkCount = collectionMap[collection.id] ?: 0,
+                            onCardClick = {
+                                navController?.navigate(
+                                    Screen.CollectionDetail.createRoute(collection.id.toString())
+                                )
+                            },
+                            onMoreClick = { selectedCollection = collection }
+                        )
                     }
                 }
             }
         }
 
-        // Error handling with Snackbar
-        uiState.error?.let { error ->
-            LaunchedEffect(error) {
-                // Show error message
-                viewModel.clearError()
-            }
+        // Floating Action Button (overlay, bottom-right)
+        FloatingActionButton(
+            onClick = { showCreateCollectionDialog = true },
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = stringResource(R.string.collections_create_collection)
+            )
+        }
+    }
+
+    // Error handling
+    uiState.error?.let { error ->
+        LaunchedEffect(error) {
+            viewModel.clearError()
         }
     }
 
