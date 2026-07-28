@@ -7,10 +7,12 @@ import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingClientStateListener
 import com.android.billingclient.api.BillingFlowParams
 import com.android.billingclient.api.BillingResult
+import com.android.billingclient.api.PendingPurchasesParams
 import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.QueryProductDetailsParams
+import com.android.billingclient.api.QueryPurchasesParams
 import com.appcodecraft.linkzary.data.preferences.UserPreferencesManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -31,7 +33,6 @@ class BillingManager @Inject constructor(
     private val _purchaseState = MutableStateFlow<PurchaseState>(PurchaseState.Idle)
     val purchaseState: StateFlow<PurchaseState> = _purchaseState.asStateFlow()
     
-    // Donation SKUs from $1 to $30
     private val donationSkus = listOf(
         "donation_1_dollar",
         "donation_2_dollar", 
@@ -50,7 +51,12 @@ class BillingManager @Inject constructor(
     fun initializeBilling(context: Context) {
         billingClient = BillingClient.newBuilder(context)
             .setListener(this)
-            .enablePendingPurchases()
+            .enablePendingPurchases(
+                PendingPurchasesParams.newBuilder()
+                    .enableOneTimeProducts()
+                    .build()
+            )
+            .enableAutoServiceReconnection()
             .build()
         
         connectToBillingService()
@@ -86,16 +92,15 @@ class BillingManager @Inject constructor(
             .setProductList(productList)
             .build()
         
-        billingClient?.queryProductDetailsAsync(params) { billingResult, productDetailsList ->
+        billingClient?.queryProductDetailsAsync(params) { billingResult, result ->
             if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                // Filter out products that don't have proper price details
+                val productDetailsList = result.productDetailsList
                 val validProducts = productDetailsList.filter { product ->
                     product.oneTimePurchaseOfferDetails != null &&
                     product.oneTimePurchaseOfferDetails?.formattedPrice != null
                 }
                 _availableProducts.value = validProducts
                 
-                // Debug logging to help identify issues
                 android.util.Log.d("BillingManager", "Total products queried: ${productDetailsList.size}")
                 android.util.Log.d("BillingManager", "Valid products with prices: ${validProducts.size}")
                 productDetailsList.forEach { product ->
@@ -111,9 +116,11 @@ class BillingManager @Inject constructor(
     }
     
     private fun queryExistingPurchases() {
-        billingClient?.queryPurchasesAsync(
-            BillingClient.ProductType.INAPP
-        ) { billingResult, purchases ->
+        val params = QueryPurchasesParams.newBuilder()
+            .setProductType(BillingClient.ProductType.INAPP)
+            .build()
+        
+        billingClient?.queryPurchasesAsync(params) { billingResult, purchases ->
             if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                 val hasDonations = purchases.any { purchase ->
                     purchase.purchaseState == Purchase.PurchaseState.PURCHASED &&
@@ -159,12 +166,10 @@ class BillingManager @Inject constructor(
         if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
             _purchaseState.value = PurchaseState.Success
             
-            // Check if this is a donation and update preference
             if (donationSkus.contains(purchase.products.firstOrNull())) {
                 userPreferencesManager.setHasDonated(true)
             }
             
-            // Acknowledge the purchase
             if (!purchase.isAcknowledged) {
                 val acknowledgePurchaseParams = AcknowledgePurchaseParams.newBuilder()
                     .setPurchaseToken(purchase.purchaseToken)
