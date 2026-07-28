@@ -119,7 +119,7 @@ fun BookmarkCard(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(220.dp)
+                    .height(160.dp)
                     .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
             ) {
                 if (!link.previewImageUrl.isNullOrBlank() && !showPreviewFallback) {
@@ -325,7 +325,7 @@ fun BookmarkCard(
                     Spacer(modifier = Modifier.height(10.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         link.tags.split(",").take(3).forEach { tag ->
                             if (tag.isNotBlank()) {
@@ -336,9 +336,9 @@ fun BookmarkCard(
                                     ),
                                     color = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier
-                                        .clip(RoundedCornerShape(6.dp))
+                                        .clip(RoundedCornerShape(8.dp))
                                         .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f))
-                                        .padding(horizontal = 8.dp, vertical = 3.dp)
+                                        .padding(horizontal = 10.dp, vertical = 4.dp)
                                 )
                             }
                         }
@@ -363,7 +363,7 @@ fun BookmarkCard(
 
                     IconButton(
                         onClick = onMoreClick,
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(40.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.MoreVert,

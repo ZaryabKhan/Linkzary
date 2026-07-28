@@ -524,7 +524,7 @@ fun HomeScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
+                .padding(start = 16.dp, end = 8.dp, top = 20.dp, bottom = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
@@ -618,14 +618,14 @@ fun HomeScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = if (uiState.isMultiSelectMode) 0.dp else 56.dp)
+            .padding(top = if (uiState.isMultiSelectMode) 0.dp else 72.dp)
             .padding(horizontal = 16.dp),
         contentPadding = PaddingValues(bottom = if (uiState.isMultiSelectMode) 140.dp else 100.dp),
-        verticalArrangement = Arrangement.spacedBy(0.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
             // Search bar
             item(key = "search") {
-                Box(modifier = Modifier.fillMaxWidth()) {
+                Box(modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
                     OutlinedTextField(
                         value = localSearchQuery,
                         onValueChange = { newQuery ->
@@ -737,7 +737,6 @@ fun HomeScreen(
                         }
                     }
                 }
-                Spacer(modifier = Modifier.height(12.dp))
             }
 
             // Read status filter chips
@@ -790,7 +789,6 @@ fun HomeScreen(
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(12.dp))
             }
 
             // Tag filter section (conditional)
@@ -833,7 +831,6 @@ fun HomeScreen(
                             )
                         }
                     }
-                    Spacer(modifier = Modifier.height(16.dp))
                 }
             }
 
@@ -870,7 +867,6 @@ fun HomeScreen(
                             )
                         }
                     }
-                    Spacer(modifier = Modifier.height(16.dp))
                 }
             }
 
@@ -894,7 +890,6 @@ fun HomeScreen(
                         fontWeight = FontWeight.SemiBold
                     )
                 }
-                Spacer(modifier = Modifier.height(12.dp))
             }
 
             // Loading state
@@ -974,7 +969,6 @@ fun HomeScreen(
                                 Spacer(modifier = Modifier.weight(1f))
                             }
                         }
-                        Spacer(modifier = Modifier.height(12.dp))
                     }
                 } else {
                     items(
@@ -998,7 +992,6 @@ fun HomeScreen(
                             onLongPress = { viewModel.startMultiSelectWithToggle(link.id) },
                             onSelectClick = { viewModel.toggleLinkSelection(link.id) }
                         )
-                        Spacer(modifier = Modifier.height(12.dp))
                     }
                 }
             }

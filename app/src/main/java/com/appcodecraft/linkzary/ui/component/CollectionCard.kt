@@ -143,8 +143,8 @@ fun CollectionCard(
             // Enhanced color indicator with improved styling
             Box(
                 modifier = Modifier
-                    .size(56.dp)
-                    .clip(RoundedCornerShape(16.dp))
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(14.dp))
                     .background(
                         brush = Brush.linearGradient(
                             colors = listOf(
@@ -159,7 +159,7 @@ fun CollectionCard(
                     imageVector = getCollectionIconVector(collection.icon),
                     contentDescription = null,
                     tint = Color.White,
-                    modifier = Modifier.size(28.dp)
+                    modifier = Modifier.size(24.dp)
                 )
             }
             
@@ -195,7 +195,7 @@ fun CollectionCard(
             // More button
             IconButton(
                 onClick = onMoreClick,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(40.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.MoreVert,

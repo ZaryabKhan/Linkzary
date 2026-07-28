@@ -115,7 +115,7 @@ fun CollectionsScreen(
                         imageVector = Icons.Default.Folder,
                         contentDescription = stringResource(R.string.navigation_collections),
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(28.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
@@ -164,14 +164,14 @@ fun CollectionsScreen(
             }
 
             Row(
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Enhanced view mode toggle
                 IconButton(
                             onClick = { viewModel.toggleGridView() },
                     modifier = Modifier
-                        .size(48.dp)
+                        .size(40.dp)
                         .background(
                             color = if (isGridView) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f) else Color.Transparent,
                             shape = RoundedCornerShape(12.dp)
@@ -190,7 +190,7 @@ fun CollectionsScreen(
                     IconButton(
                         onClick = { showSortMenu = true },
                         modifier = Modifier
-                            .size(48.dp)
+                            .size(40.dp)
                             .background(
                                 color = if (showSortMenu) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.8f) else Color.Transparent,
                                 shape = RoundedCornerShape(12.dp)
