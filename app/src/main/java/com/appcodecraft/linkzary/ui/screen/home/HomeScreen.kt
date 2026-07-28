@@ -69,6 +69,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -496,25 +497,38 @@ fun HomeScreen(
         }
     }
 
-    // Compute filtered and chunked links
-    val filteredLinks = remember(uiState.links, selectedTags) {
-        if (selectedTags.isEmpty()) {
-            uiState.links
-        } else {
-            uiState.links.filter { link ->
-                val linkTags = link.tags.split(",").map { it.trim() }.filter { it.isNotEmpty() }
-                selectedTags.any { selectedTag -> linkTags.contains(selectedTag) }
+    // Compute filtered and chunked links with derivedStateOf for better recomposition
+    val filteredLinks by remember(uiState.links, selectedTags) {
+        derivedStateOf {
+            if (selectedTags.isEmpty()) {
+                uiState.links
+            } else {
+                uiState.links.filter { link ->
+                    val linkTags = link.tags.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+                    selectedTags.any { selectedTag -> linkTags.contains(selectedTag) }
+                }
             }
         }
     }
 
-    val chunkedLinks = remember(filteredLinks) { filteredLinks.chunked(2) }
+    val chunkedLinks by remember(filteredLinks) {
+        derivedStateOf { filteredLinks.chunked(2) }
+    }
 
     // All tags for filter
-    val allTags = remember(uiState.links) {
-        uiState.links.flatMap { link ->
-            link.tags.split(",").map { it.trim() }.filter { it.isNotEmpty() }
-        }.distinct().sorted()
+    val allTags by remember(uiState.links) {
+        derivedStateOf {
+            uiState.links.flatMap { link ->
+                link.tags.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+            }.distinct().sorted()
+        }
+    }
+
+    // Pre-compute collection lookup map for O(1) lookups instead of linear search
+    val collectionMap by remember(uiState.allCollections) {
+        derivedStateOf {
+            uiState.allCollections.associateBy { it.id }
+        }
     }
 
     Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
@@ -948,8 +962,8 @@ fun HomeScreen(
                             rowLinks.forEach { link ->
                                 BookmarkCard(
                                     link = link,
-                                    collectionName = uiState.allCollections.find { it.id == link.collectionId }?.name,
-                                    collectionColor = uiState.allCollections.find { it.id == link.collectionId }?.color,
+                                    collectionName = collectionMap[link.collectionId]?.name,
+                                    collectionColor = collectionMap[link.collectionId]?.color,
                                     isMultiSelectMode = uiState.isMultiSelectMode,
                                     isSelected = uiState.selectedLinks.contains(link.id),
                                     onCardClick = {
@@ -977,8 +991,8 @@ fun HomeScreen(
                     ) { link ->
                         BookmarkCard(
                             link = link,
-                            collectionName = uiState.allCollections.find { it.id == link.collectionId }?.name,
-                            collectionColor = uiState.allCollections.find { it.id == link.collectionId }?.color,
+                            collectionName = collectionMap[link.collectionId]?.name,
+                            collectionColor = collectionMap[link.collectionId]?.color,
                             isMultiSelectMode = uiState.isMultiSelectMode,
                             isSelected = uiState.selectedLinks.contains(link.id),
                             onCardClick = {

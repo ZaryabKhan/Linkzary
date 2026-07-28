@@ -183,7 +183,9 @@ fun ReaderScreen(
                             WebView(context).apply {
                                 webViewClient = WebViewClient()
                                 settings.defaultTextEncodingName = "utf-8"
-                                setBackgroundColor(0x00000000) // Transparent
+                                settings.setSupportZoom(false)
+                                settings.builtInZoomControls = false
+                                setBackgroundColor(0x00000000)
                             }
                         },
                         update = { webView ->

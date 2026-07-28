@@ -2,6 +2,7 @@ package com.appcodecraft.linkzary.util
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -10,13 +11,16 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class ArticleContentExtractor @Inject constructor() {
+class ArticleContentExtractor @Inject constructor(
+    private val okHttpClient: OkHttpClient
+) {
 
     suspend fun extractContent(url: String): String? = withContext(Dispatchers.IO) {
         try {
             val doc = Jsoup.connect(url)
                 .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
                 .timeout(10000)
+                .followRedirects(true)
                 .get()
 
             // Remove unwanted elements

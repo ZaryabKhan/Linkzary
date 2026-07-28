@@ -52,9 +52,9 @@ class LinkzaryApplication : Application(), Configuration.Provider {
             )
         }
 
-        // Optimize memory usage
+        // Optimize coroutine scheduler pool for better background throughput
         System.setProperty("kotlinx.coroutines.scheduler.core.pool.size", "2")
-        System.setProperty("kotlinx.coroutines.scheduler.max.pool.size", "4")
+        System.setProperty("kotlinx.coroutines.scheduler.max.pool.size", "8")
 
         // Schedule link health check worker
         scheduleLinkHealthCheck()

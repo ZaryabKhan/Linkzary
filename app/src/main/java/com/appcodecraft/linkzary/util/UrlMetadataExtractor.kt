@@ -2,6 +2,7 @@ package com.appcodecraft.linkzary.util
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
 import org.jsoup.Jsoup
 import java.net.URL
 import javax.inject.Inject
@@ -14,14 +15,18 @@ data class UrlMetadata(
 )
 
 @Singleton
-class UrlMetadataExtractor @Inject constructor() {
+class UrlMetadataExtractor @Inject constructor(
+    private val okHttpClient: OkHttpClient
+) {
 
     suspend fun extractMetadata(url: String): UrlMetadata = withContext(Dispatchers.IO) {
         try {
-            val doc = Jsoup.connect(url)
+            val connection = Jsoup.connect(url)
                 .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
                 .timeout(5000)
-                .get()
+                .followRedirects(true)
+
+            val doc = connection.get()
 
             val title = doc.title().takeIf { it.isNotBlank() } ?: extractDomainFromUrl(url)
             val favicon = extractFavicon(doc, url)

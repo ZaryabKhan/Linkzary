@@ -10,7 +10,9 @@ import com.appcodecraft.linkzary.data.repository.LinkRepository
 import com.appcodecraft.linkzary.util.ArticleContentExtractor
 import com.appcodecraft.linkzary.util.UrlMetadataExtractor
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -320,8 +322,15 @@ class HomeViewModel @Inject constructor(
                 _isLoading.value = true
                 _error.value = null
 
-                val metadata = urlMetadataExtractor.extractMetadata(url)
-                val content = articleContentExtractor.extractContent(url)
+                val metadataJob = async(Dispatchers.IO) {
+                    urlMetadataExtractor.extractMetadata(url)
+                }
+                val contentJob = async(Dispatchers.IO) {
+                    articleContentExtractor.extractContent(url)
+                }
+
+                val metadata = metadataJob.await()
+                val content = contentJob.await()
 
                 val link = SavedLink(
                     title = metadata.title,
@@ -348,15 +357,21 @@ class HomeViewModel @Inject constructor(
                 _isLoading.value = true
                 _error.value = null
 
-                // Check if link already exists
                 val existingLink = linkRepository.getLinkByUrl(url)
                 if (existingLink != null) {
                     _error.value = "Link already saved"
                     return@launch
                 }
 
-                val metadata = urlMetadataExtractor.extractMetadata(url)
-                val content = articleContentExtractor.extractContent(url)
+                val metadataJob = async(Dispatchers.IO) {
+                    urlMetadataExtractor.extractMetadata(url)
+                }
+                val contentJob = async(Dispatchers.IO) {
+                    articleContentExtractor.extractContent(url)
+                }
+
+                val metadata = metadataJob.await()
+                val content = contentJob.await()
 
                 val link = SavedLink(
                     title = metadata.title,

@@ -107,26 +107,25 @@ interface SavedLinkDao {
 
     @Transaction
     suspend fun renameTag(oldTag: String, newTag: String) {
-        // Get all links that contain the old tag
         val links = getAllLinksSync()
-        links.filter { link ->
+        val affected = links.filter { link ->
             link.tags.split(",").map { it.trim() }.any { it == oldTag }
-        }.forEach { link ->
+        }
+        for (link in affected) {
             val updatedTags = link.tags.split(",")
                 .map { it.trim() }
-                .map { if (it == oldTag) newTag else it }
-                .joinToString(",")
+                .joinToString(",") { if (it == oldTag) newTag else it }
             updateTags(link.id, updatedTags)
         }
     }
 
     @Transaction
     suspend fun deleteTag(tag: String) {
-        // Remove the tag from any link that contains it
         val links = getAllLinksSync()
-        links.filter { link ->
+        val affected = links.filter { link ->
             link.tags.split(",").map { it.trim() }.any { it == tag }
-        }.forEach { link ->
+        }
+        for (link in affected) {
             val updatedTags = link.tags.split(",")
                 .map { it.trim() }
                 .filter { it != tag }
@@ -139,9 +138,10 @@ interface SavedLinkDao {
     suspend fun deleteTags(tags: List<String>) {
         val tagSet = tags.toSet()
         val links = getAllLinksSync()
-        links.filter { link ->
+        val affected = links.filter { link ->
             link.tags.split(",").map { it.trim() }.any { it in tagSet }
-        }.forEach { link ->
+        }
+        for (link in affected) {
             val updatedTags = link.tags.split(",")
                 .map { it.trim() }
                 .filter { it !in tagSet }

@@ -13,38 +13,30 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.util.Date
-import java.util.concurrent.TimeUnit
 
 @HiltWorker
 class LinkHealthWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted workerParams: WorkerParameters,
-    private val database: LinkzaryDatabase
+    private val database: LinkzaryDatabase,
+    private val okHttpClient: OkHttpClient
 ) : CoroutineWorker(appContext, workerParams) {
 
     companion object {
         const val WORK_NAME = "link_health_check"
         private const val TAG = "LinkHealthWorker"
-        private const val TIMEOUT_SECONDS = 10L
     }
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         try {
             val savedLinkDao = database.savedLinkDao()
             val linksToCheck = savedLinkDao.getLinksNeedingHealthCheck(
-                Date(System.currentTimeMillis() - 24 * 3600_000L) // 24 hours old
+                Date(System.currentTimeMillis() - 24 * 3600_000L)
             )
 
             if (linksToCheck.isEmpty()) {
                 return@withContext Result.success()
             }
-
-            val client = OkHttpClient.Builder()
-                .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
-                .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
-                .followRedirects(true)
-                .followSslRedirects(true)
-                .build()
 
             var checked = 0
             linksToCheck.forEach { link ->
@@ -54,16 +46,13 @@ class LinkHealthWorker @AssistedInject constructor(
                         .head()
                         .build()
 
-                    val response = client.newCall(request).execute()
-                    // Only mark dead on 4xx (client errors) — 5xx and network errors may be temporary
+                    val response = okHttpClient.newCall(request).execute()
                     val isAlive = response.code !in 400..499
                     response.close()
 
                     savedLinkDao.updateLinkHealth(link.id, isAlive, Date())
                     checked++
                 } catch (e: Exception) {
-                    // Network error (timeout, DNS, etc.) — don't update health status
-                    // as the link may be perfectly fine on a better connection
                     Log.w(TAG, "Network error checking ${link.url}: ${e.message}")
                     checked++
                 }

@@ -38,7 +38,6 @@
 # OkHttp optimizations
 -dontwarn okhttp3.**
 -dontwarn okio.**
--keep class okhttp3.** { *; }
 
 # Serialization optimizations
 -keepattributes *Annotation*, InnerClasses
@@ -58,3 +57,21 @@
 # JSoup optimizations
 -keep class org.jsoup.** { *; }
 -dontwarn org.jsoup.**
+
+# RssParser optimizations
+-keep class com.prof18.rssparser.** { *; }
+-dontwarn com.prof18.rssparser.**
+
+# Keep data classes used in Room entities
+-keep class com.appcodecraft.linkzary.data.entity.** { *; }
+-keep class com.appcodecraft.linkzary.data.model.** { *; }
+
+# Keep WorkManager workers
+-keep class * extends androidx.work.ListenableWorker {
+    public <init>(android.content.Context, androidx.work.WorkerParameters);
+}
+-keep class com.appcodecraft.linkzary.worker.** { *; }
+
+# Keep BillingManager
+-keep class com.appcodecraft.linkzary.billing.** { *; }
+-dontwarn com.android.vending.**

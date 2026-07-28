@@ -12,6 +12,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
@@ -86,8 +88,8 @@ fun LinkzaryTheme(
     val themeMode by if (userPreferencesManager != null) {
         userPreferencesManager.themeMode.collectAsState()
     } else {
-        androidx.compose.runtime.remember { 
-            androidx.compose.runtime.mutableStateOf(ThemeMode.SYSTEM) 
+        remember { 
+            mutableStateOf(ThemeMode.SYSTEM) 
         }
     }
     

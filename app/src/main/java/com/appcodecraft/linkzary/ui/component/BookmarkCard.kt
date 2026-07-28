@@ -61,6 +61,15 @@ import com.appcodecraft.linkzary.ui.theme.LinkzaryTheme
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.ConcurrentHashMap
+
+private val dateFormatCache = ConcurrentHashMap<String, SimpleDateFormat>()
+
+private fun getCachedDateFormat(pattern: String): SimpleDateFormat {
+    return dateFormatCache.getOrPut(pattern) {
+        SimpleDateFormat(pattern, Locale.getDefault())
+    }
+}
 
 @Composable
 fun BookmarkCard(
@@ -399,12 +408,9 @@ fun formatSaveDate(date: Date): String {
     val diffInMillis = now.time - date.time
     val diffInDays = diffInMillis / (24 * 60 * 60 * 1000)
 
-    val recentDateFormat = SimpleDateFormat("d MMM yyyy, h:mm a", Locale.getDefault())
-    val olderDateFormat = SimpleDateFormat("d MMM yyyy", Locale.getDefault())
-
     return when {
-        diffInDays < 7 -> recentDateFormat.format(date)
-        else -> olderDateFormat.format(date)
+        diffInDays < 7 -> getCachedDateFormat("d MMM yyyy, h:mm a").format(date)
+        else -> getCachedDateFormat("d MMM yyyy").format(date)
     }
 }
 

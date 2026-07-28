@@ -14,7 +14,7 @@ android {
 
     defaultConfig {
         applicationId = "com.appcodecraft.linkzary"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 35
         versionCode = 13
         versionName = "1.1.3"
