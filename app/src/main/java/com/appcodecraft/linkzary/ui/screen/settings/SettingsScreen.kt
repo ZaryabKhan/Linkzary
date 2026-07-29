@@ -1121,7 +1121,7 @@ fun sendFeedbackEmail(context: Context) {
 }
 
 fun openPrivacyPolicy(context: Context) {
-    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.appcodecraft.com/p/privacy-policy.html"))
+    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.appcodecraft.com/privacy"))
     context.startActivity(intent)
 }
 

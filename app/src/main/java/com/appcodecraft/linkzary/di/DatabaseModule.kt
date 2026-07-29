@@ -32,7 +32,8 @@ object DatabaseModule {
                 LinkzaryDatabase.MIGRATION_2_3,
                 LinkzaryDatabase.MIGRATION_3_4,
                 LinkzaryDatabase.MIGRATION_4_5,
-                LinkzaryDatabase.MIGRATION_5_6
+                LinkzaryDatabase.MIGRATION_5_6,
+                LinkzaryDatabase.MIGRATION_6_7
             )
             .setJournalMode(RoomDatabase.JournalMode.WRITE_AHEAD_LOGGING)
             .setQueryExecutor(java.util.concurrent.Executors.newFixedThreadPool(

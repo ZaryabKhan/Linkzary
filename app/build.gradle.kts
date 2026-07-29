@@ -14,9 +14,9 @@ android {
     defaultConfig {
         applicationId = "com.appcodecraft.linkzary"
         minSdk = 26
-        targetSdk = 35
-        versionCode = 14
-        versionName = "1.1.4"
+        targetSdk = 36
+        versionCode = 15
+        versionName = "1.1.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
