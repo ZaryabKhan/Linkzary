@@ -199,22 +199,6 @@ By participating you agree to abide by the [Code of Conduct](CODE_OF_CONDUCT.md)
 
 Found a vulnerability? Please **do not** open a public issue. See [SECURITY.md](SECURITY.md) for how to report it privately.
 
-## 🗺️ Roadmap
-
-- [ ] Browser extension for one-tap saving
-- [ ] Sync via self-hosted backend (optional, opt-in)
-- [ ] Read-later queue
-- [ ] Search across all saved content
-- [ ] More languages — PRs welcome!
-
-## ⭐ Star history
-
-<p align="center">
-  <a href="https://www.star-history.com/#ZaryabKhan/Linkzary&Date">
-    <img src="https://api.star-history.com/svg?repos=ZaryabKhan/Linkzary&type=Date" alt="Star History Chart" width="600" />
-  </a>
-</p>
-
 ## 📝 Changelog
 
 See the [Releases](https://github.com/ZaryabKhan/Linkzary/releases) page for version history.
