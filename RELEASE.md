@@ -1,121 +1,152 @@
 # Release Workflow
 
-This document describes how to publish a new version of Linkzary — both the
-Google Play Store build (AAB) and the GitHub Release build (APK).
+This document describes how to publish a new version of Linkzary to both
+distribution channels:
 
-> **Signing key:** The release signing keystore is **NOT** in this repository
-> (it is gitignored). Only the maintainer holds it. Without it, anyone can build
-> a debug APK, but only the maintainer can produce a Play-Store-compatible
-> signed release.
+- **Google Play Store** → `.aab`, signed with your **Play upload key**, built & uploaded **manually**.
+- **GitHub Releases** → `.apk`, signed with a **dedicated GitHub-release key**, built & published **automatically** by CI when you push a tag.
+
+> **Two separate signing keys (important):** Linkzary uses **Google Play App
+> Signing**. That means Google holds the *app signing key* and re-signs the APK
+> it distributes via Play. You sign the AAB you upload with your *upload key*.
+> Because of this, an APK you build locally can **never** have the same
+> signature as the Play Store build — so the GitHub APK and the Play Store app
+> are **mutually exclusive**: a user can have one or the other installed, not
+> both at the same time (same package name, different signatures → "App not
+> installed"). This is expected and normal for open-source Android apps.
+>
+> To keep things clean and safe, the GitHub APK is signed with a **separate,
+> dedicated "GitHub-release" keystore** — never your Play upload key. Your Play
+> upload key never touches GitHub's servers.
 
 ## Prerequisites (one-time setup)
 
-1. Have your release keystore (`.jks`) file on your machine.
-2. Create a file named `keystore.properties` **at the project root** (next to
-   `gradle.properties`). This file is gitignored and must never be committed.
+### A) Play Store — local upload key
+
+1. Have your Play **upload** keystore (`.jks`) on your machine.
+2. Create `keystore.properties` **at the project root** (next to
+   `gradle.properties`). It is gitignored and must never be committed.
    Use `keystore.properties.example` as a template:
 
    ```properties
-   storeFile=/absolute/path/to/your/release-key.jks
+   storeFile=/absolute/path/to/your/play-upload-key.jks
    storePassword=your-store-password
    keyAlias=your-key-alias
    keyPassword=your-key-password
    ```
 
-   `storeFile` may be an absolute path or relative to the project root.
+   When present, the `release` build type signs automatically with these
+   credentials (used for the local AAB build).
 
-3. When `keystore.properties` exists, the `release` build type is signed
-   automatically using these credentials. Without it, release builds are
-   unsigned (fine for contributors; not for publishing).
+### B) GitHub Releases — dedicated key as repository secrets
 
-## 1. Prepare the release
+1. Generate a **new, dedicated** keystore just for GitHub releases (do **not**
+   reuse your Play upload key):
+
+   ```bash
+   keytool -genkeypair -v \
+     -keystore linkzary-github.jks \
+     -alias github -keyalg RSA -keysize 2048 -validity 10000 \
+     -storepass STOREPW -keypass KEYPW
+   ```
+
+   **Back this file up somewhere safe.** All future GitHub releases must be
+   signed with the same key, or users won't be able to update in place.
+
+2. Base64-encode it (for storing as a secret):
+
+   ```bash
+   base64 -i linkzary-github.jks | pbcopy    # macOS (copies to clipboard)
+   # or:  base64 -w 0 linkzary-github.jks    # Linux
+   ```
+
+3. In GitHub: **Settings → Secrets and variables → Actions → New repository
+   secret**, and add these four:
+
+   | Secret name | Value |
+   |-------------|-------|
+   | `RELEASE_KEYSTORE_BASE64` | the base64 output from step 2 |
+   | `RELEASE_STORE_PASSWORD` | the `storepass` you set |
+   | `RELEASE_KEY_ALIAS` | `github` (or whatever alias you chose) |
+   | `RELEASE_KEY_PASSWORD` | the `keypass` you set |
+
+   GitHub encrypts secrets at rest; they are only decrypted during the CI run
+   and are masked in logs.
+
+> Until these secrets are added, the automated release workflow will fail to
+> sign. Add them once and you're set for every future release.
+
+## 1. Prepare the release (every release)
 
 1. Make sure `master` is up to date and CI is green.
 2. Bump the version in `app/build.gradle.kts`:
-   - `versionCode` — increment by 1 every release (integer, must always increase)
+   - `versionCode` — increment by 1 every release (must always increase)
    - `versionName` — human-readable, e.g. `"1.2.0"`
-3. Commit the version bump, e.g. `Bump version to 1.2.0`.
-4. Create and push a git tag matching the version:
+3. Commit the bump and open a PR (branch protection requires it). Once CI is
+   green, **Squash and merge** it to `master`, then pull locally:
+   `git checkout master && git pull`.
 
-   ```bash
-   git tag v1.2.0
-   git push origin v1.2.0
-   ```
+## 2. Publish the GitHub Release (automatic)
 
-## 2. Build the Play Store AAB
+This part is fully automated by `.github/workflows/release.yml`.
 
-Google Play requires **Android App Bundles (.aab)**, not APKs.
+```bash
+git tag v1.2.0
+git push origin v1.2.0
+```
+
+Pushing the tag triggers CI to: build a signed release APK → create a GitHub
+Release for that tag → attach `Linkzary-v1.2.0.apk` → auto-generate release
+notes from the PRs/commits since the previous tag.
+
+That's it. The APK appears in the **Releases** section on GitHub, and users can
+download and install it (they must allow "Install unknown apps" for their
+browser/file manager — standard sideloading).
+
+> Watch the run under the **Actions** tab. If it fails, the most likely cause
+> is a missing/incorrect release secret — re-check the four secrets above.
+
+## 3. Publish to the Play Store (manual)
+
+Google Play requires **Android App Bundles (.aab)**, built and signed with your
+**upload key** locally.
 
 ```bash
 ./gradlew :app:bundleRelease
 ```
 
-The signed AAB will be at:
+The signed AAB lands at `app/build/outputs/bundle/release/app-release.aab`.
 
-```
-app/build/outputs/bundle/release/app-release.aab
-```
-
-> If you use Play App Signing (recommended), Google holds your app signing key
-> and you sign with your **upload key**. The AAB you upload is signed with the
-> upload key; Google re-signs for distribution. Keep your upload keystore safe —
-> losing it means you must contact Play Console support to reset it.
-
-### Upload to Play Console
+Then upload it:
 
 1. Go to https://play.google.com/console → your app → **Production** (or
    internal testing first) → **Create new release**.
 2. Upload `app-release.aab`.
 3. Add release notes, then **Review release** → **Start rollout**.
 
-## 3. Build the GitHub Release APK
-
-For GitHub Releases, distribute an **APK** (so users can sideload without
-Google Play).
-
-```bash
-./gradlew :app:assembleRelease
-```
-
-The signed APK will be at:
-
-```
-app/build/outputs/apk/release/app-release.apk
-```
-
-> If `keystore.properties` is absent, the APK/AAB will be *unsigned* and named
-> `app-release-unsigned.apk`. Make sure `keystore.properties` is present before
-> building a release you intend to publish.
-
-### Create the GitHub Release
-
-1. Go to https://github.com/ZaryabKhan/Linkzary/releases/new
-2. **Choose a tag** → select the tag you pushed (e.g. `v1.2.0`).
-3. **Release title:** `v1.2.0`
-4. **Description:** summarize changes (you can use `git log v1.1.5..v1.2.0
-   --oneline` to list commits since the last release).
-5. **Attach binaries:** drag in `app-release.apk`.
-6. Check **"Set as the latest release"**.
-7. **Publish release**.
+> Keep your **upload keystore** safe. If you lose it, you must contact Play
+> Console support to reset it. (This is separate from the GitHub-release key.)
 
 ## Quick reference (every release)
 
 ```bash
-# 1. Bump versionCode/versionName in app/build.gradle.kts, commit & push to master
-# 2. Tag and push the tag
+# 1. After merging the version-bump PR to master:
+git checkout master && git pull
+
+# 2. Tag & push → triggers the AUTOMATIC GitHub Release (APK attached)
 git tag v1.2.0
 git push origin v1.2.0
 
-# 3. Build both artifacts (requires keystore.properties present)
-./gradlew :app:bundleRelease :app:assembleRelease
-
-# 4. Upload AAB to Play Console; attach APK to the GitHub Release for the tag
+# 3. Manually build & upload the AAB to the Play Store
+./gradlew :app:bundleRelease
+#    then upload app/build/outputs/bundle/release/app-release.aab in Play Console
 ```
 
 ## Which artifact goes where?
 
-| Target      | Format | Gradle task          | Output path                                          |
-|-------------|--------|----------------------|------------------------------------------------------|
-| Play Store  | `.aab` | `:app:bundleRelease`   | `app/build/outputs/bundle/release/app-release.aab`   |
-| GitHub      | `.apk` | `:app:assembleRelease` | `app/build/outputs/apk/release/app-release.apk`      |
-| Debug (dev) | `.apk` | `:app:assembleDebug`   | `app/build/outputs/apk/debug/app-debug.apk`          |
+| Target      | Format | How it's produced | Signing key | Automatable |
+|-------------|--------|-------------------|-------------|-------------|
+| Play Store  | `.aab` | local `:app:bundleRelease`, manual upload | Play **upload key** (Google re-signs) | Manual upload |
+| GitHub      | `.apk` | CI on tag push (`release.yml`) | dedicated **GitHub-release key** (repo secret) | ✅ Automatic |
+| Debug (dev) | `.apk` | local `:app:assembleDebug` | debug key | — |
+
