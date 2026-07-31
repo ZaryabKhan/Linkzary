@@ -13,6 +13,12 @@
 </p>
 
 <p align="center">
+  <a href="https://play.google.com/store/apps/details?id=com.appcodecraft.linkzary&hl=en">
+    <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" width="220" alt="Get it on Google Play" />
+  </a>
+</p>
+
+<p align="center">
   <a href="https://github.com/ZaryabKhan/Linkzary/actions/workflows/build.yml"><img src="https://github.com/ZaryabKhan/Linkzary/actions/workflows/build.yml/badge.svg" alt="Build" /></a>
   <a href="https://github.com/ZaryabKhan/Linkzary/releases/latest"><img src="https://img.shields.io/github/v/release/ZaryabKhan/Linkzary?display_name=tag&include_prereleases&logo=semantic-release&logoColor=white" alt="Latest Release" /></a>
   <a href="https://github.com/ZaryabKhan/Linkzary/releases"><img src="https://img.shields.io/github/downloads/ZaryabKhan/Linkzary/total?logo=github" alt="Downloads" /></a>
