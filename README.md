@@ -60,18 +60,18 @@ Linkzary helps you **save, organize, and read the web** — without accounts, ad
 
 ## 📸 Screenshots
 
-> Screenshots live in [`docs/images/`](docs/images/). Drop your captures there and they'll render below.
-
 <p align="center">
   <table>
     <tr>
       <td align="center"><img src="docs/images/home.png" width="220" alt="Home" /><br/><sub>Home — Saved links</sub></td>
       <td align="center"><img src="docs/images/reader.png" width="220" alt="Reader" /><br/><sub>Reader — Distraction-free</sub></td>
-      <td align="center"><img src="docs/images/collections.png" width="220" alt="Collections" /><br/><sub>Collections &amp; icons</sub></td>
-      <td align="center"><img src="docs/images/rss.png" width="220" alt="RSS" /><br/><sub>RSS feeds</sub></td>
+      <td align="center"><img src="docs/images/collection.png" width="220" alt="Collections" /><br/><sub>Collections</sub></td>
+      <td align="center"><img src="docs/images/share.png" width="220" alt="Share" /><br/><sub>Share — Quick save</sub></td>
     </tr>
   </table>
 </p>
+
+> Captures are stored in [`docs/images/`](docs/images/). Add more by dropping files there and referencing them above.
 
 ## 🛠️ Tech stack
 
