@@ -1,16 +1,43 @@
-*.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
+# Built application files & build outputs
 /build
-/captures
+/app/build
+/app/release
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# Gradle
+.gradle/
+/local.properties
+/build/
+
+# Signing & keystores — NEVER commit
+*.jks
+*.keystore
+*.pem
+*.p12
+*.cer
+*.crt
+keystore.properties
+
+# Secrets & credentials — NEVER commit
+secrets.properties
+*.env
+.env.*
+google-services.json
+agconnect-services.json
+
+# Native build
 .externalNativeBuild
 .cxx
-local.properties
-app/release/app-release.aab
+/captures
+
+# IDE / editor
+*.iml
+.idea/
+.kotlin/
+.DS_Store
+
+# Misc
+*.log
