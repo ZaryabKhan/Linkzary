@@ -5,6 +5,12 @@
 <h1 align="center">Linkzary</h1>
 
 <p align="center">
+  <a href="https://buy.polar.sh/polar_cl_J3Nnh3YVrN1jMh8GdYaqZD3FjKvg9lsyR3eih1FkRt8">
+    <img src="https://polar.sh/embed/fund-our-backlog.svg" alt="Fund the project" />
+  </a>
+</p>
+
+<p align="center">
   <em>A clean, ad-free link &amp; bookmark manager with RSS reading, an in-app article reader, and tags/collections — built with Kotlin &amp; Jetpack Compose.</em>
 </p>
 
