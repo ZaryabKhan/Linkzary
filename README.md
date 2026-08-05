@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://buy.polar.sh/polar_cl_J3Nnh3YVrN1jMh8GdYaqZD3FjKvg9lsyR3eih1FkRt8">
-    <img src="https://polar.sh/embed/fund-our-backlog.svg" alt="Fund the project" />
+    <img alt="Donate" src="https://img.shields.io/badge/Donate-Linkzary-blue?style=for-the-badge&logo=github-sponsors" />
   </a>
 </p>
 
