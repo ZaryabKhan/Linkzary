@@ -6,7 +6,6 @@
 
 <p align="center">
   <a href="https://buy.polar.sh/polar_cl_J3Nnh3YVrN1jMh8GdYaqZD3FjKvg9lsyR3eih1FkRt8">
-    <img src="https://polar.sh/embed/fund-our-backlog.svg" alt="Fund the project" />
   </a>
 </p>
 
