@@ -1,11 +1,11 @@
 package com.appcodecraft.linkzary.ui.theme
 
+import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Shapes
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.GenericShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 import kotlin.math.abs
