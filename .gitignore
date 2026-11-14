@@ -15,6 +15,11 @@
 # Signing & keystores — NEVER commit
 *.jks
 *.keystore
+# EXCEPTION: keystores/debug.keystore is a TEST-ONLY debug keystore that is
+# deliberately committed so CI builds keep a stable signing SHA-1 for the
+# Google OAuth client (alias androiddebugkey, standard android/android creds).
+# It must never hold a release key. Release keystores stay ignored:
+!keystores/debug.keystore
 *.pem
 *.p12
 *.cer
