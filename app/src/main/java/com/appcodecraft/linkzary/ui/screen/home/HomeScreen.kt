@@ -720,10 +720,14 @@ fun HomeScreen(
     // M3 TopAppBar (audit #5): real status-bar insets and enter-always collapse
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
-    Box(
+    // Outer Box only positions overlays (action bar, coach-mark, FAB);
+    // the app bar and the list must be siblings in a Column so they stack
+    // instead of drawing over each other (hotfix for the batch-2 overlap).
+    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
             .nestedScroll(scrollBehavior.nestedScrollConnection)
     ) {
 
@@ -1233,6 +1237,8 @@ fun HomeScreen(
                 }
             }
         }
+    }
+    // Column (app bar + list) closed; outer Box stays open for overlays
 
         // Multi-select action bar (overlay)
         if (uiState.isMultiSelectMode) {
