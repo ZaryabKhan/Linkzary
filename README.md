@@ -243,4 +243,10 @@ Addendum: fixed the Collection Detail crash on malformed URLs and the startup
 ANR, replaced the deprecated activity-transition API, trimmed blanket R8 keep
 rules, made link previews retry with a favicon fallback, and added an
 "Open in browser" action that opens links in the user's chosen browser.
-Known issues: not yet exercised on a physical device; new strings English-only.
+Device-test fixes: link opening fully moved off Compose UriHandler to a
+guarded `UrlOpener` (plus a crash-log writer at Android/data/.../files/crash),
+Drive backup/restore failures now surface in the UI (and auto-continue after
+permission grant), and the reminder date/time conversion no longer shifts the
+picked date a day in western timezones.
+Known issues: merge-duplicates not yet device-tested; not yet exercised beyond
+one device pass; new strings English-only.
