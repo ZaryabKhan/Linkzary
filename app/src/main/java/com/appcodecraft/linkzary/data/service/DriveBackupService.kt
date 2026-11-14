@@ -92,16 +92,18 @@ class DriveBackupService @Inject constructor() {
                 .setFields("files(id, name)")
                 .execute()
 
-            val metadata = File()
-                .setName(BACKUP_FILE_NAME)
-                .setParents(listOf("appDataFolder"))
-
             val content = InputStreamContent("application/json",
                 java.io.ByteArrayInputStream(json.toByteArray(Charsets.UTF_8)))
             val existingId = files.files.firstOrNull()?.id
             if (existingId != null) {
+                // parents is not writable on update requests (Drive API returns
+                // 403 fieldNotWritable); only create() may set it.
+                val metadata = File().setName(BACKUP_FILE_NAME)
                 drive.files().update(existingId, metadata, content).execute()
             } else {
+                val metadata = File()
+                    .setName(BACKUP_FILE_NAME)
+                    .setParents(listOf("appDataFolder"))
                 drive.files().create(metadata, content).execute()
             }
             null
