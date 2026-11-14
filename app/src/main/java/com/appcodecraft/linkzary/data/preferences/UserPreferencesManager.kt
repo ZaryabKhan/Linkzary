@@ -49,6 +49,16 @@ class UserPreferencesManager(context: Context) {
     private val _hasDonated = MutableStateFlow(getHasDonated())
     val hasDonated: StateFlow<Boolean> = _hasDonated.asStateFlow()
 
+    // Brand color preference (audit #4): when true, the Linkzary indigo
+    // palette overrides Material You dynamic color. Default stays dynamic.
+    private val _useBrandColors = MutableStateFlow(getUseBrandColors())
+    val useBrandColors: StateFlow<Boolean> = _useBrandColors.asStateFlow()
+
+    // First-run coach-mark (audit #8): shown exactly once, only for users
+    // with zero links saved.
+    private val _hasSeenCoachMark = MutableStateFlow(getHasSeenCoachMark())
+    val hasSeenCoachMark: StateFlow<Boolean> = _hasSeenCoachMark.asStateFlow()
+
     // Search history
     private val _searchHistory = MutableStateFlow(getSearchHistory())
     val searchHistory: StateFlow<List<String>> = _searchHistory.asStateFlow()
@@ -147,6 +157,30 @@ class UserPreferencesManager(context: Context) {
         return sharedPreferences.getBoolean(KEY_HAS_DONATED, false)
     }
 
+    // Brand colors
+    fun setUseBrandColors(useBrandColors: Boolean) {
+        sharedPreferences.edit()
+            .putBoolean(KEY_USE_BRAND_COLORS, useBrandColors)
+            .apply()
+        _useBrandColors.value = useBrandColors
+    }
+
+    private fun getUseBrandColors(): Boolean {
+        return sharedPreferences.getBoolean(KEY_USE_BRAND_COLORS, false)
+    }
+
+    // Coach-mark
+    fun markCoachMarkSeen() {
+        sharedPreferences.edit()
+            .putBoolean(KEY_HAS_SEEN_COACH_MARK, true)
+            .apply()
+        _hasSeenCoachMark.value = true
+    }
+
+    private fun getHasSeenCoachMark(): Boolean {
+        return sharedPreferences.getBoolean(KEY_HAS_SEEN_COACH_MARK, false)
+    }
+
     // Search history methods
     fun addSearchQuery(query: String) {
         if (query.isBlank()) return
@@ -197,6 +231,8 @@ class UserPreferencesManager(context: Context) {
         private const val KEY_COLLECTIONS_GRID_VIEW = "collections_grid_view"
         private const val KEY_COLLECTION_DETAIL_GRID_VIEW = "collection_detail_grid_view"
         private const val KEY_HAS_DONATED = "has_donated"
+        private const val KEY_USE_BRAND_COLORS = "use_brand_colors"
+        private const val KEY_HAS_SEEN_COACH_MARK = "has_seen_coach_mark"
         private const val KEY_HOME_SORT_ORDER = "home_sort_order"
         private const val KEY_COLLECTIONS_SORT_ORDER = "collections_sort_order"
         private const val KEY_SEARCH_HISTORY = "search_history"

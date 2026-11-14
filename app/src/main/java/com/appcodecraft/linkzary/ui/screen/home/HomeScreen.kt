@@ -53,9 +53,9 @@ import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DockedSearchBar
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
@@ -73,8 +73,17 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -83,18 +92,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -641,11 +652,21 @@ fun HomeScreen(
     // Local search state
     var localSearchQuery by remember { mutableStateOf("") }
     var isSearchFocused by remember { mutableStateOf(false) }
-    val searchFocusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
     val searchHistory by viewModel.searchHistory.collectAsStateWithLifecycle()
 
     val snackbarHostState = remember { SnackbarHostState() }
+
+    // First-run coach-mark (audit #8): exactly once, only with zero links
+    val hasSeenCoachMark by viewModel.hasSeenCoachMark.collectAsStateWithLifecycle()
+    val showCoachMark = !uiState.isLoading && uiState.links.isEmpty() && !hasSeenCoachMark
+
+    // Subtle crossfade when the grid/list toggle flips (audit #7)
+    val listCrossfade = remember { Animatable(1f) }
+    LaunchedEffect(isGridView) {
+        listCrossfade.snapTo(0f)
+        listCrossfade.animateTo(1f, tween(durationMillis = 250))
+    }
 
     // Sync local search query with UI state
     LaunchedEffect(uiState.searchQuery) {
@@ -695,225 +716,212 @@ fun HomeScreen(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+    // M3 TopAppBar (audit #5): real status-bar insets and enter-always collapse
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
-    // Custom header (replaces TopAppBar to avoid Scaffold inset doubling)
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .nestedScroll(scrollBehavior.nestedScrollConnection)
+    ) {
+
     if (!uiState.isMultiSelectMode) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 16.dp, end = 8.dp, top = 20.dp, bottom = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.Bookmark,
-                contentDescription = stringResource(R.string.home_linkzary_title),
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = stringResource(R.string.home_linkzary_title),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.weight(1f)
-            )
-
-            // View toggle
-            IconButton(
-                onClick = { viewModel.toggleGridView() },
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(
-                        color = if (isGridView) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f)
-                        else Color.Transparent,
-                        shape = RoundedCornerShape(10.dp)
+        TopAppBar(
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Bookmark,
+                        contentDescription = stringResource(R.string.home_linkzary_title),
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(24.dp)
                     )
-            ) {
-                Icon(
-                    imageVector = if (isGridView) Icons.AutoMirrored.Filled.ViewList else Icons.Default.GridView,
-                    contentDescription = if (isGridView) stringResource(R.string.home_switch_to_list_view) else stringResource(R.string.home_switch_to_grid_view),
-                    tint = if (isGridView) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.width(4.dp))
-
-            // Sort menu
-            Box {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(R.string.home_linkzary_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            actions = {
+                // View toggle
                 IconButton(
-                    onClick = { showSortMenu = true },
+                    onClick = { viewModel.toggleGridView() },
                     modifier = Modifier
                         .size(40.dp)
                         .background(
-                            color = if (showSortMenu) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.8f)
+                            color = if (isGridView) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f)
                             else Color.Transparent,
                             shape = RoundedCornerShape(10.dp)
                         )
                 ) {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Filled.Sort,
-                        contentDescription = stringResource(R.string.home_sort_options),
-                        tint = if (showSortMenu) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                        imageVector = if (isGridView) Icons.AutoMirrored.Filled.ViewList else Icons.Default.GridView,
+                        contentDescription = if (isGridView) stringResource(R.string.home_switch_to_list_view) else stringResource(R.string.home_switch_to_grid_view),
+                        tint = if (isGridView) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(20.dp)
                     )
                 }
 
-                DropdownMenu(
-                    expanded = showSortMenu,
-                    onDismissRequest = { showSortMenu = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.home_pinned_first)) },
-                        onClick = { viewModel.setSortOrder(LinkSortOrder.PINNED_FIRST); showSortMenu = false },
-                        leadingIcon = { Icon(Icons.Default.PushPin, contentDescription = null) }
-                    )
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.home_newest_first)) },
-                        onClick = { viewModel.setSortOrder(LinkSortOrder.DATE_DESC); showSortMenu = false },
-                        leadingIcon = { Icon(Icons.Default.Schedule, contentDescription = null) }
-                    )
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.home_oldest_first)) },
-                        onClick = { viewModel.setSortOrder(LinkSortOrder.DATE_ASC); showSortMenu = false },
-                        leadingIcon = { Icon(Icons.Default.History, contentDescription = null) }
-                    )
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.home_title_a_z)) },
-                        onClick = { viewModel.setSortOrder(LinkSortOrder.TITLE_ASC); showSortMenu = false },
-                        leadingIcon = { Icon(Icons.Default.SortByAlpha, contentDescription = null) }
-                    )
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.home_title_z_a)) },
-                        onClick = { viewModel.setSortOrder(LinkSortOrder.TITLE_DESC); showSortMenu = false },
-                        leadingIcon = { Icon(Icons.Default.SortByAlpha, contentDescription = null) }
-                    )
+                Spacer(modifier = Modifier.width(4.dp))
+
+                // Sort menu
+                Box {
+                    IconButton(
+                        onClick = { showSortMenu = true },
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(
+                                color = if (showSortMenu) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.8f)
+                                else Color.Transparent,
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Sort,
+                            contentDescription = stringResource(R.string.home_sort_options),
+                            tint = if (showSortMenu) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+
+                    DropdownMenu(
+                        expanded = showSortMenu,
+                        onDismissRequest = { showSortMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.home_pinned_first)) },
+                            onClick = { viewModel.setSortOrder(LinkSortOrder.PINNED_FIRST); showSortMenu = false },
+                            leadingIcon = { Icon(Icons.Default.PushPin, contentDescription = null) }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.home_newest_first)) },
+                            onClick = { viewModel.setSortOrder(LinkSortOrder.DATE_DESC); showSortMenu = false },
+                            leadingIcon = { Icon(Icons.Default.Schedule, contentDescription = null) }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.home_oldest_first)) },
+                            onClick = { viewModel.setSortOrder(LinkSortOrder.DATE_ASC); showSortMenu = false },
+                            leadingIcon = { Icon(Icons.Default.History, contentDescription = null) }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.home_title_a_z)) },
+                            onClick = { viewModel.setSortOrder(LinkSortOrder.TITLE_ASC); showSortMenu = false },
+                            leadingIcon = { Icon(Icons.Default.SortByAlpha, contentDescription = null) }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.home_title_z_a)) },
+                            onClick = { viewModel.setSortOrder(LinkSortOrder.TITLE_DESC); showSortMenu = false },
+                            leadingIcon = { Icon(Icons.Default.SortByAlpha, contentDescription = null) }
+                        )
+                    }
                 }
-            }
-        }
+            },
+            scrollBehavior = scrollBehavior,
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.background
+            )
+        )
     }
 
     // Main content with LazyColumn
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = if (uiState.isMultiSelectMode) 0.dp else 72.dp)
+            // No app bar in multi-select: pad for the status bar ourselves
+            .then(if (uiState.isMultiSelectMode) Modifier.statusBarsPadding() else Modifier)
             .padding(horizontal = 16.dp),
         contentPadding = PaddingValues(bottom = if (uiState.isMultiSelectMode) 140.dp else 100.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-            // Search bar
+            // Search bar (audit #6): M3 DockedSearchBar with the existing
+            // search + history logic. History entries surface as native items.
             item(key = "search") {
-                Box(modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
-                    OutlinedTextField(
-                        value = localSearchQuery,
-                        onValueChange = { newQuery ->
-                            localSearchQuery = newQuery
-                            viewModel.updateSearchQuery(newQuery)
-                        },
+                DockedSearchBar(
+                    query = localSearchQuery,
+                    onQueryChange = { newQuery ->
+                        localSearchQuery = newQuery
+                        viewModel.updateSearchQuery(newQuery)
+                    },
+                    onSearch = {
+                        viewModel.saveSearchQuery(localSearchQuery)
+                        isSearchFocused = false
+                        focusManager.clearFocus()
+                    },
+                    active = isSearchFocused,
+                    onActiveChange = { focused ->
+                        if (!focused && localSearchQuery.isNotBlank()) {
+                            viewModel.saveSearchQuery(localSearchQuery)
+                        }
+                        isSearchFocused = focused
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text(stringResource(R.string.home_search_bookmarks)) },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = stringResource(R.string.home_search),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
+                    trailingIcon = if (localSearchQuery.isNotEmpty()) {
+                        {
+                            IconButton(
+                                onClick = {
+                                    localSearchQuery = ""
+                                    viewModel.updateSearchQuery("")
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Clear,
+                                    contentDescription = stringResource(R.string.home_clear_search),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    } else null,
+                    items = if (isSearchFocused && localSearchQuery.isEmpty()) {
+                        searchHistory.take(5)
+                    } else {
+                        emptyList()
+                    }
+                ) { historyQuery ->
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .focusRequester(searchFocusRequester)
-                            .onFocusChanged { focusState ->
-                                if (!focusState.isFocused && localSearchQuery.isNotBlank()) {
-                                    viewModel.saveSearchQuery(localSearchQuery)
-                                }
-                                isSearchFocused = focusState.isFocused
-                            },
-                        placeholder = { Text(stringResource(R.string.home_search_bookmarks)) },
-                        leadingIcon = {
+                            .clickable {
+                                localSearchQuery = historyQuery
+                                viewModel.updateSearchQuery(historyQuery)
+                                isSearchFocused = false
+                                focusManager.clearFocus()
+                            }
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.History,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = historyQuery,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.weight(1f)
+                        )
+                        IconButton(
+                            onClick = { viewModel.removeSearchQuery(historyQuery) },
+                            modifier = Modifier.size(24.dp)
+                        ) {
                             Icon(
-                                imageVector = Icons.Default.Search,
-                                contentDescription = stringResource(R.string.home_search),
+                                Icons.Default.Close,
+                                contentDescription = "Remove",
+                                modifier = Modifier.size(14.dp),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                        },
-                        trailingIcon = if (localSearchQuery.isNotEmpty()) {
-                            {
-                                IconButton(
-                                    onClick = {
-                                        localSearchQuery = ""
-                                        viewModel.updateSearchQuery("")
-                                    }
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Clear,
-                                        contentDescription = stringResource(R.string.home_clear_search),
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            }
-                        } else null,
-                        singleLine = true,
-                        shape = RoundedCornerShape(16.dp)
-                    )
-
-                    // Search history dropdown
-                    if (isSearchFocused && localSearchQuery.isEmpty() && searchHistory.isNotEmpty()) {
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 56.dp),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-                        ) {
-                            Column(modifier = Modifier.padding(8.dp)) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = stringResource(R.string.recent_searches),
-                                        style = MaterialTheme.typography.labelMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
-                                    )
-                                    TextButton(onClick = { viewModel.clearSearchHistory(); isSearchFocused = false }) {
-                                        Text(stringResource(R.string.clear_history))
-                                    }
-                                }
-                                searchHistory.take(5).forEach { query ->
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clickable {
-                                                localSearchQuery = query
-                                                viewModel.updateSearchQuery(query)
-                                                isSearchFocused = false
-                                                focusManager.clearFocus()
-                                            }
-                                            .padding(horizontal = 12.dp, vertical = 10.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Icon(
-                                            Icons.Default.History,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(16.dp),
-                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                        Spacer(modifier = Modifier.width(12.dp))
-                                        Text(
-                                            text = query,
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurface,
-                                            modifier = Modifier.weight(1f)
-                                        )
-                                        IconButton(
-                                            onClick = { viewModel.removeSearchQuery(query) },
-                                            modifier = Modifier.size(24.dp)
-                                        ) {
-                                            Icon(
-                                                Icons.Default.Close,
-                                                contentDescription = "Remove",
-                                                modifier = Modifier.size(14.dp),
-                                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                        }
-                                    }
-                                }
-                            }
                         }
                     }
                 }
@@ -971,80 +979,92 @@ fun HomeScreen(
                 }
             }
 
-            // Tag filter section (conditional)
-            if (allTags.isNotEmpty()) {
-                item(key = "tags") {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = stringResource(R.string.home_filter_by_tags),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        if (selectedTags.isNotEmpty()) {
-                            TextButton(onClick = { selectedTags = setOf() }) {
-                                Text(
-                                    text = stringResource(R.string.home_clear_tags, selectedTags.size),
-                                    style = MaterialTheme.typography.labelSmall
-                                )
+            // Tag filter section (audit #7: fades/expands in and out)
+            item(key = "tags") {
+                AnimatedVisibility(
+                    visible = allTags.isNotEmpty(),
+                    enter = fadeIn() + expandVertically(),
+                    exit = fadeOut() + shrinkVertically()
+                ) {
+                    Column {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = stringResource(R.string.home_filter_by_tags),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            if (selectedTags.isNotEmpty()) {
+                                TextButton(onClick = { selectedTags = setOf() }) {
+                                    Text(
+                                        text = stringResource(R.string.home_clear_tags, selectedTags.size),
+                                        style = MaterialTheme.typography.labelSmall
+                                    )
+                                }
                             }
                         }
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        contentPadding = PaddingValues(horizontal = 0.dp)
-                    ) {
-                        items(allTags) { tag ->
-                            FilterChip(
-                                onClick = {
-                                    selectedTags = if (selectedTags.contains(tag)) selectedTags - tag else selectedTags + tag
-                                },
-                                label = { Text(tag) },
-                                selected = selectedTags.contains(tag),
-                                leadingIcon = if (selectedTags.contains(tag)) {
-                                    { Icon(Icons.Default.Check, contentDescription = stringResource(R.string.home_selected), modifier = Modifier.size(16.dp)) }
-                                } else null
-                            )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            contentPadding = PaddingValues(horizontal = 0.dp)
+                        ) {
+                            items(allTags) { tag ->
+                                FilterChip(
+                                    onClick = {
+                                        selectedTags = if (selectedTags.contains(tag)) selectedTags - tag else selectedTags + tag
+                                    },
+                                    label = { Text(tag) },
+                                    selected = selectedTags.contains(tag),
+                                    leadingIcon = if (selectedTags.contains(tag)) {
+                                        { Icon(Icons.Default.Check, contentDescription = stringResource(R.string.home_selected), modifier = Modifier.size(16.dp)) }
+                                    } else null
+                                )
+                            }
                         }
                     }
                 }
             }
 
-            // Recent collections (conditional)
-            if (uiState.recentCollections.isNotEmpty() && localSearchQuery.isBlank()) {
-                item(key = "collections") {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.Folder,
-                            contentDescription = stringResource(R.string.nav_collections),
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = stringResource(R.string.home_recent_collections),
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(12.dp))
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        contentPadding = PaddingValues(horizontal = 0.dp),
-                        modifier = Modifier.height(130.dp)
-                    ) {
-                        items(uiState.recentCollections) { collection ->
-                            SmallCollectionCard(
-                                collection = collection,
-                                linkCount = uiState.collectionsWithCounts[collection.id] ?: 0,
-                                onCardClick = {
-                                    navController?.navigate(Screen.CollectionDetail.createRoute(collection.id.toString()))
-                                }
+            // Recent collections (audit #7: fades/expands in and out)
+            item(key = "collections") {
+                AnimatedVisibility(
+                    visible = uiState.recentCollections.isNotEmpty() && localSearchQuery.isBlank(),
+                    enter = fadeIn() + expandVertically(),
+                    exit = fadeOut() + shrinkVertically()
+                ) {
+                    Column {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Folder,
+                                contentDescription = stringResource(R.string.nav_collections),
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(20.dp)
                             )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = stringResource(R.string.home_recent_collections),
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            contentPadding = PaddingValues(horizontal = 0.dp),
+                            modifier = Modifier.height(130.dp)
+                        ) {
+                            items(uiState.recentCollections) { collection ->
+                                SmallCollectionCard(
+                                    collection = collection,
+                                    linkCount = uiState.collectionsWithCounts[collection.id] ?: 0,
+                                    onCardClick = {
+                                        navController?.navigate(Screen.CollectionDetail.createRoute(collection.id.toString()))
+                                    }
+                                )
+                            }
                         }
                     }
                 }
@@ -1151,7 +1171,10 @@ fun HomeScreen(
                         key = { chunk -> chunk.joinToString(",") { it.id.toString() } }
                     ) { rowLinks ->
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .graphicsLayer { alpha = listCrossfade.value }
+                                .animateItem(),
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             rowLinks.forEach { link ->
@@ -1191,6 +1214,9 @@ fun HomeScreen(
                             collectionColor = collectionMap[link.collectionId]?.color,
                             isMultiSelectMode = uiState.isMultiSelectMode,
                             isSelected = uiState.selectedLinks.contains(link.id),
+                            modifier = Modifier
+                                .graphicsLayer { alpha = listCrossfade.value }
+                                .animateItem(),
                             onCardClick = {
                                 if (uiState.isMultiSelectMode) {
                                     viewModel.toggleLinkSelection(link.id)
@@ -1245,8 +1271,62 @@ fun HomeScreen(
             }
         }
 
+    // First-run coach-mark (audit #8): one scrim + card, dismissed once and never shown again
+    if (showCoachMark) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.5f))
+                .pointerInput(Unit) { detectTapGestures { viewModel.markCoachMarkSeen() } },
+            contentAlignment = Alignment.Center
+        ) {
+            Surface(
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.surface,
+                shadowElevation = 8.dp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Share,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(40.dp)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = stringResource(R.string.coach_mark_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(R.string.coach_mark_body),
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(20.dp))
+                    Button(
+                        onClick = { viewModel.markCoachMarkSeen() },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(28.dp)
+                    ) {
+                        Text(stringResource(R.string.coach_mark_got_it))
+                    }
+                }
+            }
+        }
+    }
+
     // Floating Action Button (overlay, bottom-right)
-    if (!uiState.isMultiSelectMode) {
+    if (!uiState.isMultiSelectMode && !showCoachMark) {
         FloatingActionButton(
             onClick = { showAddLinkDialog = true },
             containerColor = MaterialTheme.colorScheme.primary,
