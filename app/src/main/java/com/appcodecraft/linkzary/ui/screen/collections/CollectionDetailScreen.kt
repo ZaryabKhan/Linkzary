@@ -63,11 +63,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.toColorInt
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -474,26 +476,6 @@ fun CollectionDetailScreen(
         )
     }
 
-/**
- * Staggered fade/rise entrance for link cards (spec §5/§6): each item fades
- * in and rises 40dp, delayed 40ms per index (capped at 8 steps) so lists
- * cascade instead of popping in all at once.
- */
-@Composable
-private fun Modifier.staggeredEntrance(index: Int): Modifier {
-    val entrance = remember { androidx.compose.animation.core.Animatable(0f) }
-    LaunchedEffect(Unit) {
-        kotlinx.coroutines.delay((index.coerceAtMost(8)) * 40L)
-        entrance.animateTo(
-            1f,
-            animationSpec = androidx.compose.animation.core.tween(250)
-        )
-    }
-    return graphicsLayer {
-        alpha = entrance.value
-        translationY = (1f - entrance.value) * 40f
-    }
-}
 
     // Add Link Dialog
     if (showAddLinkDialog) {
@@ -734,5 +716,26 @@ private fun CollectionLinkOptionsBottomSheet(
                 }
             }
         )
+    }
+}
+
+/**
+ * Staggered fade/rise entrance for link cards (spec §5/§6): each item fades
+ * in and rises 40dp, delayed 40ms per index (capped at 8 steps) so lists
+ * cascade instead of popping in all at once.
+ */
+@Composable
+private fun Modifier.staggeredEntrance(index: Int): Modifier {
+    val entrance = remember { androidx.compose.animation.core.Animatable(0f) }
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay((index.coerceAtMost(8)) * 40L)
+        entrance.animateTo(
+            1f,
+            animationSpec = androidx.compose.animation.core.tween(250)
+        )
+    }
+    return graphicsLayer {
+        alpha = entrance.value
+        translationY = (1f - entrance.value) * 40f
     }
 }

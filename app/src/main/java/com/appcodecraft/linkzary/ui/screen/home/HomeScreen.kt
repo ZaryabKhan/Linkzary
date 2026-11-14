@@ -63,6 +63,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -160,7 +161,7 @@ fun AddLinkDialog(
                     .size(width = 32.dp, height = 4.dp)
                     .background(
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                        shape = MaterialTheme.shapes.full
+                        shape = androidx.compose.foundation.shape.CircleShape
                     )
             )
         },
@@ -221,7 +222,7 @@ fun AddLinkDialog(
             Button(
                 onClick = { onSave(url) },
                 enabled = url.isNotBlank() && isValidUrl,
-                shape = MaterialTheme.shapes.full,
+                shape = androidx.compose.foundation.shape.CircleShape,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
@@ -1445,7 +1446,7 @@ fun HomeScreen(
             } else {
                 ExtendedFloatingActionButton(
                     onClick = { showAddLinkDialog = true },
-                    shape = MaterialTheme.shapes.full,
+                    shape = androidx.compose.foundation.shape.CircleShape,
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary,
                     icon = {

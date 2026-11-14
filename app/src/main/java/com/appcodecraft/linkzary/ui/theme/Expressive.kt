@@ -1,16 +1,12 @@
 package com.appcodecraft.linkzary.ui.theme
 
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Shapes
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Outline
-import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.GenericShape
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import kotlin.math.abs
 import kotlin.math.cos
@@ -18,16 +14,15 @@ import kotlin.math.min
 import kotlin.math.sin
 
 /**
- * Material 3 Expressive shape roles (spec §1).
- * full = pill for buttons, FAB, active nav indicator.
+ * Material 3 expressive shape roles (spec §1). Pills come from CircleShape
+ * at call sites (this material3 version has no Shapes.full role).
  */
 val LinkzaryShapes = Shapes(
     extraSmall = RoundedCornerShape(8.dp),
     small = RoundedCornerShape(12.dp),
     medium = RoundedCornerShape(16.dp),
     large = RoundedCornerShape(20.dp),
-    extraLarge = RoundedCornerShape(28.dp),
-    full = CircleShape
+    extraLarge = RoundedCornerShape(28.dp)
 )
 
 /**
@@ -35,36 +30,25 @@ val LinkzaryShapes = Shapes(
  * scallop (FAB idle, active-collection badge) and the clover (collections
  * shape party, spec §1/§6). Drawn as a polar path so it scales with size.
  */
-class WavyShape(
-    private val lobes: Int,
-    private val depth: Float = 0.08f
-) : Shape {
-    override fun createOutline(
-        size: Size,
-        layoutDirection: LayoutDirection,
-        density: Density
-    ): Outline.Generic {
-        val radius = min(size.width, size.height) / 2f
-        val cx = size.width / 2f
-        val cy = size.height / 2f
-        val path = Path()
-        val steps = 144
-        for (i in 0 until steps) {
-            val t = (i * 2.0 * Math.PI / steps).toFloat()
-            val r = radius * (1f - depth + depth * abs(cos(lobes * t)))
-            val point = Offset(cx + r * cos(t), cy + r * sin(t))
-            if (i == 0) path.moveTo(point.x, point.y) else path.lineTo(point.x, point.y)
-        }
-        path.close()
-        return Outline.Generic(path)
+private fun wavyShape(lobes: Int, depth: Float): Shape = GenericShape { size, _, _ ->
+    val radius = min(size.width, size.height) / 2f
+    val cx = size.width / 2f
+    val cy = size.height / 2f
+    val steps = 144
+    for (i in 0 until steps) {
+        val t = (i * 2.0 * Math.PI / steps).toFloat()
+        val r = radius * (1f - depth + depth * abs(cos(lobes * t)))
+        val point = Offset(cx + r * cos(t), cy + r * sin(t))
+        if (i == 0) moveTo(point.x, point.y) else lineTo(point.x, point.y)
     }
+    close()
 }
 
 /** The M3 expressive "cookie" scallop — used sparingly (spec §1). */
-val CookieShape = WavyShape(lobes = 8, depth = 0.05f)
+val CookieShape = wavyShape(lobes = 8, depth = 0.05f)
 
 /** Four-lobe clover for the collections "shape party" (spec §6). */
-val CloverShape = WavyShape(lobes = 4, depth = 0.14f)
+val CloverShape = wavyShape(lobes = 4, depth = 0.14f)
 
 /**
  * Approximate Material color harmonization (spec §3): shift a design color's

@@ -230,7 +230,7 @@ fun BookmarkCard(
                         modifier = Modifier
                             .align(Alignment.BottomStart)
                             .padding(12.dp),
-                        shape = MaterialTheme.shapes.full,
+                        shape = androidx.compose.foundation.shape.CircleShape,
                         color = harmonized.copy(alpha = 0.24f)
                     ) {
                         Text(

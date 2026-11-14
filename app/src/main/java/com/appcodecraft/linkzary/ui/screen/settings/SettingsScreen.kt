@@ -832,7 +832,7 @@ fun DonationHeader(
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary
                         ),
-                        shape = MaterialTheme.shapes.full
+                        shape = androidx.compose.foundation.shape.CircleShape
                     ) {
                         Icon(
                             imageVector = Icons.Default.VolunteerActivism,

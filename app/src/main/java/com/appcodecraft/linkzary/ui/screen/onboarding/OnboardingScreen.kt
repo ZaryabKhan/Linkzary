@@ -39,6 +39,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -121,7 +122,7 @@ fun OnboardingScreen(
                     ),
                     illustration = { OnboardingIllustrationReminders() }
                 )
-                else -> OnboardingSupportPage(onFinish = onFinish)
+                else -> OnboardingSupportPage(onFinish = onFinish, onSupport = onSupport)
             }
         }
 
@@ -162,7 +163,7 @@ fun OnboardingScreen(
                         }
                     }
                 },
-                shape = MaterialTheme.shapes.full,
+                shape = androidx.compose.foundation.shape.CircleShape,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
@@ -258,7 +259,7 @@ private fun OnboardingPage(
 
 /** Page 5: the quiet support page — no nag, one outlined pill + a text link. */
 @Composable
-private fun OnboardingSupportPage(onFinish: () -> Unit) {
+private fun OnboardingSupportPage(onFinish: () -> Unit, onSupport: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -308,7 +309,7 @@ private fun OnboardingSupportPage(onFinish: () -> Unit) {
 
         OutlinedButton(
             onClick = onSupport,
-            shape = MaterialTheme.shapes.full,
+            shape = androidx.compose.foundation.shape.CircleShape,
             modifier = Modifier.height(48.dp)
         ) {
             Text(
@@ -463,7 +464,7 @@ private fun OnboardingIllustrationBackup() {
                 Box(
                     modifier = Modifier
                         .size(width = 24.dp, height = 6.dp)
-                        .background(AccentCyan, MaterialTheme.shapes.full)
+                        .background(AccentCyan, androidx.compose.foundation.shape.CircleShape)
                 )
             }
         }
@@ -483,7 +484,7 @@ private fun OnboardingIllustrationReminders() {
         Box(
             modifier = Modifier
                 .size(16.dp)
-                .background(AccentCyan, MaterialTheme.shapes.full)
+                .background(AccentCyan, androidx.compose.foundation.shape.CircleShape)
         )
     }
 }
