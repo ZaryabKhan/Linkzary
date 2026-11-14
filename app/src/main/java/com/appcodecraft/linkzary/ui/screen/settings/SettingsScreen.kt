@@ -716,9 +716,10 @@ fun DonationHeader(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onDonateClick() },
-        shape = RoundedCornerShape(16.dp),
+        // Spec §6: about/support card uses primaryFixed (stable across themes)
+        shape = MaterialTheme.shapes.extraLarge,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
+            containerColor = MaterialTheme.colorScheme.primaryFixed
         )
     ) {
         Box(
@@ -754,7 +755,7 @@ fun DonationHeader(
                         text = "Thank you for your support!",
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        color = MaterialTheme.colorScheme.onPrimaryFixed,
                         textAlign = TextAlign.Center
                     )
                     
@@ -763,7 +764,7 @@ fun DonationHeader(
                     Text(
                         text = "You've already donated to support Linkzary's development",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
+                        color = MaterialTheme.colorScheme.onPrimaryFixed.copy(alpha = 0.8f),
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -809,7 +810,7 @@ fun DonationHeader(
                         text = stringResource(R.string.settings_support_title),
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        color = MaterialTheme.colorScheme.onPrimaryFixed,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -819,7 +820,7 @@ fun DonationHeader(
                     Text(
                         text = stringResource(R.string.settings_support_description),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
+                        color = MaterialTheme.colorScheme.onPrimaryFixed.copy(alpha = 0.8f),
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -831,7 +832,7 @@ fun DonationHeader(
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary
                         ),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = MaterialTheme.shapes.full
                     ) {
                         Icon(
                             imageVector = Icons.Default.VolunteerActivism,
@@ -883,9 +884,9 @@ fun SettingsItem(
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
         )
     ) {
         Row(
@@ -948,9 +949,9 @@ fun SettingsToggleItem(
     Card(
         onClick = { onCheckedChange(!checked) },
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
         )
     ) {
         Row(
@@ -1031,7 +1032,7 @@ fun LanguageSelectionDialog(
                                 onLanguageSelected(code)
                             },
                         colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
                         )
                     ) {
                         Text(
@@ -1280,9 +1281,9 @@ fun AppCard(
             .fillMaxWidth()
             .clickable { onClick() },
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
         ),
-        shape = RoundedCornerShape(8.dp)
+        shape = MaterialTheme.shapes.large
     ) {
         Row(
             modifier = Modifier

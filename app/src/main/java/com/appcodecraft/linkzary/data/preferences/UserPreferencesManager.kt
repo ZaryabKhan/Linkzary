@@ -59,6 +59,11 @@ class UserPreferencesManager(context: Context) {
     private val _hasSeenCoachMark = MutableStateFlow(getHasSeenCoachMark())
     val hasSeenCoachMark: StateFlow<Boolean> = _hasSeenCoachMark.asStateFlow()
 
+    // Onboarding (spec §7): swipe pages shown on first launch and once per
+    // new app version. Persists the versionCode the user last onboarded on.
+    private val _lastOnboardedVersionCode = MutableStateFlow(getLastOnboardedVersionCode())
+    val lastOnboardedVersionCode: StateFlow<Int> = _lastOnboardedVersionCode.asStateFlow()
+
     // Search history
     private val _searchHistory = MutableStateFlow(getSearchHistory())
     val searchHistory: StateFlow<List<String>> = _searchHistory.asStateFlow()
@@ -181,6 +186,18 @@ class UserPreferencesManager(context: Context) {
         return sharedPreferences.getBoolean(KEY_HAS_SEEN_COACH_MARK, false)
     }
 
+    // Onboarding version gate
+    fun markOnboarded(versionCode: Int) {
+        sharedPreferences.edit()
+            .putInt(KEY_LAST_ONBOARDED_VERSION_CODE, versionCode)
+            .apply()
+        _lastOnboardedVersionCode.value = versionCode
+    }
+
+    private fun getLastOnboardedVersionCode(): Int {
+        return sharedPreferences.getInt(KEY_LAST_ONBOARDED_VERSION_CODE, 0)
+    }
+
     // Search history methods
     fun addSearchQuery(query: String) {
         if (query.isBlank()) return
@@ -233,6 +250,7 @@ class UserPreferencesManager(context: Context) {
         private const val KEY_HAS_DONATED = "has_donated"
         private const val KEY_USE_BRAND_COLORS = "use_brand_colors"
         private const val KEY_HAS_SEEN_COACH_MARK = "has_seen_coach_mark"
+        private const val KEY_LAST_ONBOARDED_VERSION_CODE = "last_onboarded_version_code"
         private const val KEY_HOME_SORT_ORDER = "home_sort_order"
         private const val KEY_COLLECTIONS_SORT_ORDER = "collections_sort_order"
         private const val KEY_SEARCH_HISTORY = "search_history"

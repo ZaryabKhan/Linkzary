@@ -11,12 +11,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items as lazyColumnItems
+import androidx.compose.foundation.lazy.itemsIndexed as lazyColumnItemsIndexed
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -126,11 +129,26 @@ fun CollectionDetailScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
         ) {
-        // Top bar
-        Row(
+        // Tonal header (spec §6): collection color tint with 24dp bottom corners,
+        // full-bleed behind the status bar.
+        val headerColor = uiState.collection?.color
+            ?.let { runCatching { Color(it.toColorInt()) }.getOrNull() }
+            ?: MaterialTheme.colorScheme.primary
+        val headerTint = com.appcodecraft.linkzary.ui.theme.harmonizeWith(
+            design = headerColor,
+            source = MaterialTheme.colorScheme.primary
+        ).copy(alpha = 0.18f)
+        Surface(
             modifier = Modifier.fillMaxWidth(),
+            color = headerTint,
+            shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)
+        ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -184,6 +202,13 @@ fun CollectionDetailScreen(
                 }
             }
         }
+        } // Surface (tonal header)
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -203,7 +228,7 @@ fun CollectionDetailScreen(
                     }
                 }
             },
-            shape = RoundedCornerShape(12.dp),
+            shape = MaterialTheme.shapes.small,
             singleLine = true
         )
 
@@ -271,7 +296,7 @@ fun CollectionDetailScreen(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(filteredLinks, key = { it.id }) { link ->
+                        itemsIndexed(filteredLinks, key = { _, link -> link.id }) { index, link ->
                             BookmarkCard(
                                 link = link,
                                 collectionName = uiState.collection?.name ?: "",
@@ -295,7 +320,9 @@ fun CollectionDetailScreen(
                                 onSelectClick = {
                                     viewModel.toggleLinkSelection(link.id)
                                 },
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .staggeredEntrance(index)
                             )
                         }
                     }
@@ -303,7 +330,7 @@ fun CollectionDetailScreen(
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        lazyColumnItems(filteredLinks, key = { it.id }) { link ->
+                        lazyColumnItemsIndexed(filteredLinks, key = { _, link -> link.id }) { index, link ->
                             BookmarkCard(
                                 link = link,
                                 collectionName = uiState.collection?.name ?: "",
@@ -325,7 +352,8 @@ fun CollectionDetailScreen(
                                 },
                                 onSelectClick = {
                                     viewModel.toggleLinkSelection(link.id)
-                                }
+                                },
+                                modifier = Modifier.staggeredEntrance(index)
                             )
                         }
                     }
@@ -333,6 +361,7 @@ fun CollectionDetailScreen(
             }
         }
         }
+        } // Column (padded content)
     }
 
         // Add Floating Action Button for adding bookmarks directly to this collection
@@ -444,6 +473,27 @@ fun CollectionDetailScreen(
             homeViewModel = homeViewModel
         )
     }
+
+/**
+ * Staggered fade/rise entrance for link cards (spec §5/§6): each item fades
+ * in and rises 40dp, delayed 40ms per index (capped at 8 steps) so lists
+ * cascade instead of popping in all at once.
+ */
+@Composable
+private fun Modifier.staggeredEntrance(index: Int): Modifier {
+    val entrance = remember { androidx.compose.animation.core.Animatable(0f) }
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay((index.coerceAtMost(8)) * 40L)
+        entrance.animateTo(
+            1f,
+            animationSpec = androidx.compose.animation.core.tween(250)
+        )
+    }
+    return graphicsLayer {
+        alpha = entrance.value
+        translationY = (1f - entrance.value) * 40f
+    }
+}
 
     // Add Link Dialog
     if (showAddLinkDialog) {

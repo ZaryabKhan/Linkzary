@@ -44,7 +44,16 @@ private val DarkColorScheme = darkColorScheme(
     surfaceVariant = DarkSurfaceVariant,
     onSurfaceVariant = DarkOnSurfaceVariant,
     outline = DarkOutline,
-    outlineVariant = DarkOutlineVariant
+    outlineVariant = DarkOutlineVariant,
+    surfaceContainerLowest = DarkSurfaceContainerLowest,
+    surfaceContainerLow = DarkSurfaceContainerLow,
+    surfaceContainer = DarkSurfaceContainer,
+    surfaceContainerHigh = DarkSurfaceContainerHigh,
+    surfaceContainerHighest = DarkSurfaceContainerHighest,
+    primaryFixed = PrimaryFixed,
+    onPrimaryFixed = OnPrimaryFixed,
+    primaryFixedDim = PrimaryFixedDim,
+    onPrimaryFixedVariant = OnPrimaryFixedVariant
 )
 
 private val LightColorScheme = lightColorScheme(
@@ -71,7 +80,16 @@ private val LightColorScheme = lightColorScheme(
     surfaceVariant = SurfaceVariant,
     onSurfaceVariant = OnSurfaceVariant,
     outline = Outline,
-    outlineVariant = OutlineVariant
+    outlineVariant = OutlineVariant,
+    surfaceContainerLowest = SurfaceContainerLowest,
+    surfaceContainerLow = SurfaceContainerLow,
+    surfaceContainer = SurfaceContainer,
+    surfaceContainerHigh = SurfaceContainerHigh,
+    surfaceContainerHighest = SurfaceContainerHighest,
+    primaryFixed = PrimaryFixed,
+    onPrimaryFixed = OnPrimaryFixed,
+    primaryFixedDim = PrimaryFixedDim,
+    onPrimaryFixedVariant = OnPrimaryFixedVariant
 )
 
 @Composable
@@ -131,6 +149,7 @@ fun LinkzaryTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
+        shapes = LinkzaryShapes,
         content = content
     )
 }
