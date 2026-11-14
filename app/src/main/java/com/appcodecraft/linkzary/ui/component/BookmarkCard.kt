@@ -41,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -123,8 +124,11 @@ fun BookmarkCard(
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             // Preview Image Section with overlay badges
-            // Key on both link.id and previewImageUrl so fallback resets when URL updates
-            var showPreviewFallback by remember(link.id, link.previewImageUrl) { mutableStateOf(false) }
+            // User-set custom image wins, then auto-extracted preview, then favicon-derived fallback
+            val effectiveImageUrl = link.customImageUrl?.takeIf { it.isNotBlank() }
+                ?: link.previewImageUrl?.takeIf { it.isNotBlank() }
+            // Key on both link.id and image url so fallback resets when URL updates
+            var showPreviewFallback by remember(link.id, effectiveImageUrl) { mutableStateOf(false) }
 
             Box(
                 modifier = Modifier
@@ -132,10 +136,10 @@ fun BookmarkCard(
                     .height(160.dp)
                     .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
             ) {
-                if (!link.previewImageUrl.isNullOrBlank() && !showPreviewFallback) {
+                if (!effectiveImageUrl.isNullOrBlank() && !showPreviewFallback) {
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
-                            .data(link.previewImageUrl)
+                            .data(effectiveImageUrl)
                             .crossfade(true)
                             .memoryCachePolicy(coil.request.CachePolicy.ENABLED)
                             .diskCachePolicy(coil.request.CachePolicy.ENABLED)
@@ -241,7 +245,7 @@ fun BookmarkCard(
 
             // Card Content
             Column(modifier = Modifier.padding(16.dp)) {
-                // Domain + broken link indicator
+                // Domain + favicon + broken link indicator
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -254,6 +258,19 @@ fun BookmarkCard(
                             tint = MaterialTheme.colorScheme.error
                         )
                         Spacer(modifier = Modifier.width(4.dp))
+                    }
+                    if (!link.favicon.isNullOrBlank()) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(link.favicon)
+                                .memoryCachePolicy(coil.request.CachePolicy.ENABLED)
+                                .diskCachePolicy(coil.request.CachePolicy.ENABLED)
+                                .build(),
+                            contentDescription = "Favicon for ${link.title}",
+                            modifier = Modifier.size(16.dp),
+                            error = ColorPainter(generateColorFromDomain(domain).copy(alpha = 0.2f))
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
                     }
                     Text(
                         text = domain,

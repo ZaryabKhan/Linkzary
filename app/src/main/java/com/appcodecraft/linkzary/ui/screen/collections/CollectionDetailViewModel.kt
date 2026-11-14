@@ -10,8 +10,10 @@ import com.appcodecraft.linkzary.data.repository.LinkRepository
 import com.appcodecraft.linkzary.util.UrlMetadataExtractor
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -39,6 +41,14 @@ class CollectionDetailViewModel @Inject constructor(
     
     private val _uiState = MutableStateFlow(CollectionDetailUiState())
     val uiState: StateFlow<CollectionDetailUiState> = _uiState.asStateFlow()
+
+    /** All existing tags, used for autocomplete in the link editor. */
+    val allTags: StateFlow<List<String>> = linkRepository.getAllTags()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
     
     fun loadCollectionDetails(collectionId: String) {
         viewModelScope.launch {

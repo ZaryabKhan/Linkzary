@@ -26,6 +26,7 @@ import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Alarm
 import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Check
@@ -44,6 +45,7 @@ import androidx.compose.material.icons.filled.MarkEmailUnread
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.SortByAlpha
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.PushPin
@@ -51,6 +53,8 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -66,6 +70,9 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -254,6 +261,76 @@ fun CreateCollectionDialog(
 }
 
 
+// region Reminders
+/**
+ * Two-step reminder picker: pick a date, then a time.
+ * Calls [onReminderSelected] with the epoch millis of the chosen moment.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ReminderPickerDialog(
+    onDismiss: () -> Unit,
+    onReminderSelected: (Long) -> Unit
+) {
+    val state = remember { mutableStateOf(0) } // 0 = date step, 1 = time step
+    var pickedDateMillis by remember { mutableStateOf(0L) }
+
+    if (state.value == 0) {
+        val datePickerState = rememberDatePickerState(initialSelectedDateMillis = System.currentTimeMillis())
+        DatePickerDialog(
+            onDismissRequest = onDismiss,
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            pickedDateMillis = millis
+                            state.value = 1
+                        }
+                    },
+                    enabled = datePickerState.selectedDateMillis != null
+                ) { Text(stringResource(R.string.common_next)) }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel)) }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    } else {
+        val timeState = rememberTimePickerState(initialHour = 9, initialMinute = 0, is24Hour = true)
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text(stringResource(R.string.reminder_pick_time)) },
+            text = {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    TimePicker(state = timeState)
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    val calendar = java.util.Calendar.getInstance().apply {
+                        timeInMillis = pickedDateMillis
+                        set(java.util.Calendar.HOUR_OF_DAY, timeState.hour)
+                        set(java.util.Calendar.MINUTE, timeState.minute)
+                        set(java.util.Calendar.SECOND, 0)
+                        set(java.util.Calendar.MILLISECOND, 0)
+                        // DatePicker gives start-of-day UTC; normalize so past
+                        // same-day times still fire later today.
+                        if (timeInMillis < System.currentTimeMillis()) {
+                            add(java.util.Calendar.DATE, 1)
+                        }
+                    }
+                    onReminderSelected(calendar.timeInMillis)
+                }) { Text(stringResource(R.string.reminder_schedule)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { state.value = 0 }) { Text(stringResource(R.string.common_back)) }
+            }
+        )
+    }
+}
+// endregion
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LinkOptionsBottomSheet(
@@ -271,6 +348,18 @@ fun LinkOptionsBottomSheet(
     var showEditDialog by remember { mutableStateOf(false) }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     var showCollectionDialog by remember { mutableStateOf(false) }
+    var showReminderPicker by remember { mutableStateOf(false) }
+    val context = androidx.compose.ui.platform.LocalContext.current
+
+    // Ask for the notification permission when the user first schedules a reminder
+    val notificationPermissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+    ) { }
+    androidx.compose.runtime.LaunchedEffect(showReminderPicker) {
+        if (showReminderPicker && android.os.Build.VERSION.SDK_INT >= 33) {
+            notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss
@@ -352,6 +441,38 @@ fun LinkOptionsBottomSheet(
             )
 
             OptionItem(
+                icon = Icons.Default.Alarm,
+                title = if (link.reminderAt != null) stringResource(R.string.reminder_remove) else stringResource(R.string.reminder_set),
+                subtitle = if (link.reminderAt != null) {
+                    stringResource(R.string.reminder_set_for, viewModel.formatReminderDate(link))
+                } else {
+                    stringResource(R.string.reminder_subtitle)
+                },
+                onClick = {
+                    if (link.reminderAt != null) {
+                        viewModel.setReminder(link, null)
+                        onDismiss()
+                    } else {
+                        showReminderPicker = true
+                    }
+                }
+            )
+
+            OptionItem(
+                icon = Icons.Default.Share,
+                title = stringResource(R.string.share_link_title),
+                subtitle = stringResource(R.string.share_link_subtitle),
+                onClick = {
+                    val shareIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(android.content.Intent.EXTRA_TEXT, "${link.title}\n${link.url}")
+                    }
+                    context.startActivity(android.content.Intent.createChooser(shareIntent, null))
+                    onDismiss()
+                }
+            )
+
+            OptionItem(
                 icon = Icons.AutoMirrored.Filled.DriveFileMove,
                 title = stringResource(R.string.link_move_title),
                 subtitle = stringResource(R.string.link_move_subtitle),
@@ -371,6 +492,7 @@ fun LinkOptionsBottomSheet(
     }
 
     if (showEditDialog) {
+        val editorTags by viewModel.allTags.collectAsStateWithLifecycle()
         EditLinkDialog(
             link = link,
             onDismiss = { showEditDialog = false },
@@ -378,7 +500,8 @@ fun LinkOptionsBottomSheet(
                 onEdit(updatedLink)
                 showEditDialog = false
                 onDismiss()
-            }
+            },
+            allTags = editorTags
         )
     }
 
@@ -409,6 +532,17 @@ fun LinkOptionsBottomSheet(
                 }
             )
         }
+    }
+
+    if (showReminderPicker) {
+        ReminderPickerDialog(
+            onDismiss = { showReminderPicker = false },
+            onReminderSelected = { triggerAtMillis ->
+                viewModel.setReminder(link, triggerAtMillis)
+                showReminderPicker = false
+                onDismiss()
+            }
+        )
     }
 
     if (showDeleteConfirmation) {

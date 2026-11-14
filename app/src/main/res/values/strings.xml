@@ -467,6 +467,44 @@
     <string name="settings_import">Import</string>
     <string name="settings_export_as_json">Export as JSON</string>
     <string name="settings_export_as_csv">Export as CSV</string>
+    <string name="settings_export_as_html">Export as Browser Bookmarks (HTML)</string>
+
+    <!-- Share out (v1.2.0) -->
+    <string name="share_link_title">Share</string>
+    <string name="share_link_subtitle">Share this link with other apps</string>
+
+    <!-- Reminders (v1.2.0) -->
+    <string name="reminder_set">Remind me</string>
+    <string name="reminder_remove">Remove reminder</string>
+    <string name="reminder_set_for">Reminder set for %s</string>
+    <string name="reminder_subtitle">Get notified to revisit this link</string>
+    <string name="reminder_pick_time">Pick a time</string>
+    <string name="reminder_schedule">Schedule</string>
+    <string name="reminder_set_toast">Reminder scheduled</string>
+    <string name="reminder_notification_title">Time to revisit a saved link</string>
+    <string name="reminder_channel_name">Link reminders</string>
+    <string name="reminder_channel_description">Reminders to revisit your saved links</string>
+
+    <!-- Custom thumbnail (v1.2.0) -->
+    <string name="edit_link_custom_image_label">Custom image URL</string>
+    <string name="edit_link_custom_image_hint">Overrides the automatic preview image</string>
+
+    <!-- Backup &amp; maintenance (v1.2.0) -->
+    <string name="common_next">Next</string>
+    <string name="settings_backup_section">Backup</string>
+    <string name="settings_drive_backup">Back up to Google Drive</string>
+    <string name="settings_drive_backup_description">Save all links and collections to your own Drive (private app folder)</string>
+    <string name="settings_drive_working">Working…</string>
+    <string name="settings_drive_backup_done">Backup complete</string>
+    <string name="settings_drive_restore">Restore from Google Drive</string>
+    <string name="settings_drive_restore_description">Bring back your last Drive backup (duplicates are skipped)</string>
+    <string name="settings_drive_restore_done">Restored %1$d links from Drive</string>
+    <string name="settings_merge_duplicates">Merge duplicate links</string>
+    <string name="settings_merge_duplicates_description">%1$d duplicate links found</string>
+    <string name="merge_duplicates_title">Merge duplicates?</string>
+    <string name="merge_duplicates_message">Links saved twice will be merged into one — tags, notes and pins are combined, nothing is deleted except the extra copies. Duplicates found: %1$d extra copies.</string>
+    <string name="merge_duplicates_confirm">Merge</string>
+
     <string name="settings_import_links_imported">links imported</string>
     <string name="settings_import_collections_imported">collections imported</string>
     <string name="settings_import_links_skipped">duplicate links skipped</string>

@@ -130,7 +130,9 @@ fun ShareScreen(
                         note = uiState.note,
                         onNoteChange = viewModel::updateNote,
                         tags = uiState.tags,
-                        onTagsChange = viewModel::updateTags
+                        onTagsChange = viewModel::updateTags,
+                        customImageUrl = uiState.customImageUrl,
+                        onCustomImageUrlChange = viewModel::updateCustomImageUrl
                     )
                     
                     Spacer(modifier = Modifier.height(16.dp))

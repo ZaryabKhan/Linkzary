@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -169,12 +170,14 @@ fun CollectionOptionItem(
 fun EditLinkDialog(
     link: SavedLink,
     onDismiss: () -> Unit,
-    onSave: (SavedLink) -> Unit
+    onSave: (SavedLink) -> Unit,
+    allTags: List<String> = emptyList()
 ) {
     var title by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(link.title) }
     var url by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(link.url) }
     var note by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(link.note) }
     var tags by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(link.tags) }
+    var customImageUrl by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(link.customImageUrl.orEmpty()) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -201,7 +204,10 @@ fun EditLinkDialog(
                 note = note,
                 onNoteChange = { note = it },
                 tags = tags,
-                onTagsChange = { tags = it }
+                onTagsChange = { tags = it },
+                allTags = allTags,
+                customImageUrl = customImageUrl,
+                onCustomImageUrlChange = { customImageUrl = it }
             )
         },
         confirmButton = {
@@ -212,7 +218,8 @@ fun EditLinkDialog(
                             title = title,
                             url = url,
                             note = note,
-                            tags = tags
+                            tags = tags,
+                            customImageUrl = customImageUrl.trim().takeIf { it.isNotBlank() }
                         )
                     )
                 },
@@ -259,7 +266,9 @@ fun CollectionSelectionDialog(
         },
         text = {
             LazyColumn(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 400.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 item {

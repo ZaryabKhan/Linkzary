@@ -585,6 +585,7 @@ private fun CollectionLinkOptionsBottomSheet(
 
     // Edit Dialog
     if (showEditDialog) {
+        val editorTags by homeViewModel.allTags.collectAsStateWithLifecycle()
         EditLinkDialog(
             link = link,
             onDismiss = { showEditDialog = false },
@@ -592,7 +593,8 @@ private fun CollectionLinkOptionsBottomSheet(
                 onEdit(updatedLink)
                 showEditDialog = false
                 onDismiss()
-            }
+            },
+            allTags = editorTags
         )
     }
 

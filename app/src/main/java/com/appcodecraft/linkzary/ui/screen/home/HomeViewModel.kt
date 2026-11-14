@@ -65,8 +65,18 @@ class HomeViewModel @Inject constructor(
     private val collectionRepository: CollectionRepository,
     private val urlMetadataExtractor: UrlMetadataExtractor,
     private val articleContentExtractor: ArticleContentExtractor,
-    private val userPreferencesManager: UserPreferencesManager
+    private val userPreferencesManager: UserPreferencesManager,
+    private val reminderScheduler: com.appcodecraft.linkzary.notification.ReminderScheduler,
+    @dagger.hilt.android.qualifiers.ApplicationContext private val appContext: android.content.Context
 ) : ViewModel() {
+
+    /** All existing tags, used for autocomplete in the link editor. */
+    val allTags: StateFlow<List<String>> = linkRepository.getAllTags()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
     private val _searchQuery = MutableStateFlow("")
     private val _sortOrder = MutableStateFlow(
@@ -322,6 +332,12 @@ class HomeViewModel @Inject constructor(
                 _isLoading.value = true
                 _error.value = null
 
+                val existingLink = linkRepository.getEquivalentLink(url)
+                if (existingLink != null) {
+                    _error.value = "Link already saved"
+                    return@launch
+                }
+
                 val metadataJob = async(Dispatchers.IO) {
                     urlMetadataExtractor.extractMetadata(url)
                 }
@@ -357,7 +373,7 @@ class HomeViewModel @Inject constructor(
                 _isLoading.value = true
                 _error.value = null
 
-                val existingLink = linkRepository.getLinkByUrl(url)
+                val existingLink = linkRepository.getEquivalentLink(url)
                 if (existingLink != null) {
                     _error.value = "Link already saved"
                     return@launch
@@ -401,6 +417,32 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
+
+    /**
+     * Schedules or cancels a revisit reminder for [link].
+     * Pass null to cancel, or an epoch-millis timestamp to schedule.
+     */
+    fun setReminder(link: SavedLink, triggerAtMillis: Long?) {
+        viewModelScope.launch {
+            try {
+                val date = triggerAtMillis?.let { java.util.Date(it) }
+                linkRepository.updateReminderAt(link.id, date)
+                if (triggerAtMillis != null) {
+                    reminderScheduler.scheduleReminder(link.id, triggerAtMillis)
+                    _batchOperationMessage.value =
+                        appContext.getString(com.appcodecraft.linkzary.R.string.reminder_set_toast)
+                } else {
+                    reminderScheduler.cancelReminder(link.id)
+                }
+            } catch (e: Exception) {
+                _error.value = "Failed to set reminder: ${e.message}"
+            }
+        }
+    }
+
+    fun formatReminderDate(link: SavedLink): String =
+        java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.MEDIUM, java.text.DateFormat.SHORT)
+            .format(link.reminderAt ?: return "")
 
     fun togglePinStatus(link: SavedLink) {
         viewModelScope.launch {

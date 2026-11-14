@@ -32,6 +32,74 @@ class LinkRepository @Inject constructor(
         savedLinkDao.getLinkByUrl(url)
     }
 
+    /**
+     * Finds an already-saved link that points at the same page as [url],
+     * ignoring scheme, "www.", trailing slash, fragments and tracking params.
+     */
+    suspend fun getEquivalentLink(url: String): SavedLink? = withContext(Dispatchers.IO) {
+        val target = com.appcodecraft.linkzary.util.UrlNormalizer.normalize(url) ?: return@withContext null
+        savedLinkDao.getAllLinksOnce().firstOrNull { existing ->
+            com.appcodecraft.linkzary.util.UrlNormalizer.normalize(existing.url) == target
+        }
+    }
+
+    /**
+     * Groups saved links whose normalized URLs are identical.
+     * Each group with more than one entry is a duplicate set.
+     */
+    suspend fun findDuplicateGroups(): List<List<SavedLink>> = withContext(Dispatchers.IO) {
+        savedLinkDao.getAllLinksOnce()
+            .groupBy { link -> com.appcodecraft.linkzary.util.UrlNormalizer.normalize(link.url) }
+            .filter { it.key != null && it.value.size > 1 }
+            .values
+            .sortedByDescending { it.size }
+    }
+
+    /**
+     * Merges each duplicate group into its oldest link: union of tags, first
+     * non-blank note wins, pinned/read/offline flags win if set, non-blank
+     * metadata (favicon, preview, custom image) is carried over. Keeps the
+     * collection of the newest entry when the oldest is uncategorized.
+     * Returns the number of links removed.
+     */
+    suspend fun mergeDuplicates(): Int = withContext(Dispatchers.IO) {
+        val groups = findDuplicateGroups()
+        var removed = 0
+        groups.forEach { group ->
+            val keep = group.minByOrNull { it.saveDate } ?: return@forEach
+            val others = group.filter { it.id != keep.id }
+
+            val mergedTags = group.flatMap { it.tags.split(",") }
+                .map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+                .joinToString(",")
+
+            val merged = keep.copy(
+                tags = mergedTags,
+                note = keep.note.ifBlank { others.firstOrNull { it.note.isNotBlank() }?.note ?: "" },
+                isPinned = group.any { it.isPinned },
+                collectionId = keep.collectionId ?: others.lastOrNull { it.collectionId != null }?.collectionId,
+                favicon = keep.favicon ?: others.firstOrNull { !it.favicon.isNullOrBlank() }?.favicon,
+                previewImageUrl = keep.previewImageUrl ?: others.firstOrNull { !it.previewImageUrl.isNullOrBlank() }?.previewImageUrl,
+                customImageUrl = keep.customImageUrl ?: others.firstOrNull { !it.customImageUrl.isNullOrBlank() }?.customImageUrl,
+                textContent = keep.textContent ?: others.firstOrNull { !it.textContent.isNullOrBlank() }?.textContent,
+                isOfflineAvailable = group.any { it.isOfflineAvailable },
+                readingProgress = group.maxOfOrNull { it.readingProgress } ?: keep.readingProgress
+            )
+            savedLinkDao.updateLink(merged)
+            savedLinkDao.deleteLinksByIds(others.map { it.id })
+            removed += others.size
+        }
+        removed
+    }
+
+    suspend fun updateCustomImageUrl(linkId: Long, imageUrl: String?) = withContext(Dispatchers.IO) {
+        savedLinkDao.updateCustomImageUrl(linkId, imageUrl)
+    }
+
+    suspend fun updateReminderAt(linkId: Long, reminderAt: java.util.Date?) = withContext(Dispatchers.IO) {
+        savedLinkDao.updateReminderAt(linkId, reminderAt)
+    }
+
     suspend fun insertLink(link: SavedLink): Long = withContext(Dispatchers.IO) {
         savedLinkDao.insertLink(link)
     }
