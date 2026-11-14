@@ -37,7 +37,8 @@ android {
         // Dedicated, COMMITTED test-only debug keystore: keeps the debug APK's
         // signing SHA-1 stable across CI runs so a Google OAuth Android client
         // (package + SHA-1) can match it. Never use for release.
-        create("debug") {
+        // AGP pre-creates the 'debug' config, so configure it instead of adding.
+        getByName("debug") {
             storeFile = rootProject.file("keystores/debug.keystore")
             storePassword = "android"
             keyAlias = "androiddebugkey"
