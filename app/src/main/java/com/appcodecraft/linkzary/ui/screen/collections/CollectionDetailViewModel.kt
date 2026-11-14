@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -72,8 +73,15 @@ class CollectionDetailViewModel @Inject constructor(
                 // Get grid view preference
                 val isGridView = userPreferencesManager.isCollectionDetailGridView.value
                 
-                // Observe links in this collection for real-time updates
-                linkRepository.getLinksByCollection(collectionIdLong).collect { links ->
+                // Observe links in this collection for real-time updates.
+                // distinctUntilChanged suppresses no-op emissions: a fresh
+                // list instance mid-layout (e.g. during the navigation fade
+                // transition) re-measures the LazyColumn/LazyGrid and was the
+                // suspected trigger of the API 35 subcompose
+                // IllegalArgumentException cluster on this screen.
+                linkRepository.getLinksByCollection(collectionIdLong)
+                    .distinctUntilChanged()
+                    .collect { links ->
                     val sortedLinks = links.sortedWith(
                         compareByDescending<SavedLink> { it.isPinned }
                             .thenByDescending { it.saveDate }

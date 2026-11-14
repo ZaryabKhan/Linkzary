@@ -271,7 +271,7 @@ fun CollectionDetailScreen(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(filteredLinks) { link ->
+                        items(filteredLinks, key = { it.id }) { link ->
                             BookmarkCard(
                                 link = link,
                                 collectionName = uiState.collection?.name ?: "",
@@ -302,7 +302,7 @@ fun CollectionDetailScreen(
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        lazyColumnItems(filteredLinks) { link ->
+                        lazyColumnItems(filteredLinks, key = { it.id }) { link ->
                             BookmarkCard(
                                 link = link,
                                 collectionName = uiState.collection?.name ?: "",
