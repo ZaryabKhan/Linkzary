@@ -60,7 +60,11 @@ class DriveBackupService @Inject constructor() {
     }
 
     private fun driveService(context: Context, account: GoogleSignInAccount): Drive? {
-        val androidAccount = account.account ?: return null
+        // On current Play services GoogleSignInAccount.getAccount() can come
+        // back null; rebuild the android Account from the email in that case.
+        val androidAccount = account.account
+            ?: account.email?.let { android.accounts.Account(it, "com.google") }
+            ?: return null
         val credential = GoogleAccountCredential.usingOAuth2(context, setOf(DriveScopes.DRIVE_APPDATA))
             .setSelectedAccount(androidAccount)
         return Drive.Builder(NetHttpTransport(), GsonFactory.getDefaultInstance(), credential)
@@ -107,19 +111,34 @@ class DriveBackupService @Inject constructor() {
             "permission"
         } catch (e: Exception) {
             e.printStackTrace()
-            "error: ${e.message ?: "unknown"}"
+            // Include the exception class so device-test reports identify the
+            // actual failure (token fetch, network, HTTP 403, ...) without adb.
+            "error: ${e.javaClass.simpleName}: ${e.message ?: "unknown"}"
         }
     }
 
     /**
-     * Downloads the backup file's JSON content, or null when no backup exists.
+     * Downloads the backup file's JSON content. Every outcome is explicit so
+     * the UI can surface it — restore failures used to be swallowed as null.
      */
+    sealed class DriveRestoreResult {
+        data class Success(val json: String) : DriveRestoreResult()
+        data object NeedsSignIn : DriveRestoreResult()
+        data object NeedsPermission : DriveRestoreResult()
+        data object NoBackup : DriveRestoreResult()
+        data class Error(val message: String) : DriveRestoreResult()
+    }
+
     suspend fun restore(
         context: Context,
         onAuthIntent: (android.content.Intent) -> Unit = {}
-    ): String? = withContext(Dispatchers.IO) {
-        val account = getSignedInAccount(context) ?: return@withContext null
-        val drive = driveService(context, account) ?: return@withContext null
+    ): DriveRestoreResult = withContext(Dispatchers.IO) {
+        val account = getSignedInAccount(context)
+            ?: return@withContext DriveRestoreResult.NeedsSignIn
+        val drive = driveService(context, account)
+            ?: return@withContext DriveRestoreResult.Error(
+                "Google account has no usable email for Drive access"
+            )
         try {
             val files = drive.files()
                 .list()
@@ -127,17 +146,19 @@ class DriveBackupService @Inject constructor() {
                 .setQ("name = '$BACKUP_FILE_NAME'")
                 .setFields("files(id, name)")
                 .execute()
-            val fileId = files.files.firstOrNull()?.id ?: return@withContext null
+            val fileId = files.files.firstOrNull()?.id
+                ?: return@withContext DriveRestoreResult.NoBackup
 
-            drive.files().get(fileId).executeMediaAsInputStream().use { stream ->
+            val json = drive.files().get(fileId).executeMediaAsInputStream().use { stream ->
                 stream.bufferedReader(Charsets.UTF_8).readText()
             }
+            DriveRestoreResult.Success(json)
         } catch (e: UserRecoverableAuthIOException) {
             e.intent?.let { onAuthIntent(it) }
-            null
+            DriveRestoreResult.NeedsPermission
         } catch (e: Exception) {
             e.printStackTrace()
-            null
+            DriveRestoreResult.Error("${e.javaClass.simpleName}: ${e.message ?: "unknown"}")
         }
     }
 }

@@ -108,14 +108,29 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             _driveStatus.value = DriveBackupStatus.InProgress
             try {
-                val json = driveBackupService.restore(context, onAuthIntent)
-                if (json == null) {
-                    _driveStatus.value = if (driveBackupService.getSignedInAccount(context) == null) {
-                        DriveBackupStatus.NeedsSignIn
-                    } else {
-                        DriveBackupStatus.Error("No backup found")
+                // Every Drive outcome is explicit now; failures surface in the
+                // UI instead of silently doing nothing.
+                val json = when (val result = driveBackupService.restore(context, onAuthIntent)) {
+                    is com.appcodecraft.linkzary.data.service.DriveBackupService.DriveRestoreResult.Success ->
+                        result.json
+                    com.appcodecraft.linkzary.data.service.DriveBackupService.DriveRestoreResult.NeedsSignIn -> {
+                        _driveStatus.value = DriveBackupStatus.NeedsSignIn
+                        return@launch
                     }
-                    return@launch
+                    com.appcodecraft.linkzary.data.service.DriveBackupService.DriveRestoreResult.NeedsPermission -> {
+                        _driveStatus.value = DriveBackupStatus.NeedsPermission
+                        return@launch
+                    }
+                    com.appcodecraft.linkzary.data.service.DriveBackupService.DriveRestoreResult.NoBackup -> {
+                        _driveStatus.value = DriveBackupStatus.Error("No backup found on Google Drive")
+                        return@launch
+                    }
+                    is com.appcodecraft.linkzary.data.service.DriveBackupService.DriveRestoreResult.Error -> {
+                        _driveStatus.value = DriveBackupStatus.Error(
+                            "Restore failed — ${result.message}"
+                        )
+                        return@launch
+                    }
                 }
                 val data = importExportService.parseBackupJson(json)
                 val existingLinks = linkRepository.getAllLinks().first()
@@ -166,6 +181,11 @@ class SettingsViewModel @Inject constructor(
 
     fun clearDriveStatus() {
         _driveStatus.value = null
+    }
+
+    /** Shown when the Google account picker itself fails. */
+    fun reportDriveSignInFailure() {
+        _driveStatus.value = DriveBackupStatus.Error("Google sign-in failed — please try again")
     }
 
     fun clearAllData() {

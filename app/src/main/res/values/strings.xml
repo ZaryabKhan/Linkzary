@@ -477,6 +477,11 @@
     <string name="link_open_browser_title">Open in browser</string>
     <string name="link_open_browser_subtitle">Open this link in your chosen browser</string>
 
+    <!-- Drive backup status text (v1.2.0 bug-fix batch) -->
+    <string name="settings_drive_needs_signin">Connect a Google account first</string>
+    <string name="settings_drive_needs_permission">Tap again to grant Drive access</string>
+    <string name="error_cannot_open_link">No app can open this link</string>
+
     <!-- Reminders (v1.2.0) -->
     <string name="reminder_set">Remind me</string>
     <string name="reminder_remove">Remove reminder</string>
