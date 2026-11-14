@@ -119,20 +119,18 @@ fun SettingsScreen(
     var showMergeDialog by remember { mutableStateOf(false) }
 
     // Which Drive action to continue after the account picker or the
-    // permission dialog closes: "backup" or "restore". Without this the
-    // user granted access but nothing continued — backup/restore looked dead.
-    var pendingDriveAction by remember { mutableStateOf<String?>(null) }
+    // permission dialog closes: the retry closure captures the tapped action
+    // (backup or restore). Without this the user granted access but nothing
+    // continued — backup/restore looked dead.
+    var retryPendingDriveAction by remember { mutableStateOf<(() -> Unit)?>(null) }
 
     val driveAuthLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { _ ->
         // Drive permission granted (or denied) — retry the pending action so
         // the user sees a real success/failure instead of silence.
-        when (pendingDriveAction) {
-            "backup" -> viewModel.backupToDrive(context) { intent -> driveAuthLauncher.launch(intent) }
-            "restore" -> viewModel.restoreFromDrive(context) { intent -> driveAuthLauncher.launch(intent) }
-        }
-        pendingDriveAction = null
+        retryPendingDriveAction?.invoke()
+        retryPendingDriveAction = null
     }
 
     // Google account picker for Drive backup
@@ -144,11 +142,8 @@ fun SettingsScreen(
                 .getSignedInAccountFromIntent(result.data)
                 .getResult(java.lang.Exception::class.java)
             // Account stored — continue the action the user originally tapped.
-            when (pendingDriveAction) {
-                "backup" -> viewModel.backupToDrive(context) { intent -> driveAuthLauncher.launch(intent) }
-                "restore" -> viewModel.restoreFromDrive(context) { intent -> driveAuthLauncher.launch(intent) }
-            }
-            pendingDriveAction = null
+            retryPendingDriveAction?.invoke()
+            retryPendingDriveAction = null
         } catch (e: Exception) {
             viewModel.reportDriveSignInFailure()
         }
@@ -321,10 +316,14 @@ fun SettingsScreen(
                     },
                     onClick = {
                         if (viewModel.isDriveConnected(context)) {
-                            pendingDriveAction = "backup"
+                            retryPendingDriveAction = {
+                                viewModel.backupToDrive(context) { intent -> driveAuthLauncher.launch(intent) }
+                            }
                             viewModel.backupToDrive(context) { intent -> driveAuthLauncher.launch(intent) }
                         } else {
-                            pendingDriveAction = "backup"
+                            retryPendingDriveAction = {
+                                viewModel.backupToDrive(context) { intent -> driveAuthLauncher.launch(intent) }
+                            }
                             driveSignInLauncher.launch(
                                 com.google.android.gms.auth.api.signin.GoogleSignIn.getClient(
                                     context,
@@ -351,10 +350,15 @@ fun SettingsScreen(
                     title = stringResource(R.string.settings_drive_restore),
                     subtitle = stringResource(R.string.settings_drive_restore_description),
                     onClick = {
-                        pendingDriveAction = "restore"
                         if (viewModel.isDriveConnected(context)) {
+                            retryPendingDriveAction = {
+                                viewModel.restoreFromDrive(context) { intent -> driveAuthLauncher.launch(intent) }
+                            }
                             viewModel.restoreFromDrive(context) { intent -> driveAuthLauncher.launch(intent) }
                         } else {
+                            retryPendingDriveAction = {
+                                viewModel.restoreFromDrive(context) { intent -> driveAuthLauncher.launch(intent) }
+                            }
                             driveSignInLauncher.launch(
                                 com.google.android.gms.auth.api.signin.GoogleSignIn.getClient(
                                     context,
