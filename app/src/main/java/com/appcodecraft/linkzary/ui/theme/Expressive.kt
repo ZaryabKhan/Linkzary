@@ -30,7 +30,7 @@ val LinkzaryShapes = Shapes(
  * scallop (FAB idle, active-collection badge) and the clover (collections
  * shape party, spec §1/§6). Drawn as a polar path so it scales with size.
  */
-private fun wavyShape(lobes: Int, depth: Float): Shape = GenericShape { size, _, _ ->
+private fun wavyShape(lobes: Int, depth: Float): Shape = GenericShape { size, _ ->
     val radius = min(size.width, size.height) / 2f
     val cx = size.width / 2f
     val cy = size.height / 2f
