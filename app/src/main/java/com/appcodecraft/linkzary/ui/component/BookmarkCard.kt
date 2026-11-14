@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -82,6 +83,7 @@ fun BookmarkCard(
     onMoreClick: () -> Unit,
     isMultiSelectMode: Boolean = false,
     isSelected: Boolean = false,
+    isGrid: Boolean = false,
     onLongPress: () -> Unit = {},
     onSelectClick: () -> Unit = {}
 ) {
@@ -133,7 +135,8 @@ fun BookmarkCard(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(160.dp)
+                    // 16:9 preview in list view, shorter 4:3 in grid (audit #3)
+                    .aspectRatio(if (isGrid) 4f / 3f else 16f / 9f)
                     .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
             ) {
                 if (!effectiveImageUrl.isNullOrBlank() && !showPreviewFallback) {
@@ -231,13 +234,13 @@ fun BookmarkCard(
                     ) {
                         Text(
                             text = collectionName,
-                            style = MaterialTheme.typography.labelSmall.copy(
+                            style = MaterialTheme.typography.labelMedium.copy(
                                 fontWeight = FontWeight.SemiBold
                             ),
                             color = Color.White,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                         )
                     }
                 }
@@ -267,10 +270,10 @@ fun BookmarkCard(
                                 .diskCachePolicy(coil.request.CachePolicy.ENABLED)
                                 .build(),
                             contentDescription = "Favicon for ${link.title}",
-                            modifier = Modifier.size(16.dp),
+                            modifier = Modifier.size(20.dp),
                             error = ColorPainter(generateColorFromDomain(domain).copy(alpha = 0.2f))
                         )
-                        Spacer(modifier = Modifier.width(6.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
                     }
                     Text(
                         text = domain,
@@ -297,7 +300,7 @@ fun BookmarkCard(
                                 imageVector = Icons.Default.Done,
                                 contentDescription = stringResource(R.string.cd_read_status_read),
                                 modifier = Modifier.size(18.dp),
-                                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+                                tint = MaterialTheme.colorScheme.primary
                             )
                         }
                         "ARCHIVED" -> {
@@ -329,7 +332,8 @@ fun BookmarkCard(
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                         color = if (link.readStatus == "READ" || link.readStatus == "ARCHIVED") {
-                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                            // Full onSurfaceVariant: alpha-stacked variants fell below 4.5:1 (audit #9)
+                            MaterialTheme.colorScheme.onSurfaceVariant
                         } else {
                             MaterialTheme.colorScheme.onSurface
                         },
@@ -343,7 +347,7 @@ fun BookmarkCard(
                     Text(
                         text = link.note,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 3,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -360,7 +364,7 @@ fun BookmarkCard(
                             if (tag.isNotBlank()) {
                                 Text(
                                     text = "#${tag.trim()}",
-                                    style = MaterialTheme.typography.labelSmall.copy(
+                                    style = MaterialTheme.typography.labelMedium.copy(
                                         fontWeight = FontWeight.Medium
                                     ),
                                     color = MaterialTheme.colorScheme.primary,
@@ -383,11 +387,11 @@ fun BookmarkCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = formatSaveDate(link.saveDate),
-                        style = MaterialTheme.typography.labelSmall.copy(
+                        text = formatRelativeSaveDate(link.saveDate),
+                        style = MaterialTheme.typography.labelMedium.copy(
                             fontWeight = FontWeight.Medium
                         ),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
                     IconButton(
@@ -398,7 +402,7 @@ fun BookmarkCard(
                             imageVector = Icons.Default.MoreVert,
                             contentDescription = stringResource(R.string.home_more_options),
                             modifier = Modifier.size(18.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -432,6 +436,42 @@ fun formatSaveDate(date: Date): String {
         diffInDays < 7 -> getCachedDateFormat("d MMM yyyy, h:mm a").format(date)
         else -> getCachedDateFormat("d MMM yyyy").format(date)
     }
+}
+
+/** Whole calendar days between [date] and [now], evaluated in the local timezone. */
+internal fun calendarDaysBetween(date: Date, now: Date): Int {
+    val cal1 = java.util.Calendar.getInstance()
+    val cal2 = java.util.Calendar.getInstance()
+    cal1.timeInMillis = date.time
+    cal2.timeInMillis = now.time
+    cal1.set(java.util.Calendar.HOUR_OF_DAY, 0)
+    cal1.set(java.util.Calendar.MINUTE, 0)
+    cal1.set(java.util.Calendar.SECOND, 0)
+    cal1.set(java.util.Calendar.MILLISECOND, 0)
+    cal2.set(java.util.Calendar.HOUR_OF_DAY, 0)
+    cal2.set(java.util.Calendar.MINUTE, 0)
+    cal2.set(java.util.Calendar.SECOND, 0)
+    cal2.set(java.util.Calendar.MILLISECOND, 0)
+    return ((cal2.timeInMillis - cal1.timeInMillis) / (24 * 60 * 60 * 1000)).toInt()
+}
+
+/**
+ * Relative footer time for cards ("Just now", "5m ago", "2h ago", "Yesterday",
+ * "4d ago", then an absolute date), per design audit #3. Pure and testable:
+ * [now] is injectable; day math uses local calendar days, not 24h blocks, so
+ * timezone/DST boundaries cannot shift a date a day off.
+ */
+fun formatRelativeSaveDate(date: Date, now: Date = Date()): String {
+    val diffInMillis = now.time - date.time
+    val minutes = diffInMillis / (60 * 1000)
+    if (minutes < 1) return "Just now"
+    if (minutes < 60) return "${minutes}m ago"
+    val hours = diffInMillis / (60 * 60 * 1000)
+    val days = calendarDaysBetween(date, now)
+    if (days < 1) return "${hours}h ago"
+    if (days == 1) return "Yesterday"
+    if (days < 7) return "${days}d ago"
+    return getCachedDateFormat("d MMM yyyy").format(date)
 }
 
 /**
