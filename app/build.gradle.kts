@@ -34,6 +34,15 @@ android {
     }
 
     signingConfigs {
+        // Dedicated, COMMITTED test-only debug keystore: keeps the debug APK's
+        // signing SHA-1 stable across CI runs so a Google OAuth Android client
+        // (package + SHA-1) can match it. Never use for release.
+        create("debug") {
+            storeFile = rootProject.file("keystores/debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
         create("release") {
             if (keystorePropertiesFile.exists()) {
                 keyAlias = keystoreProperties["keyAlias"] as String
@@ -60,7 +69,11 @@ android {
         debug {
             isMinifyEnabled = false
             isDebuggable = true
-            applicationIdSuffix = ".debug"
+            // No applicationIdSuffix: Google sign-in resolves the OAuth client
+            // by package name + signing SHA-1, so the debug APK must carry the
+            // real package (com.appcodecraft.linkzary) to match the client
+            // registered in the GCP console. Uses the committed test keystore.
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
