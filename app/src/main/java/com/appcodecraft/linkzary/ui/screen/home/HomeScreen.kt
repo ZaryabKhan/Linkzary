@@ -626,6 +626,7 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.combinedUiState.collectAsStateWithLifecycle()
+    val context = androidx.compose.ui.platform.LocalContext.current
     var showAddLinkDialog by remember { mutableStateOf(false) }
     var selectedLink by remember { mutableStateOf<SavedLink?>(null) }
     val isGridView by viewModel.isGridView.collectAsState()
