@@ -359,7 +359,7 @@ fun CollectionsScreen(
         // Floating Action Button (overlay, bottom-right)
         FloatingActionButton(
             onClick = { showCreateCollectionDialog = true },
-            shape = MaterialTheme.shapes.full,
+            shape = androidx.compose.foundation.shape.CircleShape,
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary,
             modifier = Modifier

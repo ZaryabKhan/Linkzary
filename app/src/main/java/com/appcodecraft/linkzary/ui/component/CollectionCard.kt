@@ -151,7 +151,7 @@ fun CollectionCard(
             Box(
                 modifier = Modifier
                     .size(48.dp)
-                    .clip(MaterialTheme.shapes.full)
+                    .clip(androidx.compose.foundation.shape.CircleShape)
                     .background(harmonized),
                 contentAlignment = Alignment.Center
             ) {
