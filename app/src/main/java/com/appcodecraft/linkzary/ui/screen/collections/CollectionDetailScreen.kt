@@ -87,19 +87,15 @@ fun CollectionDetailScreen(
     // Get the HomeViewModel for collection creation
     val homeViewModel: HomeViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val uriHandler = LocalUriHandler.current
+    val context = androidx.compose.ui.platform.LocalContext.current
 
     // Opens a URL without crashing: uriHandler.openUri throws
     // IllegalArgumentException on malformed or scheme-less input (the
-    // v1.1.5 crash cluster). Mirrors HomeScreen's guarded open plus a
-    // scheme fix so bare domains like "example.com" still open.
+    // v1.1.5 crash cluster). Uses the fully guarded UrlOpener (direct
+    // ACTION_VIEW, trims input, fixes missing scheme) and toasts on failure
+    // so problems surface instead of silently doing nothing.
     val openSafely: (String) -> Unit = { url ->
-        try {
-            val fixed = if (url.contains("://")) url else "https://$url"
-            uriHandler.openUri(fixed)
-        } catch (e: Exception) {
-            android.util.Log.e("CollectionDetail", "Failed to open URI: $url", e)
-        }
+        com.appcodecraft.linkzary.util.UrlOpener.openOrToast(context, url)
     }
 
     var selectedLink by remember { mutableStateOf<SavedLink?>(null) }

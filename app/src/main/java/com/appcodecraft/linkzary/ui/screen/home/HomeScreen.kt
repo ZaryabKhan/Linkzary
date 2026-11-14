@@ -309,14 +309,25 @@ fun ReminderPickerDialog(
             },
             confirmButton = {
                 TextButton(onClick = {
+                    // DatePicker returns UTC midnight for the selected date,
+                    // but Calendar here runs in the device timezone: reusing
+                    // those millis directly shifted the reminder a full day in
+                    // timezones west of UTC ("wrong date" bug). Take the
+                    // UTC date parts and rebuild them in local time instead.
+                    val pickedUtc = java.util.Calendar.getInstance(
+                        java.util.TimeZone.getTimeZone("UTC")
+                    ).apply { timeInMillis = pickedDateMillis }
                     val calendar = java.util.Calendar.getInstance().apply {
-                        timeInMillis = pickedDateMillis
-                        set(java.util.Calendar.HOUR_OF_DAY, timeState.hour)
-                        set(java.util.Calendar.MINUTE, timeState.minute)
-                        set(java.util.Calendar.SECOND, 0)
+                        set(
+                            pickedUtc.get(java.util.Calendar.YEAR),
+                            pickedUtc.get(java.util.Calendar.MONTH),
+                            pickedUtc.get(java.util.Calendar.DAY_OF_MONTH),
+                            timeState.hour,
+                            timeState.minute,
+                            0
+                        )
                         set(java.util.Calendar.MILLISECOND, 0)
-                        // DatePicker gives start-of-day UTC; normalize so past
-                        // same-day times still fire later today.
+                        // If the picked time already passed today, fire tomorrow.
                         if (timeInMillis < System.currentTimeMillis()) {
                             add(java.util.Calendar.DATE, 1)
                         }
@@ -466,18 +477,11 @@ fun LinkOptionsBottomSheet(
                 onClick = {
                     // ACTION_VIEW with an https scheme lets Android route the
                     // link to the user's default (or chosen) browser instead of
-                    // an in-app WebView. Guarded so a malformed URL can never
-                    // crash the sheet.
-                    try {
-                        val fixed = if (link.url.contains("://")) link.url else "https://${link.url}"
-                        val browserIntent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(fixed)).apply {
-                            addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
-                        }
-                        context.startActivity(android.content.Intent.createChooser(browserIntent, null))
-                        onDismiss()
-                    } catch (e: Exception) {
-                        android.util.Log.e("HomeScreen", "Failed to open link in browser", e)
-                    }
+                    // an in-app WebView. UrlOpener guards the launch so a
+                    // malformed URL can never crash the sheet, and toasts when
+                    // no app can handle the link.
+                    com.appcodecraft.linkzary.util.UrlOpener.openOrToast(context, link.url)
+                    onDismiss()
                 }
             )
 
@@ -637,7 +641,6 @@ fun HomeScreen(
     val focusManager = LocalFocusManager.current
     val searchHistory by viewModel.searchHistory.collectAsStateWithLifecycle()
 
-    val uriHandler = LocalUriHandler.current
     val snackbarHostState = remember { SnackbarHostState() }
 
     // Sync local search query with UI state
@@ -1129,7 +1132,7 @@ fun HomeScreen(
                                         if (uiState.isMultiSelectMode) {
                                             viewModel.toggleLinkSelection(link.id)
                                         } else {
-                                            try { uriHandler.openUri(link.url) } catch (e: Exception) { Log.e("HomeScreen", "Failed to open URI", e) }
+                                            com.appcodecraft.linkzary.util.UrlOpener.openOrToast(context, link.url)
                                         }
                                     },
                                     onMoreClick = { selectedLink = link },
@@ -1158,7 +1161,7 @@ fun HomeScreen(
                                 if (uiState.isMultiSelectMode) {
                                     viewModel.toggleLinkSelection(link.id)
                                 } else {
-                                    try { uriHandler.openUri(link.url) } catch (e: Exception) { Log.e("HomeScreen", "Failed to open URI", e) }
+                                    com.appcodecraft.linkzary.util.UrlOpener.openOrToast(context, link.url)
                                 }
                             },
                             onMoreClick = { selectedLink = link },

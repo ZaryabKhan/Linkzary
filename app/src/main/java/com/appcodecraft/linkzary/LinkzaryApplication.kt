@@ -28,6 +28,10 @@ class LinkzaryApplication : Application(), Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
 
+        // Capture device-test crashes (full stack traces) to a local file the
+        // user can share, since adb logs are not available in the field.
+        com.appcodecraft.linkzary.util.CrashReporter.install(getExternalFilesDir(null))
+
         // Enable StrictMode in debug builds for performance monitoring
         if (BuildConfig.DEBUG) {
             StrictMode.setThreadPolicy(
