@@ -93,6 +93,10 @@ class HomeViewModel @Inject constructor(
     val isGridView: StateFlow<Boolean> = userPreferencesManager.isHomeGridView
     val searchHistory: StateFlow<List<String>> = userPreferencesManager.searchHistory
 
+    // First-run coach-mark (audit #8): true once the user has dismissed it
+    val hasSeenCoachMark: StateFlow<Boolean> = userPreferencesManager.hasSeenCoachMark
+    fun markCoachMarkSeen() = userPreferencesManager.markCoachMarkSeen()
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<HomeUiState> = combine(
         _searchQuery.flatMapLatest { query ->

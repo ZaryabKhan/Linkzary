@@ -38,6 +38,15 @@
     <string name="home_empty_cta">Save your first link</string>
     <string name="home_empty_share_hint">Share any link from any app and it lands here — or add one below.</string>
 
+    <!-- Brand colors toggle (audit #4) -->
+    <string name="settings_use_brand_colors">Use Linkzary colors</string>
+    <string name="settings_use_brand_colors_desc">Always use the Linkzary indigo palette instead of Material You colors</string>
+
+    <!-- First-run coach-mark (audit #8) -->
+    <string name="coach_mark_title">Welcome to Linkzary</string>
+    <string name="coach_mark_body">Share any link from any app and Linkzary saves it here. You can also add links with the button below.</string>
+    <string name="coach_mark_got_it">Got it</string>
+
     <!-- Add Link Dialog -->
     <string name="add_link_title">Add Link</string>
     <string name="add_link_url_label">URL</string>

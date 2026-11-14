@@ -92,6 +92,16 @@ fun LinkzaryTheme(
             mutableStateOf(ThemeMode.SYSTEM) 
         }
     }
+
+    // "Use Linkzary colors" (audit #4): forces the brand indigo palette over
+    // Material You dynamic color. Default stays dynamic.
+    val useBrandColors by if (userPreferencesManager != null) {
+        userPreferencesManager.useBrandColors.collectAsState()
+    } else {
+        remember {
+            mutableStateOf(false)
+        }
+    }
     
     val darkTheme = when (themeMode) {
         ThemeMode.LIGHT -> false
@@ -100,7 +110,7 @@ fun LinkzaryTheme(
     }
     
     val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+        dynamicColor && !useBrandColors && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
 
