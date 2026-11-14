@@ -16,7 +16,7 @@ import com.appcodecraft.linkzary.data.entity.SavedLink
 
 @Database(
     entities = [SavedLink::class, Collection::class, RssFeed::class, RssFeedItem::class],
-    version = 7,
+    version = 8,
     exportSchema = true
 )
 @TypeConverters(DateConverter::class)
@@ -97,6 +97,14 @@ abstract class LinkzaryDatabase : RoomDatabase() {
                 // No schema changes required - this migration ensures user data is preserved
                 // All existing tables and columns are maintained
                 // This migration exists to trigger database recreation and verify data integrity
+            }
+        }
+
+        val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // v1.2.0: user-set custom thumbnails and revisit reminders
+                db.execSQL("ALTER TABLE saved_links ADD COLUMN customImageUrl TEXT DEFAULT NULL")
+                db.execSQL("ALTER TABLE saved_links ADD COLUMN reminderAt INTEGER DEFAULT NULL")
             }
         }
     }

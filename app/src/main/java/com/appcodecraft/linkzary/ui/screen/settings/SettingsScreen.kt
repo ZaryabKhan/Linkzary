@@ -25,6 +25,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.CloudDownload
+import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.Construction
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
@@ -33,6 +35,7 @@ import androidx.compose.material.icons.filled.Feedback
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.InsertChart
 import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.MergeType
 import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Person
@@ -108,6 +111,30 @@ fun SettingsScreen(
     
     val metadataRefreshProgress by viewModel.metadataRefreshProgress.collectAsState()
     val isMetadataDialogHidden by viewModel.isMetadataDialogHidden.collectAsState()
+
+    val duplicateCount by viewModel.duplicateCount.collectAsState()
+    val mergeResult by viewModel.mergeResult.collectAsState()
+    val driveStatus by viewModel.driveStatus.collectAsState()
+
+    var showMergeDialog by remember { mutableStateOf(false) }
+
+    // Google account picker for Drive backup
+    val driveSignInLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        try {
+            com.google.android.gms.auth.api.signin.GoogleSignIn
+                .getSignedInAccountFromIntent(result.data)
+                .getResult(java.lang.Exception::class.java)
+        } catch (_: Exception) {
+        }
+        // Account stored; the user can now tap backup again
+        viewModel.clearDriveStatus()
+    }
+
+    val driveAuthLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { }
     
     val hasDonated by donationViewModel.hasDonated.collectAsState()
     
@@ -127,6 +154,14 @@ fun SettingsScreen(
     ) { uri ->
         uri?.let { 
             importExportViewModel.exportToCsv(context, it)
+        }
+    }
+
+    val htmlExportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("text/html")
+    ) { uri ->
+        uri?.let {
+            importExportViewModel.exportToHtml(context, it)
         }
     }
     
@@ -239,6 +274,76 @@ fun SettingsScreen(
                     title = stringResource(R.string.tags),
                     subtitle = "Manage and rename your tags",
                     onClick = onNavigateToTags
+                )
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                SettingsSectionHeader(stringResource(R.string.settings_backup_section))
+            }
+
+            item {
+                SettingsItem(
+                    icon = Icons.Default.CloudSync,
+                    title = stringResource(R.string.settings_drive_backup),
+                    subtitle = when (driveStatus) {
+                        is DriveBackupStatus.InProgress -> stringResource(R.string.settings_drive_working)
+                        is DriveBackupStatus.Success -> stringResource(R.string.settings_drive_backup_done)
+                        is DriveBackupStatus.Restored -> stringResource(
+                            R.string.settings_drive_restore_done,
+                            (driveStatus as DriveBackupStatus.Restored).importedLinks
+                        )
+                        is DriveBackupStatus.Error ->
+                            (driveStatus as DriveBackupStatus.Error).message
+                        else -> stringResource(R.string.settings_drive_backup_description)
+                    },
+                    onClick = {
+                        if (viewModel.isDriveConnected(context)) {
+                            viewModel.backupToDrive(context) { intent -> driveAuthLauncher.launch(intent) }
+                        } else {
+                            driveSignInLauncher.launch(
+                                com.google.android.gms.auth.api.signin.GoogleSignIn.getClient(
+                                    context,
+                                    com.google.android.gms.auth.api.signin.GoogleSignInOptions.Builder(
+                                        com.google.android.gms.auth.api.signin.GoogleSignInOptions.DEFAULT_SIGN_IN
+                                    )
+                                        .requestScopes(
+                                            com.google.android.gms.common.api.Scope(
+                                                com.google.api.services.drive.DriveScopes.DRIVE_APPDATA
+                                            )
+                                        )
+                                        .requestEmail()
+                                        .build()
+                                ).signInIntent
+                            )
+                        }
+                    }
+                )
+            }
+
+            item {
+                SettingsItem(
+                    icon = Icons.Default.CloudDownload,
+                    title = stringResource(R.string.settings_drive_restore),
+                    subtitle = stringResource(R.string.settings_drive_restore_description),
+                    onClick = {
+                        viewModel.restoreFromDrive(context) { intent -> driveAuthLauncher.launch(intent) }
+                    }
+                )
+            }
+
+            item {
+                SettingsItem(
+                    icon = Icons.Default.MergeType,
+                    title = stringResource(R.string.settings_merge_duplicates),
+                    subtitle = stringResource(
+                        R.string.settings_merge_duplicates_description,
+                        duplicateCount ?: 0
+                    ),
+                    onClick = {
+                        viewModel.refreshDuplicateCount()
+                        showMergeDialog = true
+                    }
                 )
             }
 
@@ -411,6 +516,38 @@ fun SettingsScreen(
             }
         )
     }
+
+    // Merge Duplicates Dialog
+    if (showMergeDialog) {
+        AlertDialog(
+            onDismissRequest = { showMergeDialog = false },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.MergeType,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            },
+            title = { Text(stringResource(R.string.merge_duplicates_title)) },
+            text = { Text(stringResource(R.string.merge_duplicates_message, duplicateCount ?: 0)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.mergeDuplicates()
+                        showMergeDialog = false
+                    },
+                    enabled = (duplicateCount ?: 0) > 0
+                ) {
+                    Text(stringResource(R.string.merge_duplicates_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showMergeDialog = false }) {
+                    Text(stringResource(R.string.common_cancel))
+                }
+            }
+        )
+    }
     
     // About Dialog
     if (showAboutDialog) {
@@ -430,6 +567,10 @@ fun SettingsScreen(
             onExportCsv = {
                 csvExportLauncher.launch("linkzary_backup_${System.currentTimeMillis()}.csv")
                 showExportDialog = false
+            },
+            onExportHtml = {
+                htmlExportLauncher.launch("linkzary_bookmarks_${System.currentTimeMillis()}.html")
+                showExportDialog = false
             }
         )
     }
@@ -439,7 +580,7 @@ fun SettingsScreen(
         ImportDataDialog(
             onDismiss = { showImportDialog = false },
             onSelectFile = {
-                importLauncher.launch(arrayOf("application/json", "text/csv", "text/plain", "*/*"))
+                importLauncher.launch(arrayOf("application/json", "text/csv", "text/plain", "text/html", "*/*"))
                 showImportDialog = false
             }
         )

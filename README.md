@@ -233,3 +233,10 @@ Linkzary is licensed under the **MIT License** — see [LICENSE](LICENSE).
     <a href="https://github.com/ZaryabKhan/Linkzary/discussions">Discussions</a>
   </sub>
 </p>
+## v1.2.0 (2026-11-14)
+
+New: Google Drive backup/restore, browser-bookmarks HTML import/export, duplicate
+detection with merge action, share sheet out, favicon display, tag autocomplete,
+custom thumbnail per link, revisit reminders. Build: `./gradlew assembleDebug`,
+tests: `./gradlew testDebugUnitTest` (12/12 pass). Details: [docs/CHANGELOG-v1.2.0.md](docs/CHANGELOG-v1.2.0.md).
+Known issues: not yet exercised on a physical device; new strings English-only.

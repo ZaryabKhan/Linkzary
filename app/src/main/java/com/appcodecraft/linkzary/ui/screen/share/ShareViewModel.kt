@@ -23,6 +23,7 @@ data class ShareUiState(
     val url: String = "",
     val note: String = "",
     val tags: String = "",
+    val customImageUrl: String = "",
     val availableCollections: List<Collection> = emptyList(),
     val selectedCollectionId: Long? = null,
     val isLoading: Boolean = false,
@@ -56,7 +57,7 @@ class ShareViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 // Check if already saved
-                val existingLink = linkRepository.getLinkByUrl(sharedUrl)
+                val existingLink = linkRepository.getEquivalentLink(sharedUrl)
                 if (existingLink != null) {
                     _uiState.value = _uiState.value.copy(
                         title = existingLink.title,
@@ -100,6 +101,10 @@ class ShareViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(tags = tags)
     }
 
+    fun updateCustomImageUrl(imageUrl: String) {
+        _uiState.value = _uiState.value.copy(customImageUrl = imageUrl)
+    }
+
     fun selectCollection(collectionId: Long?) {
         _uiState.value = _uiState.value.copy(selectedCollectionId = collectionId)
     }
@@ -124,6 +129,7 @@ class ShareViewModel @Inject constructor(
                     collectionId = state.selectedCollectionId,
                     favicon = metadata.favicon,
                     previewImageUrl = metadata.previewImageUrl,
+                    customImageUrl = state.customImageUrl.trim().takeIf { it.isNotBlank() },
                     textContent = content,
                     isOfflineAvailable = content != null
                 )

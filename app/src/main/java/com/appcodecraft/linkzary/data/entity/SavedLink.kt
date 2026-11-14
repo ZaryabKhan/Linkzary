@@ -26,5 +26,7 @@ data class SavedLink(
     val readStatus: String = ReadStatus.UNREAD.name,
     val isAlive: Boolean? = null, // null = unchecked, true = alive, false = dead
     val lastChecked: Date? = null,
-    val readingProgress: Float = 0f // 0.0 to 1.0
+    val readingProgress: Float = 0f, // 0.0 to 1.0
+    val customImageUrl: String? = null, // Optional user-set thumbnail, overrides previewImageUrl
+    val reminderAt: Date? = null // Scheduled revisit reminder, null = none
 )

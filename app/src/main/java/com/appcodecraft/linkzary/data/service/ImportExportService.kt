@@ -74,6 +74,49 @@ class ImportExportService @Inject constructor() {
     }
     
     /**
+     * Serializes links and collections into the backup JSON payload used for
+     * Google Drive backups (same format as the JSON export).
+     */
+    fun buildBackupJson(links: List<SavedLink>, collections: List<Collection>): String {
+        val exportCollections = collections.map { collection ->
+            ExportCollection(
+                id = collection.id,
+                name = collection.name,
+                description = "",
+                createdAt = dateFormat.format(collection.createdDate),
+                updatedAt = dateFormat.format(collection.createdDate)
+            )
+        }
+        val exportLinks = links.map { link ->
+            ExportLink(
+                id = link.id,
+                url = link.url,
+                title = link.title,
+                description = link.note,
+                collectionId = link.collectionId,
+                collectionName = collections.find { it.id == link.collectionId }?.name,
+                isPinned = link.isPinned,
+                createdAt = dateFormat.format(link.saveDate),
+                updatedAt = dateFormat.format(link.saveDate),
+                faviconUrl = link.favicon,
+                previewImageUrl = link.previewImageUrl
+            )
+        }
+        return json.encodeToString(
+            ExportData(
+                exportDate = dateFormat.format(Date()),
+                collections = exportCollections,
+                links = exportLinks
+            )
+        )
+    }
+
+    /**
+     * Parses a backup JSON payload back into [ExportData].
+     */
+    fun parseBackupJson(content: String): ExportData = json.decodeFromString(content)
+
+    /**
      * Exports links and collections to JSON format
      */
     suspend fun exportToJson(

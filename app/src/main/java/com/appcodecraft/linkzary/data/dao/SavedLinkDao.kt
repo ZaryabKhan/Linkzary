@@ -32,6 +32,15 @@ interface SavedLinkDao {
     @Query("SELECT * FROM saved_links WHERE url = :url LIMIT 1")
     suspend fun getLinkByUrl(url: String): SavedLink?
 
+    @Query("SELECT * FROM saved_links ORDER BY saveDate ASC")
+    suspend fun getAllLinksOnce(): List<SavedLink>
+
+    @Query("UPDATE saved_links SET customImageUrl = :imageUrl WHERE id = :linkId")
+    suspend fun updateCustomImageUrl(linkId: Long, imageUrl: String?)
+
+    @Query("UPDATE saved_links SET reminderAt = :reminderAt WHERE id = :linkId")
+    suspend fun updateReminderAt(linkId: Long, reminderAt: java.util.Date?)
+
     @Insert
     suspend fun insertLink(link: SavedLink): Long
 

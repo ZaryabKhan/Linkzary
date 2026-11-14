@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.appcodecraft.linkzary.data.model.ImportMode
+import com.appcodecraft.linkzary.data.model.ImportCollectionPreview
 import com.appcodecraft.linkzary.data.model.ImportPreview
 import com.appcodecraft.linkzary.data.model.ImportProgress
 import com.appcodecraft.linkzary.data.model.ImportResult
@@ -23,7 +24,8 @@ import javax.inject.Inject
 class ImportExportViewModel @Inject constructor(
     private val importExportService: ImportExportService,
     private val linkRepository: LinkRepository,
-    private val collectionRepository: CollectionRepository
+    private val collectionRepository: CollectionRepository,
+    private val bookmarkHtmlService: com.appcodecraft.linkzary.data.service.BookmarkHtmlService
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ImportExportUiState())
@@ -160,9 +162,11 @@ class ImportExportViewModel @Inject constructor(
                 
                 val existingCollections = collectionRepository.getAllCollections().first()
                 
-                val preview = importExportService.parseImportFile(
-                    context, uri, existingCollections
-                )
+                val preview = if (isHtmlFile(context, uri)) {
+                    previewHtmlImport(context, uri, existingCollections)
+                } else {
+                    importExportService.parseImportFile(context, uri, existingCollections)
+                }
                 
                 if (preview.totalLinks == 0 && preview.totalCollections == 0) {
                     _uiState.value = _uiState.value.copy(
@@ -211,6 +215,12 @@ class ImportExportViewModel @Inject constructor(
                 val existingLinks = linkRepository.getAllLinks().first()
                 val initialCollectionCount = existingCollections.size
                 val initialLinkCount = existingLinks.size
+
+                // Browser bookmarks HTML files go through the HTML importer
+                if (isHtmlFile(context, uri)) {
+                    importBookmarksHtml(context, uri)
+                    return@launch
+                }
                 
                 var importedCollectionIds = mutableListOf<Long>()
                 var importedLinkIds = mutableListOf<Long>()
@@ -264,6 +274,124 @@ class ImportExportViewModel @Inject constructor(
                 _importProgress.value = null
             }
         }
+    }
+
+    fun exportToHtml(context: Context, uri: Uri) {
+        viewModelScope.launch {
+            try {
+                _uiState.value = _uiState.value.copy(isExporting = true, exportError = null, exportSuccess = false)
+
+                val links = linkRepository.getAllLinks().first()
+                val collections = collectionRepository.getAllCollections().first()
+
+                if (links.isEmpty() && collections.isEmpty()) {
+                    _uiState.value = _uiState.value.copy(
+                        isExporting = false,
+                        exportError = "No data to export. Add some links or collections first."
+                    )
+                    return@launch
+                }
+
+                val success = bookmarkHtmlService.exportToHtml(context, uri, links, collections)
+
+                _uiState.value = _uiState.value.copy(
+                    isExporting = false,
+                    exportSuccess = success,
+                    exportError = if (!success) "Failed to export data. Please check file permissions and try again." else null
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isExporting = false,
+                    exportError = "Export failed: ${e.message ?: "Unknown error occurred"}"
+                )
+            }
+        }
+    }
+
+    /**
+     * Imports a browser bookmarks HTML file (Netscape format).
+     * Folders become collections; duplicates of already-saved links are skipped.
+     */
+    fun importBookmarksHtml(context: Context, uri: Uri) {
+        viewModelScope.launch {
+            try {
+                _importResult.value = null
+                val existingLinks = linkRepository.getAllLinks().first()
+                val existingCollections = collectionRepository.getAllCollections().first()
+                val existingNames = existingCollections.map { it.name.lowercase() }.toSet()
+
+                val parsed = bookmarkHtmlService.parseBookmarksHtml(context, uri, existingLinks)
+
+                // Create one collection per folder found
+                val folderToId = mutableMapOf<String, Long>()
+                parsed.folders.keys.forEach { folder ->
+                    if (folder.lowercase() !in existingNames) {
+                        folderToId[folder] = collectionRepository.insertCollection(
+                            com.appcodecraft.linkzary.data.entity.Collection(name = folder, color = "#2196F3")
+                        )
+                    }
+                }
+
+                // Assign collection ids by membership
+                val linkToFolder = mutableMapOf<String, String>()
+                parsed.folders.forEach { (folder, folderLinks) ->
+                    folderLinks.forEach { linkToFolder[it.url] = folder }
+                }
+
+                var imported = 0
+                parsed.links.forEach { link ->
+                    val folder = linkToFolder[link.url]
+                    val collectionId = folder?.let { folderToId[it] }
+                    linkRepository.insertLink(link.copy(collectionId = collectionId))
+                    imported++
+                }
+
+                _importResult.value = ImportResult(
+                    success = true,
+                    importedLinks = imported,
+                    importedCollections = folderToId.size,
+                    skippedLinks = parsed.skippedCount,
+                    renamedCollections = emptyList(),
+                    errorMessage = null
+                )
+            } catch (e: Exception) {
+                _importResult.value = ImportResult(
+                    success = false,
+                    errorMessage = "Bookmark import failed: ${e.message ?: "Unknown error"}",
+                    importedLinks = 0,
+                    importedCollections = 0,
+                    skippedLinks = 0,
+                    renamedCollections = emptyList()
+                )
+            }
+        }
+    }
+
+    private fun isHtmlFile(context: Context, uri: Uri): Boolean = try {
+        context.contentResolver.getType(uri)?.contains("html", ignoreCase = true) == true
+    } catch (_: Exception) {
+        false
+    }
+
+    private suspend fun previewHtmlImport(
+        context: Context,
+        uri: Uri,
+        existingCollections: List<com.appcodecraft.linkzary.data.entity.Collection>
+    ): ImportPreview {
+        val existingLinks = linkRepository.getAllLinks().first()
+        val parsed = bookmarkHtmlService.parseBookmarksHtml(context, uri, existingLinks)
+        return ImportPreview(
+            totalLinks = parsed.links.size,
+            totalCollections = parsed.folders.size,
+            collections = parsed.folders.map { (folder, links) ->
+                ImportCollectionPreview(
+                    name = folder,
+                    linkCount = links.size,
+                    alreadyExists = existingCollections.any { it.name.equals(folder, ignoreCase = true) }
+                )
+            },
+            linksWithoutCollection = parsed.links.size - parsed.folders.values.sumOf { it.size }
+        )
     }
 
     fun clearExportState() {
