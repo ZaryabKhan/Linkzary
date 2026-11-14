@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -79,6 +80,7 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.togetherWith
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -86,6 +88,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -144,9 +147,31 @@ fun AddLinkDialog(
                 )
     }
 
-    AlertDialog(
+    // Spec §6 editor: ModalBottomSheet (16dp corners = shapes.medium, drag
+    // handle) instead of AlertDialog; save is a full-width primary pill pinned
+    // to the sheet bottom.
+    ModalBottomSheet(
         onDismissRequest = onDismiss,
-        title = {
+        shape = MaterialTheme.shapes.medium,
+        dragHandle = {
+            Box(
+                modifier = Modifier
+                    .padding(vertical = 12.dp)
+                    .size(width = 32.dp, height = 4.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                        shape = MaterialTheme.shapes.full
+                    )
+            )
+        },
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .navigationBarsPadding()
+        ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -157,49 +182,65 @@ fun AddLinkDialog(
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(stringResource(R.string.add_link_title))
-            }
-        },
-        text = {
-            Column {
-                OutlinedTextField(
-                    value = url,
-                    onValueChange = {
-                        url = it
-                        isValidUrl = validateUrl(it)
-                    },
-                    label = { Text(stringResource(R.string.add_link_url_label)) },
-                    placeholder = { Text(stringResource(R.string.add_link_url_placeholder)) },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Link,
-                            contentDescription = stringResource(R.string.add_link_url_hint),
-                            tint = if (isValidUrl || url.isEmpty()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    isError = !isValidUrl && url.isNotEmpty(),
-                    supportingText = if (!isValidUrl && url.isNotEmpty()) {
-                        { Text(stringResource(R.string.add_link_invalid_url), color = MaterialTheme.colorScheme.error) }
-                    } else null
+                Text(
+                    stringResource(R.string.add_link_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
                 )
             }
-        },
-        confirmButton = {
-            TextButton(
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = url,
+                onValueChange = {
+                    url = it
+                    isValidUrl = validateUrl(it)
+                },
+                label = { Text(stringResource(R.string.add_link_url_label)) },
+                placeholder = { Text(stringResource(R.string.add_link_url_placeholder)) },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Link,
+                        contentDescription = stringResource(R.string.add_link_url_hint),
+                        tint = if (isValidUrl || url.isEmpty()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error
+                    )
+                },
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.small,
+                singleLine = true,
+                isError = !isValidUrl && url.isNotEmpty(),
+                supportingText = if (!isValidUrl && url.isNotEmpty()) {
+                    { Text(stringResource(R.string.add_link_invalid_url), color = MaterialTheme.colorScheme.error) }
+                } else null
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Full-width primary save pill, pinned to the sheet bottom
+            Button(
                 onClick = { onSave(url) },
-                enabled = url.isNotBlank() && isValidUrl
+                enabled = url.isNotBlank() && isValidUrl,
+                shape = MaterialTheme.shapes.full,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text(stringResource(R.string.add_link_save))
+                Text(
+                    stringResource(R.string.add_link_save),
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
+
+            TextButton(
+                onClick = onDismiss,
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Text(stringResource(R.string.add_link_cancel))
             }
+
+            Spacer(modifier = Modifier.height(8.dp))
         }
-    )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -618,6 +659,33 @@ fun LinkOptionsBottomSheet(
 }
 
 @Preview
+/**
+ * Scale-in leading icon for selected chips (spec §6): pops in over 150ms
+ * each time the chip becomes selected (the composable enters composition
+ * only while selected, so the animation fires on every selection).
+ */
+@Composable
+private fun ChipLeadingCheck(
+    imageVector: ImageVector,
+    contentDescription: String? = null
+) {
+    val scale = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        scale.animateTo(1f, animationSpec = tween(150))
+    }
+    Icon(
+        imageVector = imageVector,
+        contentDescription = contentDescription,
+        tint = MaterialTheme.colorScheme.onSecondaryContainer,
+        modifier = Modifier
+            .size(16.dp)
+            .graphicsLayer {
+                scaleX = scale.value
+                scaleY = scale.value
+            }
+    )
+}
+
 @Composable
 fun HomeScreenPreview() {
     LinkzaryTheme {
@@ -717,13 +785,24 @@ fun HomeScreen(
         }
     }
 
-    // M3 TopAppBar (audit #5): real status-bar insets and enter-always collapse
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    // M3 TopAppBar (audit #5 + spec §6): pinned — Home must NOT collapse,
+    // content scrolls under a fixed header (enterAlways caused jank).
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+
+    // List state drives the FAB morph (cookie scallop at rest, pill when scrolled)
+    val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+    val isScrolled by remember {
+        derivedStateOf {
+            listState.firstVisibleItemIndex > 0 ||
+                listState.firstVisibleItemScrollOffset > 200
+        }
+    }
 
     // Outer Box only positions overlays (action bar, coach-mark, FAB);
     // the app bar and the list must be siblings in a Column so they stack
     // instead of drawing over each other (hotfix for the batch-2 overlap).
-    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+    // Spec §6: Home canvas = surfaceContainerLow (cards sit on surfaceContainerLowest).
+    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceContainerLow)) {
 
     Column(
         modifier = Modifier
@@ -825,13 +904,14 @@ fun HomeScreen(
             },
             scrollBehavior = scrollBehavior,
             colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.background
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow
             )
         )
     }
 
     // Main content with LazyColumn
     LazyColumn(
+        state = listState,
         modifier = Modifier
             .fillMaxSize()
             // No app bar in multi-select: pad for the status bar ourselves
@@ -947,7 +1027,7 @@ fun HomeScreen(
                             },
                             selected = uiState.readStatusFilter == ReadStatusFilter.ALL,
                             leadingIcon = if (uiState.readStatusFilter == ReadStatusFilter.ALL) {
-                                { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                                { ChipLeadingCheck(Icons.Default.Check) }
                             } else null
                         )
                     }
@@ -957,7 +1037,7 @@ fun HomeScreen(
                             label = { Text(stringResource(R.string.filter_unread) + " (${uiState.unreadCount})") },
                             selected = uiState.readStatusFilter == ReadStatusFilter.UNREAD,
                             leadingIcon = if (uiState.readStatusFilter == ReadStatusFilter.UNREAD) {
-                                { Icon(Icons.Default.MarkEmailUnread, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                                { ChipLeadingCheck(Icons.Default.MarkEmailUnread) }
                             } else null
                         )
                     }
@@ -967,7 +1047,7 @@ fun HomeScreen(
                             label = { Text(stringResource(R.string.filter_read) + " (${uiState.readCount})") },
                             selected = uiState.readStatusFilter == ReadStatusFilter.READ,
                             leadingIcon = if (uiState.readStatusFilter == ReadStatusFilter.READ) {
-                                { Icon(Icons.Default.Done, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                                { ChipLeadingCheck(Icons.Default.Done) }
                             } else null
                         )
                     }
@@ -977,7 +1057,7 @@ fun HomeScreen(
                             label = { Text(stringResource(R.string.filter_archived) + " (${uiState.archivedCount})") },
                             selected = uiState.readStatusFilter == ReadStatusFilter.ARCHIVED,
                             leadingIcon = if (uiState.readStatusFilter == ReadStatusFilter.ARCHIVED) {
-                                { Icon(Icons.Default.Archive, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                                { ChipLeadingCheck(Icons.Default.Archive) }
                             } else null
                         )
                     }
@@ -1024,7 +1104,7 @@ fun HomeScreen(
                                     label = { Text(tag) },
                                     selected = selectedTags.contains(tag),
                                     leadingIcon = if (selectedTags.contains(tag)) {
-                                        { Icon(Icons.Default.Check, contentDescription = stringResource(R.string.home_selected), modifier = Modifier.size(16.dp)) }
+                                        { ChipLeadingCheck(Icons.Default.Check, stringResource(R.string.home_selected)) }
                                     } else null
                                 )
                             }
@@ -1333,19 +1413,50 @@ fun HomeScreen(
     }
 
     // Floating Action Button (overlay, bottom-right)
+    // Spec §4/§6: 64dp cookie scallop at rest; morphs to a labeled pill once
+    // the list scrolls (AnimatedContent swap keeps the morph cheap and smooth).
     if (!uiState.isMultiSelectMode && !showCoachMark) {
-        FloatingActionButton(
-            onClick = { showAddLinkDialog = true },
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary,
+        androidx.compose.animation.AnimatedContent(
+            targetState = isScrolled,
+            transitionSpec = {
+                (androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(180)) +
+                    androidx.compose.animation.scaleIn(androidx.compose.animation.core.tween(180))) togetherWith
+                    (androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(120)) +
+                    androidx.compose.animation.scaleOut(androidx.compose.animation.core.tween(120)))
+            },
+            label = "fabMorph",
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(16.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = stringResource(R.string.home_add_link)
-            )
+        ) { scrolled ->
+            if (!scrolled) {
+                FloatingActionButton(
+                    onClick = { showAddLinkDialog = true },
+                    shape = com.appcodecraft.linkzary.ui.theme.CookieShape,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(64.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = stringResource(R.string.home_add_link)
+                    )
+                }
+            } else {
+                ExtendedFloatingActionButton(
+                    onClick = { showAddLinkDialog = true },
+                    shape = MaterialTheme.shapes.full,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = null
+                        )
+                    },
+                    text = { Text(stringResource(R.string.home_add_link), fontWeight = FontWeight.SemiBold) }
+                )
+            }
         }
     }
 

@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
@@ -306,15 +307,15 @@ fun CollectionsScreen(
                     item(key = "grid-spacer") {
                         Spacer(modifier = Modifier.height(4.dp))
                     }
-                    items(
+                    itemsIndexed(
                         items = uiState.collections.chunked(2),
-                        key = { chunk -> chunk.joinToString(",") { it.id.toString() } }
-                    ) { rowCollections ->
+                        key = { _, chunk -> chunk.joinToString(",") { it.id.toString() } }
+                    ) { rowIndex, rowCollections ->
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            rowCollections.forEach { collection ->
+                            rowCollections.forEachIndexed { colIndex, collection ->
                                 CollectionCard(
                                     collection = collection,
                                     linkCount = collectionMap[collection.id] ?: 0,
@@ -324,7 +325,9 @@ fun CollectionsScreen(
                                         )
                                     },
                                     onMoreClick = { selectedCollection = collection },
-                                    modifier = Modifier.weight(1f)
+                                    modifier = Modifier.weight(1f),
+                                    // Spec §6 shape party: rotate shapes across items
+                                    shapeVariant = rowIndex * 2 + colIndex
                                 )
                             }
                             if (rowCollections.size == 1) {
@@ -333,10 +336,10 @@ fun CollectionsScreen(
                         }
                     }
                 } else {
-                    items(
+                    itemsIndexed(
                         items = uiState.collections,
-                        key = { it.id }
-                    ) { collection ->
+                        key = { _, collection -> collection.id }
+                    ) { index, collection ->
                         CollectionCard(
                             collection = collection,
                             linkCount = collectionMap[collection.id] ?: 0,
@@ -345,7 +348,8 @@ fun CollectionsScreen(
                                     Screen.CollectionDetail.createRoute(collection.id.toString())
                                 )
                             },
-                            onMoreClick = { selectedCollection = collection }
+                            onMoreClick = { selectedCollection = collection },
+                            shapeVariant = index
                         )
                     }
                 }
@@ -355,6 +359,7 @@ fun CollectionsScreen(
         // Floating Action Button (overlay, bottom-right)
         FloatingActionButton(
             onClick = { showCreateCollectionDialog = true },
+            shape = MaterialTheme.shapes.full,
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary,
             modifier = Modifier

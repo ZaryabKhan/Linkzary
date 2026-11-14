@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.dp
 
 /**
  * Shimmering placeholder card that mirrors [BookmarkCard] geometry exactly
- * (16dp corner radius, 16:9 preview block, favicon row, two title lines,
+ * (20dp corner radius, 16:9 preview block, favicon row, two title lines,
  * footer pill), so swapping skeletons for real cards does not jump (audit #2).
  * Shimmer = 1.2s alpha pulse on SurfaceVariant; no external library needed.
  */
@@ -51,15 +51,13 @@ fun SkeletonBookmarkCard(
         ),
         label = "shimmerAlpha"
     )
-    val shimmerColor = MaterialTheme.colorScheme.surfaceVariant
+    val shimmerColor = MaterialTheme.colorScheme.surfaceContainerHigh
     val strokeWidth = Modifier.height(14.dp)
 
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)),
-        tonalElevation = 2.dp
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainerLowest
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             // 16:9 preview block (4:3 in grid, matching the real card)

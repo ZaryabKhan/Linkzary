@@ -104,14 +104,28 @@ fun CollectionCard(
     linkCount: Int,
     onCardClick: () -> Unit,
     onMoreClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    shapeVariant: Int = 0
 ) {
     // Static interaction source for click handling only
     val interactionSource = remember { MutableInteractionSource() }
-    
+
     // Safely parse collection color, falling back to primary if invalid
     val collectionColor = runCatching { Color(collection.color.toColorInt()) }
         .getOrDefault(MaterialTheme.colorScheme.primary)
+    // Spec §3/§6: harmonize the collection hue toward the brand palette
+    val harmonized = com.appcodecraft.linkzary.ui.theme.harmonizeWith(
+        design = collectionColor,
+        source = MaterialTheme.colorScheme.primary
+    )
+
+    // Spec §6 "shape party": rotate rounded (28dp) / scalloped / clover across
+    // items — expressive but subtle.
+    val shape = when (shapeVariant % 3) {
+        1 -> com.appcodecraft.linkzary.ui.theme.CookieShape
+        2 -> com.appcodecraft.linkzary.ui.theme.CloverShape
+        else -> MaterialTheme.shapes.extraLarge
+    }
 
     Card(
         modifier = modifier
@@ -120,19 +134,12 @@ fun CollectionCard(
                 interactionSource = interactionSource,
                 indication = null
             ) { onCardClick() },
-        shape = RoundedCornerShape(16.dp),
+        shape = shape,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            // Tonal container tinted with the (harmonized) collection color
+            containerColor = harmonized.copy(alpha = 0.14f)
         ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 4.dp,
-            pressedElevation = 8.dp,
-            hoveredElevation = 6.dp
-        ),
-        border = BorderStroke(
-            width = 1.dp,
-            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
-        )
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Row(
             modifier = Modifier
@@ -144,15 +151,8 @@ fun CollectionCard(
             Box(
                 modifier = Modifier
                     .size(48.dp)
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(
-                        brush = Brush.linearGradient(
-                            colors = listOf(
-                                collectionColor,
-                                collectionColor.copy(alpha = 0.8f)
-                            )
-                        )
-                    ),
+                    .clip(MaterialTheme.shapes.full)
+                    .background(harmonized),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(

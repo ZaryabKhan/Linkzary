@@ -108,21 +108,17 @@ fun BookmarkCard(
                     }
                 )
             },
-        shape = RoundedCornerShape(16.dp),
+        // Spec §6: cards at 20dp (shapes.large), tone-on-tone surfaceContainerLowest,
+        // no border, no shadow — depth comes from the tonal tier, not elevation.
+        shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
         ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 2.dp,
-            pressedElevation = 4.dp,
-            hoveredElevation = 3.dp
-        ),
-        border = BorderStroke(
-            width = if (isSelected) 2.dp else 0.5.dp,
-            color = if (isSelected)
-                MaterialTheme.colorScheme.primary
-            else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
-        )
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        border = if (isSelected) BorderStroke(
+            width = 2.dp,
+            color = MaterialTheme.colorScheme.primary
+        ) else null
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             // Preview Image Section with overlay badges
@@ -137,7 +133,7 @@ fun BookmarkCard(
                     .fillMaxWidth()
                     // 16:9 preview in list view, shorter 4:3 in grid (audit #3)
                     .aspectRatio(if (isGrid) 4f / 3f else 16f / 9f)
-                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                    .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
             ) {
                 if (!effectiveImageUrl.isNullOrBlank() && !showPreviewFallback) {
                     AsyncImage(
@@ -224,20 +220,25 @@ fun BookmarkCard(
                 if (collectionName != null && collectionColor != null && !isMultiSelectMode) {
                     val parsedColor = runCatching { Color(collectionColor.toColorInt()) }
                         .getOrDefault(MaterialTheme.colorScheme.primary)
+                    // Spec §6: harmonize the collection hue toward the brand,
+                    // tint container at 0.24 alpha with full-color text.
+                    val harmonized = com.appcodecraft.linkzary.ui.theme.harmonizeWith(
+                        design = parsedColor,
+                        source = MaterialTheme.colorScheme.primary
+                    )
                     Surface(
                         modifier = Modifier
                             .align(Alignment.BottomStart)
                             .padding(12.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        color = parsedColor.copy(alpha = 0.85f),
-                        shadowElevation = 2.dp
+                        shape = MaterialTheme.shapes.full,
+                        color = harmonized.copy(alpha = 0.24f)
                     ) {
                         Text(
                             text = collectionName,
                             style = MaterialTheme.typography.labelMedium.copy(
                                 fontWeight = FontWeight.SemiBold
                             ),
-                            color = Color.White,
+                            color = harmonized,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)

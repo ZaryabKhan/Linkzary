@@ -15,6 +15,8 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -57,20 +59,32 @@ fun LinkzaryBottomNavigationBar(
     navController: NavController,
     currentRoute: String?
 ) {
-    NavigationBar {
+    // Spec §6: nav bar sits on surfaceContainer (tone, not elevation)
+    NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainer) {
         bottomNavItems.forEach { item ->
             val isSelected = currentRoute == item.screen.route
-            
-            // Static values for better performance
+
+            // Spec §5: springy 250ms scale pop on the active icon
+            val iconScale by androidx.compose.animation.core.animateFloatAsState(
+                targetValue = if (isSelected) 1.15f else 1f,
+                animationSpec = androidx.compose.animation.core.spring(
+                    dampingRatio = 0.6f,
+                    stiffness = 300f
+                ),
+                label = "navIconScale"
+            )
             val iconTint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-            
+
             NavigationBarItem(
                 icon = {
                     Icon(
                         imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
                         contentDescription = stringResource(item.titleRes),
                         tint = iconTint,
-                        // Scale modifier removed for better performance
+                        modifier = androidx.compose.ui.Modifier.graphicsLayer {
+                            scaleX = iconScale
+                            scaleY = iconScale
+                        }
                     )
                 },
                 label = { Text(stringResource(item.titleRes)) },

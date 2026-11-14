@@ -665,4 +665,30 @@
 
     <string name="settings_stats">Statistics</string>
     <string name="settings_stats_description">View your reading stats and insights</string>
+
+    <!-- Onboarding (Material 3 Expressive, spec §7) -->
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_get_started">Get started</string>
+    <string name="onboarding_support">Support the app</string>
+    <string name="onboarding_maybe_later">Maybe later</string>
+    <string name="onboarding_1_title">Save anything</string>
+    <string name="onboarding_1_body">Save any link — share it from any app and it lands right here.</string>
+    <string name="onboarding_1_chip1">Share</string>
+    <string name="onboarding_1_chip2">Auto preview</string>
+    <string name="onboarding_2_title">Keep it together</string>
+    <string name="onboarding_2_body">Organize with collections, tags, and custom thumbnails.</string>
+    <string name="onboarding_2_chip1">Collections</string>
+    <string name="onboarding_2_chip2">Tags</string>
+    <string name="onboarding_2_chip3">Thumbnails</string>
+    <string name="onboarding_3_title">Never lose a link</string>
+    <string name="onboarding_3_body">Automatic Google Drive backup and one-tap restore.</string>
+    <string name="onboarding_3_chip1">Drive backup</string>
+    <string name="onboarding_3_chip2">Restore</string>
+    <string name="onboarding_4_title">Stay on top of it</string>
+    <string name="onboarding_4_body">Reminders resurface links. Merge duplicates in one tap.</string>
+    <string name="onboarding_4_chip1">Reminders</string>
+    <string name="onboarding_4_chip2">Merge duplicates</string>
+    <string name="onboarding_5_title">Enjoying Linkzary?</string>
+    <string name="onboarding_5_body">Linkzary is built independently. If it saves you time, a small donation helps keep it that way.</string>
 </resources>

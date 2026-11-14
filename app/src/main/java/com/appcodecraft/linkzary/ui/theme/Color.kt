@@ -50,10 +50,10 @@ val DarkOnTertiaryContainer = Color(0xFFCFFAFE)
 
 val DarkError = Color(0xFFF87171)
 val DarkOnError = Color(0xFF7F1D1D)
-// M3 dark errorContainer pair: deep desaturated red + soft pink text.
-// The old bright-red/light-pink combo glared inside dark theme (audit #4).
-val DarkErrorContainer = Color(0xFF8C1D18)
-val DarkOnErrorContainer = Color(0xFFF9DEDC)
+// M3 expressive dark errorContainer pair (spec §3): dark tonal red container
+// with a soft pink on-container, instead of glaring bright/light combos.
+val DarkErrorContainer = Color(0xFF4A1C1C)
+val DarkOnErrorContainer = Color(0xFFF2B8B5)
 
 val DarkBackground = Color(0xFF121212) // Material Design dark background
 val DarkOnBackground = Color(0xFFE3E3E3)
@@ -63,6 +63,26 @@ val DarkSurfaceVariant = Color(0xFF2C2C2C)
 val DarkOnSurfaceVariant = Color(0xFFB3B3B3)
 val DarkOutline = Color(0xFF404040)
 val DarkOutlineVariant = Color(0xFF525252)
+
+// Tonal surface tiers (spec §3): Home bg = surfaceContainerLow,
+// cards = surfaceContainerLowest. Depth comes from tone, not shadows.
+val SurfaceContainerLowest = Color(0xFFFFFFFF)
+val SurfaceContainerLow = Color(0xFFF2F0FA)
+val SurfaceContainer = Color(0xFFECEAF4)
+val SurfaceContainerHigh = Color(0xFFE5E2F0)
+val SurfaceContainerHighest = Color(0xFFDDD9EA)
+
+val DarkSurfaceContainerLowest = Color(0xFF17171C)
+val DarkSurfaceContainerLow = Color(0xFF1E1E24)
+val DarkSurfaceContainer = Color(0xFF25252D)
+val DarkSurfaceContainerHigh = Color(0xFF2C2C35)
+val DarkSurfaceContainerHighest = Color(0xFF373741)
+
+// Fixed roles, stable across light/dark (onboarding + donation pages, spec §3)
+val PrimaryFixed = Color(0xFF4F46E5)
+val OnPrimaryFixed = Color(0xFFFFFFFF)
+val PrimaryFixedDim = Color(0xFF3B37B5)
+val OnPrimaryFixedVariant = Color(0xFFE0E7FF)
 
 // Legacy colors for backward compatibility
 val Purple80 = DarkPrimary

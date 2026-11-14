@@ -12,13 +12,17 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.appcodecraft.linkzary.data.preferences.UserPreferencesManager
 import com.appcodecraft.linkzary.navigation.LinkzaryNavigation
+import com.appcodecraft.linkzary.navigation.Screen
 import com.appcodecraft.linkzary.ui.component.LinkzaryBottomNavigationBar
+import com.appcodecraft.linkzary.ui.screen.onboarding.OnboardingScreen
 import com.appcodecraft.linkzary.ui.theme.LinkzaryTheme
 import com.appcodecraft.linkzary.utils.LocaleHelper
 import dagger.hilt.android.AndroidEntryPoint
@@ -72,6 +76,33 @@ fun LinkzaryApp(
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+
+    // Onboarding gate (spec §7): show on first launch and once per new
+    // versionCode, gated by the persisted flag via OnboardingGate.
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val currentVersionCode = remember {
+        try {
+            context.packageManager.getPackageInfo(context.packageName, 0).longVersionCode.toInt()
+        } catch (e: Exception) {
+            0
+        }
+    }
+    val lastOnboardedVersionCode by userPreferencesManager.lastOnboardedVersionCode.collectAsState()
+    val showOnboarding = com.appcodecraft.linkzary.util.OnboardingGate.shouldShow(
+        lastOnboardedVersionCode = lastOnboardedVersionCode,
+        currentVersionCode = currentVersionCode
+    )
+
+    if (showOnboarding) {
+        OnboardingScreen(
+            onFinish = { userPreferencesManager.markOnboarded(currentVersionCode) },
+            onSupport = {
+                userPreferencesManager.markOnboarded(currentVersionCode)
+                navController.navigate(Screen.Donation.route)
+            }
+        )
+        return
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
