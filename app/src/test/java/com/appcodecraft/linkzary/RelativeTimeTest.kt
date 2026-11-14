@@ -92,8 +92,9 @@ class RelativeTimeTest {
 
     @Test
     fun `day boundary at midnight does not shift a day`() {
-        // Saved 23:59 on Nov 12, now 00:01 Nov 13 -> calendar-day diff of 1
+        // Saved 22:00 on Nov 12, now 00:01 Nov 13 -> calendar-day diff of 1
+        // (over an hour old, so the minute branch doesn't win)
         val now = dateAt(2026, 11, 13, 0, 1)
-        assertEquals("Yesterday", formatRelativeSaveDate(dateAt(2026, 11, 12, 23, 59), now))
+        assertEquals("Yesterday", formatRelativeSaveDate(dateAt(2026, 11, 12, 22, 0), now))
     }
 }
