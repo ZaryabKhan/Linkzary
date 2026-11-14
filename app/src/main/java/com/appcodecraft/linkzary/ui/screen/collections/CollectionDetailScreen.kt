@@ -278,6 +278,7 @@ fun CollectionDetailScreen(
                                 collectionColor = uiState.collection?.color ?: "#FF6200EE",
                                 isMultiSelectMode = uiState.isMultiSelectMode,
                                 isSelected = uiState.selectedLinks.contains(link.id),
+                                isGrid = true,
                                 onCardClick = {
                                     if (uiState.isMultiSelectMode) {
                                         viewModel.toggleLinkSelection(link.id)

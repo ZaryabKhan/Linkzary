@@ -57,6 +57,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -104,8 +105,10 @@ import com.appcodecraft.linkzary.navigation.Screen
 import com.appcodecraft.linkzary.ui.component.BookmarkCard
 import com.appcodecraft.linkzary.ui.component.CreateCollectionForm
 import com.appcodecraft.linkzary.ui.component.EditLinkDialog
+import com.appcodecraft.linkzary.ui.component.EmptyStateIllustration
 import com.appcodecraft.linkzary.ui.component.OptionItem
 import com.appcodecraft.linkzary.ui.component.CollectionSelectionDialog
+import com.appcodecraft.linkzary.ui.component.SkeletonBookmarkCard
 import com.appcodecraft.linkzary.ui.component.SmallCollectionCard
 import com.appcodecraft.linkzary.ui.component.getCollectionIconVector
 import com.appcodecraft.linkzary.ui.theme.LinkzaryTheme
@@ -1069,40 +1072,69 @@ fun HomeScreen(
                 }
             }
 
-            // Loading state
+            // Loading state: skeleton cards shaped like BookmarkCard (audit #2)
             if (uiState.isLoading) {
-                item(key = "loading") {
-                    Box(
-                        modifier = Modifier.fillMaxWidth().height(200.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
+                items(count = 3, key = { i -> "loading-$i" }) {
+                    SkeletonBookmarkCard(modifier = Modifier.padding(bottom = 12.dp))
                 }
             }
 
-            // Empty state
+            // Empty state (audit #1): illustration + headline + CTA + share hint.
+            // Search/tag-filter misses keep their simple text variants below.
             if (!uiState.isLoading && filteredLinks.isEmpty()) {
                 item(key = "empty") {
                     Box(
-                        modifier = Modifier.fillMaxWidth().height(200.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 24.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                text = when {
-                                    selectedTags.isNotEmpty() -> stringResource(R.string.home_no_bookmarks_tags)
-                                    localSearchQuery.isNotBlank() -> stringResource(R.string.home_no_results_found)
-                                    else -> stringResource(R.string.home_no_bookmarks_yet)
-                                },
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            if (localSearchQuery.isBlank() && selectedTags.isEmpty()) {
+                        if (localSearchQuery.isBlank() && selectedTags.isEmpty()) {
+                            // First run: the redesigned empty state
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                EmptyStateIllustration()
+                                Spacer(modifier = Modifier.height(24.dp))
+                                Text(
+                                    text = stringResource(R.string.home_no_bookmarks_yet),
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
-                                    text = stringResource(R.string.home_start_saving_links),
+                                    text = stringResource(R.string.home_empty_share_hint),
                                     style = MaterialTheme.typography.bodyMedium,
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.height(24.dp))
+                                Button(
+                                    onClick = { showAddLinkDialog = true },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(56.dp),
+                                    shape = RoundedCornerShape(28.dp)
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.home_empty_cta),
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                }
+                            }
+                        } else {
+                            // Filtered/search empty state stays plain text
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = when {
+                                        selectedTags.isNotEmpty() -> stringResource(R.string.home_no_bookmarks_tags)
+                                        else -> stringResource(R.string.home_no_results_found)
+                                    },
+                                    style = MaterialTheme.typography.bodyLarge,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
@@ -1129,6 +1161,7 @@ fun HomeScreen(
                                     collectionColor = collectionMap[link.collectionId]?.color,
                                     isMultiSelectMode = uiState.isMultiSelectMode,
                                     isSelected = uiState.selectedLinks.contains(link.id),
+                                    isGrid = true,
                                     onCardClick = {
                                         if (uiState.isMultiSelectMode) {
                                             viewModel.toggleLinkSelection(link.id)

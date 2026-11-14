@@ -34,6 +34,9 @@
     <string name="home_no_results_found">No results found</string>
     <string name="home_no_bookmarks_yet">No bookmarks yet</string>
     <string name="home_start_saving_links">Start saving your favorite links</string>
+    <!-- Empty state redesign (audit #1) -->
+    <string name="home_empty_cta">Save your first link</string>
+    <string name="home_empty_share_hint">Share any link from any app and it lands here — or add one below.</string>
 
     <!-- Add Link Dialog -->
     <string name="add_link_title">Add Link</string>

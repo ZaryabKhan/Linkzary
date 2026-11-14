@@ -50,8 +50,10 @@ val DarkOnTertiaryContainer = Color(0xFFCFFAFE)
 
 val DarkError = Color(0xFFF87171)
 val DarkOnError = Color(0xFF7F1D1D)
-val DarkErrorContainer = Color(0xFFDC2626)
-val DarkOnErrorContainer = Color(0xFFFEE2E2)
+// M3 dark errorContainer pair: deep desaturated red + soft pink text.
+// The old bright-red/light-pink combo glared inside dark theme (audit #4).
+val DarkErrorContainer = Color(0xFF8C1D18)
+val DarkOnErrorContainer = Color(0xFFF9DEDC)
 
 val DarkBackground = Color(0xFF121212) // Material Design dark background
 val DarkOnBackground = Color(0xFFE3E3E3)
