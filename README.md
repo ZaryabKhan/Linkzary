@@ -246,7 +246,10 @@ rules, made link previews retry with a favicon fallback, and added an
 Device-test fixes: link opening fully moved off Compose UriHandler to a
 guarded `UrlOpener` (plus a crash-log writer at Android/data/.../files/crash),
 Drive backup/restore failures now surface in the UI (and auto-continue after
-permission grant), and the reminder date/time conversion no longer shifts the
-picked date a day in western timezones.
+permission grant), the reminder date/time conversion no longer shifts the
+picked date a day in western timezones, and the collection-detail scroll
+crash on Android 15 was addressed with stable lazy item keys, no-op emission
+suppression and a Compose BOM bump to 2026.06.01 (known API-35 subcompose
+IllegalArgumentException during mid-transition list updates).
 Known issues: merge-duplicates not yet device-tested; not yet exercised beyond
 one device pass; new strings English-only.
