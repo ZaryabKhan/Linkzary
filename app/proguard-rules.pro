@@ -15,13 +15,11 @@
 -keepattributes SourceFile,LineNumberTable
 -renamesourcefileattribute SourceFile
 
-# Kotlin optimizations
--keep class kotlin.** { *; }
--keep class kotlinx.coroutines.** { *; }
+# Kotlin: kotlin/ and kotlinx.coroutines ship their own consumer R8 rules,
+# so blanket keeps here are unnecessary and disable most shrinking/obfuscation.
 -dontwarn kotlinx.coroutines.**
 
-# Compose optimizations
--keep class androidx.compose.** { *; }
+# Compose ships consumer R8 rules; no keep needed.
 -dontwarn androidx.compose.**
 
 # Room optimizations
@@ -50,12 +48,10 @@
     kotlinx.serialization.KSerializer serializer(...);
 }
 
-# Coil optimizations
--keep class coil.** { *; }
+# Coil ships consumer R8 rules; no keep needed.
 -dontwarn coil.**
 
-# JSoup optimizations
--keep class org.jsoup.** { *; }
+# JSoup ships consumer R8 rules; no keep needed.
 -dontwarn org.jsoup.**
 
 # RssParser optimizations
@@ -75,3 +71,10 @@
 # Keep BillingManager
 -keep class com.appcodecraft.linkzary.billing.** { *; }
 -dontwarn com.android.vending.**
+
+# Drive backup (google-api-client / google-http-client reference optional
+# JDK/extension classes that are never used on Android)
+-dontwarn com.google.api.client.**
+-dontwarn com.google.api.services.**
+-dontwarn com.google.common.**
+-dontwarn org.apache.http.**

@@ -473,6 +473,10 @@
     <string name="share_link_title">Share</string>
     <string name="share_link_subtitle">Share this link with other apps</string>
 
+    <!-- Open in browser (v1.2.0) -->
+    <string name="link_open_browser_title">Open in browser</string>
+    <string name="link_open_browser_subtitle">Open this link in your chosen browser</string>
+
     <!-- Reminders (v1.2.0) -->
     <string name="reminder_set">Remind me</string>
     <string name="reminder_remove">Remove reminder</string>
