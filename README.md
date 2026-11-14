@@ -239,4 +239,8 @@ New: Google Drive backup/restore, browser-bookmarks HTML import/export, duplicat
 detection with merge action, share sheet out, favicon display, tag autocomplete,
 custom thumbnail per link, revisit reminders. Build: `./gradlew assembleDebug`,
 tests: `./gradlew testDebugUnitTest` (12/12 pass). Details: [docs/CHANGELOG-v1.2.0.md](docs/CHANGELOG-v1.2.0.md).
+Addendum: fixed the Collection Detail crash on malformed URLs and the startup
+ANR, replaced the deprecated activity-transition API, trimmed blanket R8 keep
+rules, made link previews retry with a favicon fallback, and added an
+"Open in browser" action that opens links in the user's chosen browser.
 Known issues: not yet exercised on a physical device; new strings English-only.

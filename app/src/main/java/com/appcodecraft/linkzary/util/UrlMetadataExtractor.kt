@@ -19,23 +19,54 @@ class UrlMetadataExtractor @Inject constructor(
     private val okHttpClient: OkHttpClient
 ) {
 
+    private companion object {
+        const val CONNECT_TIMEOUT_MS = 8000
+    }
+
     suspend fun extractMetadata(url: String): UrlMetadata = withContext(Dispatchers.IO) {
+        // Normalize scheme-less URLs first: Jsoup refuses "example.com",
+        // which is a common cause of previews silently failing to load.
+        val target = if (url.contains("://")) url else "https://$url"
         try {
-            val connection = Jsoup.connect(url)
-                .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
-                .timeout(5000)
-                .followRedirects(true)
+            fetchMetadata(target)
+        } catch (first: Exception) {
+            try {
+                // Transient network failures (slow origins, DNS hiccups) are
+                // the other common cause of failed previews: retry once.
+                fetchMetadata(target)
+            } catch (second: Exception) {
+                // Fall back to the domain name plus a favicon served by
+                // Google's s2 service so the card still renders something
+                // meaningful instead of an empty placeholder.
+                UrlMetadata(
+                    title = extractDomainFromUrl(target),
+                    favicon = fallbackFavicon(target),
+                    previewImageUrl = null
+                )
+            }
+        }
+    }
 
-            val doc = connection.get()
+    private fun fetchMetadata(url: String): UrlMetadata {
+        val doc = Jsoup.connect(url)
+            .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+            .timeout(CONNECT_TIMEOUT_MS)
+            .followRedirects(true)
+            .get()
 
-            val title = doc.title().takeIf { it.isNotBlank() } ?: extractDomainFromUrl(url)
-            val favicon = extractFavicon(doc, url)
-            val previewImage = extractPreviewImage(doc, url)
+        val title = doc.title().takeIf { it.isNotBlank() } ?: extractDomainFromUrl(url)
+        val favicon = extractFavicon(doc, url)
+        val previewImage = extractPreviewImage(doc, url)
 
-            UrlMetadata(title, favicon, previewImage)
+        return UrlMetadata(title, favicon, previewImage)
+    }
+
+    private fun fallbackFavicon(url: String): String? {
+        return try {
+            val host = URL(url).host
+            "https://www.google.com/s2/favicons?domain=$host&sz=64"
         } catch (e: Exception) {
-            // Fallback to domain name if extraction fails
-            UrlMetadata(extractDomainFromUrl(url), null, null)
+            null
         }
     }
 

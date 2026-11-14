@@ -89,6 +89,19 @@ fun CollectionDetailScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val uriHandler = LocalUriHandler.current
 
+    // Opens a URL without crashing: uriHandler.openUri throws
+    // IllegalArgumentException on malformed or scheme-less input (the
+    // v1.1.5 crash cluster). Mirrors HomeScreen's guarded open plus a
+    // scheme fix so bare domains like "example.com" still open.
+    val openSafely: (String) -> Unit = { url ->
+        try {
+            val fixed = if (url.contains("://")) url else "https://$url"
+            uriHandler.openUri(fixed)
+        } catch (e: Exception) {
+            android.util.Log.e("CollectionDetail", "Failed to open URI: $url", e)
+        }
+    }
+
     var selectedLink by remember { mutableStateOf<SavedLink?>(null) }
     var searchQuery by remember { mutableStateOf("") }
     val isGridView = uiState.isGridView
@@ -273,7 +286,7 @@ fun CollectionDetailScreen(
                                     if (uiState.isMultiSelectMode) {
                                         viewModel.toggleLinkSelection(link.id)
                                     } else {
-                                        uriHandler.openUri(link.url)
+                                        openSafely(link.url)
                                     }
                                 },
                                 onMoreClick = {
@@ -304,7 +317,7 @@ fun CollectionDetailScreen(
                                     if (uiState.isMultiSelectMode) {
                                         viewModel.toggleLinkSelection(link.id)
                                     } else {
-                                        uriHandler.openUri(link.url)
+                                        openSafely(link.url)
                                     }
                                 },
                                 onMoreClick = {

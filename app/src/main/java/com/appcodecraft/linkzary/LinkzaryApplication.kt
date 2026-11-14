@@ -8,12 +8,9 @@ import androidx.work.Configuration
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
-import com.appcodecraft.linkzary.data.preferences.UserPreferencesManager
 import com.appcodecraft.linkzary.utils.LocaleHelper
 import com.appcodecraft.linkzary.worker.LinkHealthWorker
 import dagger.hilt.android.HiltAndroidApp
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -74,15 +71,15 @@ class LinkzaryApplication : Application(), Configuration.Provider {
 
     override fun attachBaseContext(base: Context?) {
         // Apply locale early so all resources are correctly configured.
-        // runBlocking here is acceptable: attachBaseContext runs before any UI
-        // is displayed, so there is no risk of ANR visible to the user.
-        // TODO: Migrate UserPreferencesManager to DataStore for fully async reads.
+        // Read the language directly from SharedPreferences: constructing the
+        // full preferences manager (and its StateFlows) inside a runBlocking
+        // here was a startup ANR risk (input-dispatch timeout on slow disks).
         val updatedContext = base?.let { context ->
-            val userPreferencesManager = UserPreferencesManager(context)
-            val savedLanguage = runBlocking {
-                userPreferencesManager.currentLanguage.first()
-            }
-            LocaleHelper.setLocale(context, savedLanguage)
+            val language = context.getSharedPreferences(
+                "linkzary_preferences",
+                Context.MODE_PRIVATE
+            ).getString("current_language", "en") ?: "en"
+            LocaleHelper.setLocale(context, language)
         }
         super.attachBaseContext(updatedContext ?: base)
     }

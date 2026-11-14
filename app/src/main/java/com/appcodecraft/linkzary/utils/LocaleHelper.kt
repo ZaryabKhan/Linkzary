@@ -47,7 +47,16 @@ object LocaleHelper {
         val intent = activity.intent
         activity.finish()
         activity.startActivity(intent)
-        activity.overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+        if (android.os.Build.VERSION.SDK_INT >= 34) {
+            activity.overrideActivityTransition(
+                Activity.OVERRIDE_TRANSITION_OPEN,
+                android.R.anim.fade_in,
+                android.R.anim.fade_out
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            activity.overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+        }
     }
     
     fun getLanguageDisplayName(languageCode: String): String {

@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.Alarm
 import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CreateNewFolder
@@ -454,6 +455,28 @@ fun LinkOptionsBottomSheet(
                         onDismiss()
                     } else {
                         showReminderPicker = true
+                    }
+                }
+            )
+
+            OptionItem(
+                icon = Icons.Default.OpenInBrowser,
+                title = stringResource(R.string.link_open_browser_title),
+                subtitle = stringResource(R.string.link_open_browser_subtitle),
+                onClick = {
+                    // ACTION_VIEW with an https scheme lets Android route the
+                    // link to the user's default (or chosen) browser instead of
+                    // an in-app WebView. Guarded so a malformed URL can never
+                    // crash the sheet.
+                    try {
+                        val fixed = if (link.url.contains("://")) link.url else "https://${link.url}"
+                        val browserIntent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(fixed)).apply {
+                            addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                        context.startActivity(android.content.Intent.createChooser(browserIntent, null))
+                        onDismiss()
+                    } catch (e: Exception) {
+                        android.util.Log.e("HomeScreen", "Failed to open link in browser", e)
                     }
                 }
             )

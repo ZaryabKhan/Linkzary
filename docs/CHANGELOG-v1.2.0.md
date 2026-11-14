@@ -32,6 +32,26 @@ Stack: Kotlin + Jetpack Compose, Room, Hilt, WorkManager, Coil, Billing Library 
 5. **Collection picker scroll bug** — the move-to-collection dialog's list had no
    height cap, so with many collections the bottom entries were unreachable.
    Fixed with `heightIn(max = 400.dp)`.
+11. **Addendum — IllegalArgumentException crash cluster** (v1.1.5, 3 users /
+    10 events): tapping a link in Collection Detail called
+    `uriHandler.openUri` unguarded, which throws on malformed or scheme-less
+    URLs. Both call sites now go through a guarded `openSafely` helper
+    (try/catch + `https://` scheme fix), matching HomeScreen.
+12. **Addendum — startup ANR** (v1.1.5 input-dispatch timeout): app startup
+    constructed the full preferences manager inside a `runBlocking` in
+    `attachBaseContext`. It now reads the single `current_language` key
+    directly from SharedPreferences — no blocking coroutine machinery.
+13. **Addendum — edge-to-edge / deprecated API**: the deprecated
+    `overridePendingTransition` in `LocaleHelper.restartActivity` replaced
+    with `overrideActivityTransition` on API 34+ (legacy call kept below 34).
+    Main/Share activities already use `enableEdgeToEdge()` with Scaffold
+    insets — no other deprecated insets APIs found.
+14. **Addendum — R8 optimization**: full mode was already on, but blanket
+    `-keep` rules for kotlin., kotlinx.coroutines., androidx.compose., coil.
+    and org.jsoup. disabled most shrinking/obfuscation (all of these ship
+    consumer R8 rules). Removed; kept targeted rules (Room entities, Hilt,
+    WorkManager, Billing, kotlinx-serialization) and added dontwarns for the
+    new google-api-client Drive deps.
 
 ### P2 — Features
 6. **Share sheet out** — new Share action on every link (options bottom sheet).
@@ -45,6 +65,13 @@ Stack: Kotlin + Jetpack Compose, Room, Hilt, WorkManager, Coil, Billing Library 
 10. **Revisit reminders** — per-link "Remind me" (date + time picker), fired by
     WorkManager notification, tap opens the app, auto-clears after firing.
     POST_NOTIFICATIONS requested on Android 13+.
+15. **Addendum P2 — link previews fail to load**: `UrlMetadataExtractor` now
+    normalizes scheme-less URLs, retries once on transient failures, uses an
+    8 s timeout, and on total failure falls back to a Google s2 favicon so the
+    card still renders a meaningful icon instead of an empty placeholder.
+16. **Addendum P2 — open link in chosen browser**: new "Open in browser"
+    action in the link options sheet (ACTION_VIEW chooser), guarded so a
+    malformed URL can never crash the sheet.
 
 ### Not built (per backlog rules)
 Material 3 Expressive, tablet/foldable layouts, fingerprint lock, Chrome OS/WearOS.
