@@ -30,6 +30,10 @@ jobs:
       - name: Build debug APK
         run: ./gradlew assembleDebug --stacktrace
 
+      - name: Print debug APK signing fingerprint (for GCP OAuth client)
+        run: |
+          keytool -list -v -keystore keystores/debug.keystore -alias androiddebugkey -storepass android -storetype PKCS12 | grep -E "SHA1:|SHA256:"
+
       - name: Run unit tests
         run: ./gradlew test --stacktrace
 
