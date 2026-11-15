@@ -17,4 +17,15 @@ object OnboardingGate {
         if (currentVersionCode <= 0) return false
         return lastOnboardedVersionCode < currentVersionCode
     }
+
+    /**
+     * P0 regression guard: whether the pending "Support" navigation from
+     * onboarding may fire this frame. The NavHost (and therefore the nav
+     * graph) is not composed while onboarding shows, so navigate() on a
+     * graph-less controller crashes — navigation must be deferred until
+     * onboarding is dismissed, even though the tap already marked it done.
+     */
+    fun deferWhileOnboarding(showOnboarding: Boolean, pendingDonationNav: Boolean): Boolean {
+        return pendingDonationNav && !showOnboarding
+    }
 }

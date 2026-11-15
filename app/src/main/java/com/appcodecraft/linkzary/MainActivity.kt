@@ -15,7 +15,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -94,15 +96,33 @@ fun LinkzaryApp(
         currentVersionCode = currentVersionCode
     )
 
+    // P0 crash fix: while onboarding is up, the NavHost below is NOT composed,
+    // so the nav graph is never set and navigate() here crashed the app. The
+    // donate tap now marks onboarding done and defers the navigation until the
+    // graph exists (see OnboardingGate.deferWhileOnboarding).
+    var pendingDonationNav by remember { androidx.compose.runtime.mutableStateOf(false) }
     if (showOnboarding) {
         OnboardingScreen(
             onFinish = { userPreferencesManager.markOnboarded(currentVersionCode) },
             onSupport = {
                 userPreferencesManager.markOnboarded(currentVersionCode)
-                navController.navigate(Screen.Donation.route)
+                pendingDonationNav = true
             }
         )
         return
+    }
+
+    if (pendingDonationNav) {
+        androidx.compose.runtime.LaunchedEffect(pendingDonationNav) {
+            if (com.appcodecraft.linkzary.util.OnboardingGate.deferWhileOnboarding(
+                    showOnboarding = showOnboarding,
+                    pendingDonationNav = pendingDonationNav
+                )
+            ) {
+                navController.navigate(Screen.Donation.route)
+            }
+            pendingDonationNav = false
+        }
     }
 
     Scaffold(
