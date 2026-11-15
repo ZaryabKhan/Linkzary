@@ -5,11 +5,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Notes
-import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.Link
-import androidx.compose.material.icons.filled.Tag
-import androidx.compose.material.icons.filled.Title
+import androidx.compose.material.icons.automirrored.rounded.Notes
+import androidx.compose.material.icons.rounded.Image
+import androidx.compose.material.icons.rounded.Link
+import androidx.compose.material.icons.rounded.Tag
+import androidx.compose.material.icons.rounded.Title
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -42,7 +42,7 @@ fun LinkEditorForm(
             label = { Text(stringResource(R.string.edit_link_title_label)) },
             leadingIcon = {
                 Icon(
-                    imageVector = Icons.Default.Title,
+                    imageVector = Icons.Rounded.Title,
                     contentDescription = stringResource(R.string.edit_link_title_label),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -59,7 +59,7 @@ fun LinkEditorForm(
             label = { Text(stringResource(R.string.edit_link_url_label)) },
             leadingIcon = {
                 Icon(
-                    imageVector = Icons.Default.Link,
+                    imageVector = Icons.Rounded.Link,
                     contentDescription = stringResource(R.string.edit_link_url_label),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -76,7 +76,7 @@ fun LinkEditorForm(
             label = { Text(stringResource(R.string.edit_link_note_label)) },
             leadingIcon = {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Filled.Notes,
+                    imageVector = Icons.AutoMirrored.Rounded.Notes,
                     contentDescription = stringResource(R.string.edit_link_note_label),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -93,7 +93,7 @@ fun LinkEditorForm(
             label = { Text(stringResource(R.string.edit_link_tags_label)) },
             leadingIcon = {
                 Icon(
-                    imageVector = Icons.Default.Tag,
+                    imageVector = Icons.Rounded.Tag,
                     contentDescription = stringResource(R.string.edit_link_tags_label),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -110,7 +110,7 @@ fun LinkEditorForm(
             label = { Text(stringResource(R.string.edit_link_custom_image_label)) },
             leadingIcon = {
                 Icon(
-                    imageVector = Icons.Default.Image,
+                    imageVector = Icons.Rounded.Image,
                     contentDescription = stringResource(R.string.edit_link_custom_image_label),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )

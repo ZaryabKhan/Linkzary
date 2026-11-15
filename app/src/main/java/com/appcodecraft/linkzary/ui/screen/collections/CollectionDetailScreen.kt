@@ -24,24 +24,24 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.DriveFileMove
-import androidx.compose.material.icons.automirrored.filled.Notes
-import androidx.compose.material.icons.automirrored.filled.ViewList
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.CreateNewFolder
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.FolderOpen
-import androidx.compose.material.icons.filled.GridView
-import androidx.compose.material.icons.filled.Link
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.SearchOff
-import androidx.compose.material.icons.filled.Tag
-import androidx.compose.material.icons.filled.Title
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.DriveFileMove
+import androidx.compose.material.icons.automirrored.rounded.Notes
+import androidx.compose.material.icons.automirrored.rounded.ViewList
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Clear
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.CreateNewFolder
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.FolderOpen
+import androidx.compose.material.icons.rounded.GridView
+import androidx.compose.material.icons.rounded.Link
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.SearchOff
+import androidx.compose.material.icons.rounded.Tag
+import androidx.compose.material.icons.rounded.Title
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -154,7 +154,7 @@ fun CollectionDetailScreen(
             actions = {
                 IconButton(onClick = { showEditCollectionDialog = true }) {
                     Icon(
-                        imageVector = Icons.Default.Edit,
+                        imageVector = Icons.Rounded.Edit,
                         contentDescription = stringResource(R.string.collections_edit_collection),
                         tint = onHeroContainer
                     )
@@ -223,7 +223,7 @@ fun CollectionDetailScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Icon(
-                            imageVector = if (searchQuery.isNotEmpty()) Icons.Default.SearchOff else Icons.Default.Link,
+                            imageVector = if (searchQuery.isNotEmpty()) Icons.Rounded.SearchOff else Icons.Rounded.Link,
                             contentDescription = null,
                             modifier = Modifier.size(48.dp),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
@@ -362,7 +362,7 @@ fun CollectionDetailScreen(
                             modifier = Modifier.size(40.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Delete,
+                                imageVector = Icons.Rounded.Delete,
                                 contentDescription = stringResource(R.string.multi_select_delete_selected),
                                 tint = MaterialTheme.colorScheme.error
                             )
@@ -373,7 +373,7 @@ fun CollectionDetailScreen(
                             modifier = Modifier.size(40.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Close,
+                                imageVector = Icons.Rounded.Close,
                                 contentDescription = stringResource(R.string.multi_select_cancel_selection),
                                 tint = MaterialTheme.colorScheme.onPrimaryContainer
                             )
@@ -457,62 +457,35 @@ fun AddLinkToCollectionDialog(
         )
     }
 
-    AlertDialog(
+    com.appcodecraft.linkzary.ui.component.LinkzaryDialog(
         onDismissRequest = onDismiss,
-        title = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Link,
-                    contentDescription = stringResource(R.string.home_add_link),
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = stringResource(R.string.home_add_link),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
-        },
-        text = {
-            Column {
-                OutlinedTextField(
-                    value = url,
-                    onValueChange = {
-                        url = it
-                        isValidUrl = validateUrl(it)
-                    },
-                    label = { Text(stringResource(R.string.home_url)) },
-                    placeholder = { Text("https://example.com") },
-                    modifier = Modifier.fillMaxWidth(),
-                    isError = !isValidUrl && url.isNotBlank(),
-                    supportingText = {
-                        if (!isValidUrl && url.isNotBlank()) {
-                            Text(stringResource(R.string.add_link_invalid_url))
-                        }
-                    },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri)
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = { onSave(url) },
-                enabled = isValidUrl && url.isNotBlank()
-            ) {
-                Text(stringResource(R.string.common_save))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.common_cancel))
-            }
-        }
-    )
+        icon = Icons.Rounded.Link,
+        title = stringResource(R.string.home_add_link),
+        confirmLabel = stringResource(R.string.common_save),
+        onConfirm = { onSave(url) },
+        confirmEnabled = isValidUrl && url.isNotBlank(),
+        dismissLabel = stringResource(R.string.common_cancel),
+        onDismiss = onDismiss
+    ) {
+        OutlinedTextField(
+            value = url,
+            onValueChange = {
+                url = it
+                isValidUrl = validateUrl(it)
+            },
+            label = { Text(stringResource(R.string.home_url)) },
+            placeholder = { Text("https://example.com") },
+            modifier = Modifier.fillMaxWidth(),
+            isError = !isValidUrl && url.isNotBlank(),
+            supportingText = {
+                if (!isValidUrl && url.isNotBlank()) {
+                    Text(stringResource(R.string.add_link_invalid_url))
+                }
+            },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri)
+        )
+    }
 }
 
 // Using LinkOptionsBottomSheet from HomeScreen.kt
@@ -548,7 +521,7 @@ private fun CollectionLinkOptionsBottomSheet(
 
             // Edit option
             OptionItem(
-                icon = Icons.Default.Edit,
+                icon = Icons.Rounded.Edit,
                 title = stringResource(R.string.collections_edit_link),
                 subtitle = stringResource(R.string.collections_edit_link_description),
                 onClick = { showEditDialog = true }
@@ -556,7 +529,7 @@ private fun CollectionLinkOptionsBottomSheet(
 
             // Move to Collection option
             OptionItem(
-                icon = Icons.AutoMirrored.Filled.DriveFileMove,
+                icon = Icons.AutoMirrored.Rounded.DriveFileMove,
                 title = stringResource(R.string.collections_move_to_collection),
                 subtitle = stringResource(R.string.collections_move_description),
                 onClick = { showCollectionDialog = true }
@@ -564,7 +537,7 @@ private fun CollectionLinkOptionsBottomSheet(
 
             // Delete option
             OptionItem(
-                icon = Icons.Default.Delete,
+                icon = Icons.Rounded.Delete,
                 title = stringResource(R.string.common_delete),
                 subtitle = stringResource(R.string.collections_delete_link_description),
                 onClick = { showDeleteConfirmation = true },
@@ -608,7 +581,7 @@ private fun CollectionLinkOptionsBottomSheet(
         )
 
         if (showCreateDialog) {
-            com.appcodecraft.linkzary.ui.screen.home.CreateCollectionDialog(
+            com.appcodecraft.linkzary.ui.component.CreateCollectionDialog(
                 onDismiss = { showCreateDialog = false },
                 onCreate = { name: String, color: Int, icon: String ->
                     // Use the HomeViewModel from the parent composable
@@ -627,45 +600,22 @@ private fun CollectionLinkOptionsBottomSheet(
 
     // Delete Confirmation Dialog
     if (showDeleteConfirmation) {
-        AlertDialog(
+        com.appcodecraft.linkzary.ui.component.LinkzaryDialog(
             onDismissRequest = { showDeleteConfirmation = false },
-            title = {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = stringResource(R.string.common_delete),
-                        tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(stringResource(R.string.collections_delete_link))
-                }
+            icon = Icons.Rounded.Delete,
+            title = stringResource(R.string.collections_delete_link),
+            confirmLabel = stringResource(R.string.common_delete),
+            onConfirm = {
+                onDelete()
+                showDeleteConfirmation = false
+                onDismiss()
             },
-            text = { Text(stringResource(R.string.collections_delete_link_confirmation)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        onDelete()
-                        showDeleteConfirmation = false
-                        onDismiss()
-                    }
-                ) {
-                    Text(
-                        text = stringResource(R.string.common_delete),
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { showDeleteConfirmation = false }
-                ) {
-                    Text(stringResource(R.string.common_cancel))
-                }
-            }
-        )
+            dismissLabel = stringResource(R.string.common_cancel),
+            onDismiss = { showDeleteConfirmation = false },
+            destructive = true
+        ) {
+            Text(stringResource(R.string.collections_delete_link_confirmation))
+        }
     }
 }
 

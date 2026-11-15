@@ -14,11 +14,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.RssFeed
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.rounded.RssFeed
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -88,16 +88,16 @@ fun RssFeedsScreen(
                             onBackClick()
                         }
                     }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
+                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
                 actions = {
                     if (uiState.selectedFeed != null) {
                         IconButton(onClick = { viewModel.refreshFeed(uiState.selectedFeed!!) }) {
-                            Icon(Icons.Default.Refresh, contentDescription = "Refresh")
+                            Icon(Icons.Rounded.Refresh, contentDescription = "Refresh")
                         }
                         IconButton(onClick = { viewModel.deleteFeed(uiState.selectedFeed!!) }) {
-                            Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.rss_delete_feed))
+                            Icon(Icons.Rounded.Delete, contentDescription = stringResource(R.string.rss_delete_feed))
                         }
                     }
                 }
@@ -133,7 +133,7 @@ fun RssFeedsScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Icon(
-                        Icons.Default.RssFeed,
+                        Icons.Rounded.RssFeed,
                         contentDescription = null,
                         modifier = Modifier.size(64.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
@@ -235,7 +235,7 @@ private fun FeedItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                Icons.Default.RssFeed,
+                Icons.Rounded.RssFeed,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(24.dp)
@@ -327,40 +327,32 @@ private fun AddFeedDialog(
     onDismiss: () -> Unit,
     errorMessage: String?
 ) {
-    AlertDialog(
+    com.appcodecraft.linkzary.ui.component.LinkzaryDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.rss_add_feed)) },
-        text = {
-            Column {
-                OutlinedTextField(
-                    value = feedUrl,
-                    onValueChange = onFeedUrlChange,
-                    label = { Text(stringResource(R.string.rss_feed_url)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+        icon = Icons.Rounded.RssFeed,
+        title = stringResource(R.string.rss_add_feed),
+        confirmLabel = stringResource(R.string.add_link_save),
+        onConfirm = onConfirm,
+        confirmEnabled = feedUrl.isNotBlank(),
+        dismissLabel = stringResource(R.string.common_cancel),
+        onDismiss = onDismiss
+    ) {
+        Column {
+            OutlinedTextField(
+                value = feedUrl,
+                onValueChange = onFeedUrlChange,
+                label = { Text(stringResource(R.string.rss_feed_url)) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+            if (errorMessage != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = errorMessage,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
                 )
-                if (errorMessage != null) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = errorMessage,
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = onConfirm,
-                enabled = feedUrl.isNotBlank()
-            ) {
-                Text(stringResource(R.string.add_link_save))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.common_cancel))
             }
         }
-    )
+    }
 }

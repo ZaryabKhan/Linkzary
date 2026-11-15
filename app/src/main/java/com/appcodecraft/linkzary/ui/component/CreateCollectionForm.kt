@@ -15,24 +15,25 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Book
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Code
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Flight
-import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.Gamepad
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.Map
-import androidx.compose.material.icons.filled.Movie
-import androidx.compose.material.icons.filled.MusicNote
-import androidx.compose.material.icons.filled.Palette
-import androidx.compose.material.icons.filled.School
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material.icons.filled.SportsSoccer
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.Work
+import androidx.compose.material.icons.rounded.Book
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Code
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.Flight
+import androidx.compose.material.icons.rounded.Folder
+import androidx.compose.material.icons.rounded.Gamepad
+import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.Image
+import androidx.compose.material.icons.rounded.Map
+import androidx.compose.material.icons.rounded.Movie
+import androidx.compose.material.icons.rounded.MusicNote
+import androidx.compose.material.icons.rounded.Palette
+import androidx.compose.material.icons.rounded.School
+import androidx.compose.material.icons.rounded.ShoppingCart
+import androidx.compose.material.icons.rounded.SportsSoccer
+import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.rounded.Work
+import androidx.compose.material.icons.rounded.CreateNewFolder
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -93,22 +94,22 @@ fun CreateCollectionForm(
 
     // Available icons
     val icons = listOf(
-        "Folder" to Icons.Default.Folder,
-        "Work" to Icons.Default.Work,
-        "School" to Icons.Default.School,
-        "Home" to Icons.Default.Home,
-        "Star" to Icons.Default.Star,
-        "Favorite" to Icons.Default.Favorite,
-        "Code" to Icons.Default.Code,
-        "Book" to Icons.Default.Book,
-        "Music" to Icons.Default.MusicNote,
-        "Movie" to Icons.Default.Movie,
-        "Image" to Icons.Default.Image,
-        "Map" to Icons.Default.Map,
-        "Shopping" to Icons.Default.ShoppingCart,
-        "Travel" to Icons.Default.Flight,
-        "Sports" to Icons.Default.SportsSoccer,
-        "Game" to Icons.Default.Gamepad
+        "Folder" to Icons.Rounded.Folder,
+        "Work" to Icons.Rounded.Work,
+        "School" to Icons.Rounded.School,
+        "Home" to Icons.Rounded.Home,
+        "Star" to Icons.Rounded.Star,
+        "Favorite" to Icons.Rounded.Favorite,
+        "Code" to Icons.Rounded.Code,
+        "Book" to Icons.Rounded.Book,
+        "Music" to Icons.Rounded.MusicNote,
+        "Movie" to Icons.Rounded.Movie,
+        "Image" to Icons.Rounded.Image,
+        "Map" to Icons.Rounded.Map,
+        "Shopping" to Icons.Rounded.ShoppingCart,
+        "Travel" to Icons.Rounded.Flight,
+        "Sports" to Icons.Rounded.SportsSoccer,
+        "Game" to Icons.Rounded.Gamepad
     )
 
     Column(modifier = modifier) {
@@ -123,7 +124,7 @@ fun CreateCollectionForm(
             placeholder = { Text(stringResource(R.string.create_collection_name_placeholder)) },
             leadingIcon = {
                 // Show selected icon here dynamically
-                val currentIcon = icons.find { it.first == selectedIcon }?.second ?: Icons.Default.Folder
+                val currentIcon = icons.find { it.first == selectedIcon }?.second ?: Icons.Rounded.Folder
                 Icon(
                     imageVector = currentIcon,
                     contentDescription = null,
@@ -316,7 +317,7 @@ fun CreateCollectionForm(
                         // Selection indicator
                         if (selectedColor == color) {
                             Icon(
-                                imageVector = Icons.Default.Check,
+                                imageVector = Icons.Rounded.Check,
                                 contentDescription = "Selected",
                                 tint = Color.White,
                                 modifier = Modifier.size(16.dp)
@@ -341,7 +342,7 @@ fun CreateCollectionForm(
                             }
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Palette,
+                            imageVector = Icons.Rounded.Palette,
                             contentDescription = "Custom Color",
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(16.dp)
@@ -350,5 +351,43 @@ fun CreateCollectionForm(
                 }
             }
         }
+    }
+}
+
+/**
+ * CreateCollectionDialog (spec v4 §2.2) — the ONE create-collection dialog,
+ * shared by Home, Collections, CollectionDetail and Share. Replaces the
+ * duplicated HomeScreen.CreateCollectionDialog /
+ * CollectionsScreen.CollectionsCreateCollectionDialog pair; [onCreate]
+ * receives the raw color Int — callers convert to their storage format.
+ */
+@Composable
+fun CreateCollectionDialog(
+    onDismiss: () -> Unit,
+    onCreate: (name: String, colorInt: Int, icon: String) -> Unit
+) {
+    var name by remember { mutableStateOf("") }
+    var selectedColor by remember { mutableStateOf(0xFF6366F1.toInt()) }
+    var selectedIcon by remember { mutableStateOf("Folder") }
+
+    LinkzaryDialog(
+        onDismissRequest = onDismiss,
+        icon = Icons.Rounded.CreateNewFolder,
+        title = stringResource(R.string.create_collection_title),
+        subtitle = stringResource(R.string.create_collection_subtitle),
+        confirmLabel = stringResource(R.string.create_collection_create),
+        onConfirm = { onCreate(name, selectedColor, selectedIcon) },
+        confirmEnabled = name.isNotBlank(),
+        dismissLabel = stringResource(R.string.common_cancel),
+        onDismiss = onDismiss
+    ) {
+        CreateCollectionForm(
+            name = name,
+            onNameChange = { name = it },
+            selectedColor = selectedColor,
+            onColorSelected = { selectedColor = it },
+            selectedIcon = selectedIcon,
+            onIconSelected = { selectedIcon = it }
+        )
     }
 }

@@ -18,15 +18,15 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Tag
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Clear
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.Tag
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -109,7 +109,7 @@ fun TagsScreen(
                     },
                     navigationIcon = {
                         IconButton(onClick = { viewModel.exitMultiSelectMode() }) {
-                            Icon(Icons.Default.Close, contentDescription = stringResource(R.string.common_cancel))
+                            Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.common_cancel))
                         }
                     },
                     actions = {
@@ -121,7 +121,7 @@ fun TagsScreen(
                             enabled = uiState.selectedTags.isNotEmpty()
                         ) {
                             Icon(
-                                Icons.Default.Delete,
+                                Icons.Rounded.Delete,
                                 contentDescription = stringResource(R.string.tags_delete_selected),
                                 tint = MaterialTheme.colorScheme.error
                             )
@@ -136,7 +136,7 @@ fun TagsScreen(
                     title = { Text(stringResource(R.string.tags)) },
                     navigationIcon = {
                         IconButton(onClick = onBackClick) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
+                            Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.common_back))
                         }
                     }
                 )
@@ -162,7 +162,7 @@ fun TagsScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            Icons.Default.Tag,
+                            Icons.Rounded.Tag,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(20.dp)
@@ -185,7 +185,7 @@ fun TagsScreen(
                     placeholder = { Text(stringResource(R.string.tags_search_placeholder)) },
                     leadingIcon = {
                         Icon(
-                            Icons.Default.Search,
+                            Icons.Rounded.Search,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -194,7 +194,7 @@ fun TagsScreen(
                         {
                             IconButton(onClick = { viewModel.updateSearchQuery("") }) {
                                 Icon(
-                                    Icons.Default.Clear,
+                                    Icons.Rounded.Clear,
                                     contentDescription = stringResource(R.string.home_clear_search),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -226,7 +226,7 @@ fun TagsScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Icon(
-                            Icons.Default.Tag,
+                            Icons.Rounded.Tag,
                             contentDescription = null,
                             modifier = Modifier.size(72.dp),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
@@ -253,7 +253,7 @@ fun TagsScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Icon(
-                            Icons.Default.Search,
+                            Icons.Rounded.Search,
                             contentDescription = null,
                             modifier = Modifier.size(56.dp),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
@@ -365,7 +365,7 @@ private fun TagItem(
                 ) {
                     if (isSelected) {
                         Icon(
-                            Icons.Default.Check,
+                            Icons.Rounded.Check,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier.size(16.dp)
@@ -382,7 +382,7 @@ private fun TagItem(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        Icons.Default.Tag,
+                        Icons.Rounded.Tag,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(20.dp)
@@ -415,7 +415,7 @@ private fun TagItem(
                         modifier = Modifier.size(40.dp)
                     ) {
                         Icon(
-                            Icons.Default.MoreVert,
+                            Icons.Rounded.MoreVert,
                             contentDescription = stringResource(R.string.tags_more_options),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -427,7 +427,7 @@ private fun TagItem(
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.rename_tag)) },
                             leadingIcon = {
-                                Icon(Icons.Default.Edit, contentDescription = null)
+                                Icon(Icons.Rounded.Edit, contentDescription = null)
                             },
                             onClick = {
                                 menuExpanded = false
@@ -438,7 +438,7 @@ private fun TagItem(
                             text = { Text(stringResource(R.string.tags_delete_tag)) },
                             leadingIcon = {
                                 Icon(
-                                    Icons.Default.Delete,
+                                    Icons.Rounded.Delete,
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.error
                                 )
@@ -463,45 +463,30 @@ private fun RenameTagDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    AlertDialog(
+    com.appcodecraft.linkzary.ui.component.LinkzaryDialog(
         onDismissRequest = onDismiss,
-        icon = {
-            Icon(
-                Icons.Default.Edit,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
+        icon = Icons.Rounded.Edit,
+        title = stringResource(R.string.rename_tag),
+        confirmLabel = stringResource(R.string.rename),
+        onConfirm = onConfirm,
+        confirmEnabled = newName.isNotBlank() && newName != currentName,
+        dismissLabel = stringResource(R.string.common_cancel),
+        onDismiss = onDismiss
+    ) {
+        Column {
+            Text(
+                text = stringResource(R.string.renaming_tag_from, currentName),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-        },
-        title = { Text(stringResource(R.string.rename_tag)) },
-        text = {
-            Column {
-                Text(
-                    text = stringResource(R.string.renaming_tag_from, currentName),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                OutlinedTextField(
-                    value = newName,
-                    onValueChange = onNewNameChange,
-                    label = { Text(stringResource(R.string.new_tag_name)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = onConfirm,
-                enabled = newName.isNotBlank() && newName != currentName
-            ) {
-                Text(stringResource(R.string.rename))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.common_cancel))
-            }
+            Spacer(modifier = Modifier.height(16.dp))
+            OutlinedTextField(
+                value = newName,
+                onValueChange = onNewNameChange,
+                label = { Text(stringResource(R.string.new_tag_name)) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
-    )
+    }
 }

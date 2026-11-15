@@ -17,10 +17,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.CreateNewFolder
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.FolderOpen
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.CreateNewFolder
+import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.FolderOpen
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -157,7 +157,7 @@ fun CollectionOptionItem(
 
             if (isSelected) {
                 Icon(
-                    imageVector = Icons.Default.Check,
+                    imageVector = Icons.Rounded.Check,
                     contentDescription = stringResource(R.string.cd_selected),
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(20.dp)
@@ -180,61 +180,40 @@ fun EditLinkDialog(
     var tags by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(link.tags) }
     var customImageUrl by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(link.customImageUrl.orEmpty()) }
 
-    AlertDialog(
+    LinkzaryDialog(
         onDismissRequest = onDismiss,
-        title = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = stringResource(R.string.common_edit),
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
+        icon = Icons.Rounded.Edit,
+        title = stringResource(R.string.edit_link_title),
+        confirmLabel = stringResource(R.string.common_save),
+        onConfirm = {
+            onSave(
+                link.copy(
+                    title = title,
+                    url = url,
+                    note = note,
+                    tags = tags,
+                    customImageUrl = customImageUrl.trim().takeIf { it.isNotBlank() }
                 )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(stringResource(R.string.edit_link_title))
-            }
-        },
-        text = {
-            LinkEditorForm(
-                title = title,
-                onTitleChange = { title = it },
-                url = url,
-                onUrlChange = { url = it },
-                note = note,
-                onNoteChange = { note = it },
-                tags = tags,
-                onTagsChange = { tags = it },
-                allTags = allTags,
-                customImageUrl = customImageUrl,
-                onCustomImageUrlChange = { customImageUrl = it }
             )
         },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    onSave(
-                        link.copy(
-                            title = title,
-                            url = url,
-                            note = note,
-                            tags = tags,
-                            customImageUrl = customImageUrl.trim().takeIf { it.isNotBlank() }
-                        )
-                    )
-                },
-                enabled = title.isNotBlank() && url.isNotBlank()
-            ) {
-                Text(stringResource(R.string.common_save))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.common_cancel))
-            }
-        }
-    )
+        confirmEnabled = title.isNotBlank() && url.isNotBlank(),
+        dismissLabel = stringResource(R.string.common_cancel),
+        onDismiss = onDismiss
+    ) {
+        LinkEditorForm(
+            title = title,
+            onTitleChange = { title = it },
+            url = url,
+            onUrlChange = { url = it },
+            note = note,
+            onNoteChange = { note = it },
+            tags = tags,
+            onTagsChange = { tags = it },
+            allTags = allTags,
+            customImageUrl = customImageUrl,
+            onCustomImageUrlChange = { customImageUrl = it }
+        )
+    }
 }
 
 @Composable
@@ -245,36 +224,23 @@ fun CollectionSelectionDialog(
     onCollectionSelected: (Long?) -> Unit,
     onCreateNew: () -> Unit
 ) {
-    AlertDialog(
+    LinkzaryDialog(
         onDismissRequest = onDismiss,
-        title = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = stringResource(R.string.collections_move),
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = stringResource(R.string.move_link_title),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
-        },
-        text = {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 400.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
+        icon = Icons.Rounded.FolderOpen,
+        title = stringResource(R.string.move_link_title),
+        confirmLabel = null,
+        onConfirm = {},
+        dismissLabel = stringResource(R.string.common_cancel),
+        onDismiss = onDismiss
+    ) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
                 item {
                     CollectionOptionItem(
-                        icon = Icons.Default.FolderOpen,
+                        icon = Icons.Rounded.FolderOpen,
                         name = stringResource(R.string.move_link_no_collection),
                         color = MaterialTheme.colorScheme.outline.value.toInt(),
                         isSelected = currentCollectionId == null,
@@ -311,7 +277,7 @@ fun CollectionSelectionDialog(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
-                                imageVector = Icons.Default.CreateNewFolder,
+                                imageVector = Icons.Rounded.CreateNewFolder,
                                 contentDescription = stringResource(R.string.cd_create_new_collection),
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(24.dp)
@@ -328,12 +294,6 @@ fun CollectionSelectionDialog(
                         }
                     }
                 }
-            }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.common_cancel))
             }
         }
     )

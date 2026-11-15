@@ -15,12 +15,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Book
-import androidx.compose.material.icons.filled.BrokenImage
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Group
-import androidx.compose.material.icons.filled.Link
-import androidx.compose.material.icons.filled.MarkEmailUnread
+import androidx.compose.material.icons.rounded.Book
+import androidx.compose.material.icons.rounded.BrokenImage
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Group
+import androidx.compose.material.icons.rounded.Link
+import androidx.compose.material.icons.rounded.MarkEmailUnread
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -168,9 +168,9 @@ fun ReadStatusCard(unread: Int, read: Int, archived: Int) {
             )
             Spacer(modifier = Modifier.height(12.dp))
             
-            StatRow(Icons.Default.MarkEmailUnread, "Unread", unread)
-            StatRow(Icons.Default.CheckCircle, "Read", read)
-            StatRow(Icons.Default.Book, "Archived", archived)
+            StatRow(Icons.Rounded.MarkEmailUnread, "Unread", unread)
+            StatRow(Icons.Rounded.CheckCircle, "Read", read)
+            StatRow(Icons.Rounded.Book, "Archived", archived)
         }
     }
 }
@@ -194,9 +194,9 @@ fun QuickStatsCard(uiState: StatsUiState) {
             )
             Spacer(modifier = Modifier.height(12.dp))
             
-            StatRow(Icons.Default.Link, "Pinned", uiState.pinnedCount)
-            StatRow(Icons.Default.BrokenImage, "Offline", uiState.offlineCount)
-            StatRow(Icons.Default.BrokenImage, "Broken", uiState.brokenLinksCount)
+            StatRow(Icons.Rounded.Link, "Pinned", uiState.pinnedCount)
+            StatRow(Icons.Rounded.BrokenImage, "Offline", uiState.offlineCount)
+            StatRow(Icons.Rounded.BrokenImage, "Broken", uiState.brokenLinksCount)
         }
     }
 }
@@ -266,7 +266,7 @@ fun CollectionItem(name: String, count: Int) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = Icons.Default.Group,
+                imageVector = Icons.Rounded.Group,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(end = 12.dp)

@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.rounded.Bookmark
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -35,14 +35,14 @@ fun EmptyStateIllustration(modifier: Modifier = Modifier) {
         modifier = modifier.size(width = 160.dp, height = 128.dp),
         contentAlignment = Alignment.Center
     ) {
-        // Back layer
+        // Back layer — cookie-8 clip (spec v4 §5: vivid decorative containers)
         Box(
             modifier = Modifier
                 .align(Alignment.Center)
                 .offset(x = (-8).dp, y = 2.dp)
                 .rotate(-6f)
                 .size(width = 132.dp, height = 92.dp)
-                .clip(RoundedCornerShape(14.dp))
+                .clip(com.appcodecraft.linkzary.ui.theme.CookieShape)
                 .background(primaryContainer.copy(alpha = 0.55f))
         )
         // Middle layer
@@ -91,7 +91,7 @@ fun EmptyStateIllustration(modifier: Modifier = Modifier) {
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = Icons.Default.Bookmark,
+                imageVector = Icons.Rounded.Bookmark,
                 contentDescription = null,
                 tint = onPrimary,
                 modifier = Modifier.size(24.dp)

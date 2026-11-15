@@ -1,5 +1,7 @@
 package com.appcodecraft.linkzary.ui.component
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,8 +12,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.VolunteerActivism
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.VolunteerActivism
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilledTonalButton
@@ -21,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -60,7 +64,7 @@ fun DonationCard(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    imageVector = Icons.Default.Favorite,
+                    imageVector = Icons.Rounded.Favorite,
                     contentDescription = null,
                     tint = onContainer,
                     modifier = Modifier.size(20.dp)
@@ -98,7 +102,7 @@ fun DonationCard(
                     shape = RoundedCornerShape(50)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.VolunteerActivism,
+                        imageVector = Icons.Rounded.VolunteerActivism,
                         contentDescription = null,
                         modifier = Modifier.size(16.dp)
                     )
@@ -122,8 +126,7 @@ fun DonationCard(
 /**
  * Donor thank-you variant: same token discipline, no donate CTA — the user
  * already gave.
- */
-@Composable
+ */@Composable
 fun DonationCardThanks(
     title: String,
     subtitle: String,
@@ -145,7 +148,7 @@ fun DonationCardThanks(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Icon(
-                imageVector = Icons.Default.Favorite,
+                imageVector = Icons.Rounded.Favorite,
                 contentDescription = null,
                 tint = onContainer,
                 modifier = Modifier.size(20.dp)
@@ -162,6 +165,73 @@ fun DonationCardThanks(
                 style = MaterialTheme.typography.bodySmall,
                 color = onContainer.copy(alpha = 0.8f)
             )
+        }
+    }
+}
+
+/**
+ * Compact donation card (spec v4 §3 #5): ~140dp single-row variant for the
+ * Settings Support section — heart tile + title + one-line subtitle, whole
+ * card clickable. Same tertiaryContainer token discipline as [DonationCard].
+ */
+@Composable
+fun DonationCardCompact(
+    title: String,
+    subtitle: String,
+    onDonateClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val onContainer = MaterialTheme.colorScheme.onTertiaryContainer
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        onClick = onDonateClick,
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(com.appcodecraft.linkzary.ui.theme.CookieShape)
+                    .background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.25f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Favorite,
+                    contentDescription = null,
+                    tint = onContainer,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall.copy(
+                        fontWeight = FontWeight.SemiBold
+                    ),
+                    color = onContainer,
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = onContainer.copy(alpha = 0.8f),
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                )
+            }
         }
     }
 }
