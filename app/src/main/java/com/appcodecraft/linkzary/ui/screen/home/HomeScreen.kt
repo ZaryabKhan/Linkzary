@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -905,12 +906,23 @@ fun HomeScreen(
                     placeholder = stringResource(R.string.home_search_bookmarks),
                     modifier = Modifier.fillMaxWidth(),
                     suggestionContent = {
-                        // History entries while focused with an empty query
+                        // History entries while focused with an empty query.
+                        // Patched spec §2.2: max 4 rows at 72dp, or one muted
+                        // "No matches yet" line — container never stretches.
                         if (isSearchFocused && localSearchQuery.isEmpty()) {
-                            searchHistory.take(5).forEach { historyQuery ->
+                            if (searchHistory.isEmpty()) {
+                                Text(
+                                    text = stringResource(R.string.search_no_matches_yet),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                                )
+                            }
+                            searchHistory.take(4).forEach { historyQuery ->
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
+                                        .heightIn(min = 72.dp)
                                         .clickable {
                                             localSearchQuery = historyQuery
                                             viewModel.updateSearchQuery(historyQuery)

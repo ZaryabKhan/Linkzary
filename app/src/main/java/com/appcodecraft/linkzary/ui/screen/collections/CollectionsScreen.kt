@@ -68,6 +68,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.material.icons.rounded.Bookmark
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
@@ -316,6 +317,45 @@ fun CollectionsScreen(
                                 )
                             },
                             onMoreClick = { selectedCollection = collection }
+                        )
+                    }
+                }
+
+                // Patched spec §2.6: muted empty state for the region below
+                // the grid — 64dp tonal circle + dim bookmark, left-column-
+                // centered, no dashed add tile (the FAB owns creation).
+                item(key = "grid-empty-tail") {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth(0.5f)
+                            .padding(top = 12.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(64.dp)
+                                .clip(RoundedCornerShape(32.dp))
+                                .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Bookmark,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = stringResource(R.string.collections_nothing_else_yet),
+                            style = MaterialTheme.typography.titleSmall,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+                        Text(
+                            text = stringResource(R.string.collections_nothing_else_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
                         )
                     }
                 }
