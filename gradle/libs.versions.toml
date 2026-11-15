@@ -23,7 +23,7 @@ coil = "2.7.0"
 ksp = "2.3.9"
 rssParser = "6.0.12"
 workManager = "2.10.0"
-playServicesAuth = "21.3.0"
+playServicesAuth = "22.0.0"
 googleApiClientAndroid = "2.8.0"
 googleApiServicesDrive = "v3-rev20260428-2.0.0"
 
