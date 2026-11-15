@@ -34,3 +34,56 @@ fun collectionContainerDark(hue: Float, accent: Color): Color =
 
 fun collectionOnContainerDark(hue: Float, accent: Color): Color =
     harmonizeWith(hslToColor(hue, 0.60f, 0.88f), accent)
+
+/**
+ * v6 §4: THE one seed→hue function. String seeds (url domains) drive favicon
+ * letter tiles and generated covers; Long ids (collections) drive collection
+ * chrome. One hash→harmonize path, so "Use Linkzary colors" (v5.1) governs
+ * all of it. Pure and stable across launches.
+ */
+fun linkzaryHue(seed: String): Float {
+    val key = seed.trim().lowercase()
+    return collectionHue(key.hashCode().toLong() and 0x7FFFFFFFL)
+}
+
+/**
+ * v6 §4: the one harmonized container/on-container pair — used by favicon
+ * letter tiles, collection chrome (glyph tiles, chips, count pills) and
+ * anywhere else a seed's identity color is needed.
+ */
+fun linkzaryHuePair(seed: String, accent: Color, dark: Boolean): Pair<Color, Color> {
+    val hue = linkzaryHue(seed)
+    return if (dark) {
+        collectionContainerDark(hue, accent) to collectionOnContainerDark(hue, accent)
+    } else {
+        collectionContainerLight(hue, accent) to collectionOnContainerLight(hue, accent)
+    }
+}
+
+/** Long-id overload for collection chrome (keeps the v3 id-derived hues). */
+fun linkzaryHuePair(seed: Long, accent: Color, dark: Boolean): Pair<Color, Color> {
+    val hue = collectionHue(seed)
+    return if (dark) {
+        collectionContainerDark(hue, accent) to collectionOnContainerDark(hue, accent)
+    } else {
+        collectionContainerLight(hue, accent) to collectionOnContainerLight(hue, accent)
+    }
+}
+
+/**
+ * v6 §1.2: the GENERATED COVER gradient stops for a domain seed — a 135°
+ * linear gradient between the two stops, harmonized against the active
+ * palette. Light: HSL(hue,70%,78%) → HSL(hue,55%,62%).
+ * Dark: HSL(hue,45%,30%) → HSL(hue,55%,20%). First stop is always the
+ * lighter one.
+ */
+fun linkzaryCoverGradient(seed: String, accent: Color, dark: Boolean): Pair<Color, Color> {
+    val hue = linkzaryHue(seed)
+    return if (dark) {
+        harmonizeWith(hslToColor(hue, 0.45f, 0.30f), accent) to
+            harmonizeWith(hslToColor(hue, 0.55f, 0.20f), accent)
+    } else {
+        harmonizeWith(hslToColor(hue, 0.70f, 0.78f), accent) to
+            harmonizeWith(hslToColor(hue, 0.55f, 0.62f), accent)
+    }
+}

@@ -740,7 +740,8 @@ fun HomeScreen(
             .then(if (uiState.isMultiSelectMode) Modifier.statusBarsPadding() else Modifier)
             .padding(horizontal = 16.dp),
         contentPadding = PaddingValues(bottom = if (uiState.isMultiSelectMode) 140.dp else 100.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        // v6 §1.1: 14dp grid rhythm / 10dp list stack gap
+        verticalArrangement = Arrangement.spacedBy(if (isGridView) 14.dp else 10.dp)
     ) {
             // Search bar (spec v2 §2.2): the one shared search, same field on
             // every screen. History entries drop in below while focused.
@@ -1100,14 +1101,13 @@ fun HomeScreen(
                                 .fillMaxWidth()
                                 .graphicsLayer { alpha = listCrossfade.value }
                                 .animateItem(),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            horizontalArrangement = Arrangement.spacedBy(14.dp)
                         ) {
                             rowLinks.forEach { link ->
                                 LinkCard(
                                     link = link,
                                     collectionId = link.collectionId,
                                     collectionName = collectionMap[link.collectionId]?.name,
-                                    inGrid = true,
                                     isMultiSelectMode = uiState.isMultiSelectMode,
                                     isSelected = uiState.selectedLinks.contains(link.id),
                                     onCardClick = {
@@ -1137,6 +1137,7 @@ fun HomeScreen(
                             link = link,
                             collectionId = link.collectionId,
                             collectionName = collectionMap[link.collectionId]?.name,
+                            listMode = true,
                             isMultiSelectMode = uiState.isMultiSelectMode,
                             isSelected = uiState.selectedLinks.contains(link.id),
                             modifier = Modifier

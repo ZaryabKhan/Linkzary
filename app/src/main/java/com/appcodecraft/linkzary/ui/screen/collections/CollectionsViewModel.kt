@@ -6,6 +6,8 @@ import com.appcodecraft.linkzary.data.entity.Collection
 import com.appcodecraft.linkzary.data.preferences.UserPreferencesManager
 import com.appcodecraft.linkzary.data.repository.CollectionRepository
 import com.appcodecraft.linkzary.data.repository.LinkRepository
+import com.appcodecraft.linkzary.ui.component.CollectionCover
+import com.appcodecraft.linkzary.ui.component.extractDomain
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -28,6 +30,10 @@ data class CollectionsUiState(
     val collectionsWithCounts: Map<Long, Int> = emptyMap(),
     // Spec v3 §2.4: up to 3 thumbnail URLs per collection for the card fan.
     val collectionThumbnails: Map<Long, List<String>> = emptyMap(),
+    // v6 §3: mosaic covers (seed + image url, newest first) and the last
+    // saved time per collection.
+    val collectionCovers: Map<Long, List<CollectionCover>> = emptyMap(),
+    val collectionLastSaved: Map<Long, Date> = emptyMap(),
     val searchQuery: String = "",
     val sortOrder: SortOrder = SortOrder.NAME_ASC,
     val isLoading: Boolean = false,
@@ -62,6 +68,8 @@ class CollectionsViewModel @Inject constructor(
     
     private val collectionsWithCounts = MutableStateFlow<Map<Long, Int>>(emptyMap())
     private val collectionThumbnails = MutableStateFlow<Map<Long, List<String>>>(emptyMap())
+    private val collectionCovers = MutableStateFlow<Map<Long, List<CollectionCover>>>(emptyMap())
+    private val collectionLastSaved = MutableStateFlow<Map<Long, Date>>(emptyMap())
 
     init {
         // Observe collections changes
@@ -71,7 +79,7 @@ class CollectionsViewModel @Inject constructor(
             }
         }
 
-        // Observe all links changes to update counts and card-fan thumbnails
+        // Observe all links changes to update counts and card covers
         viewModelScope.launch {
             linkRepository.getAllLinks().collect { links ->
                 // When any link changes, refresh all collection counts
@@ -87,6 +95,26 @@ class CollectionsViewModel @Inject constructor(
                     }
                     .groupBy({ it.first }, { it.second })
                     .mapValues { (_, urls) -> urls.take(3) }
+                // Spec v6 §3: up to 4 mosaic covers (newest first) + last saved
+                val byCollection = links
+                    .asSequence()
+                    .filter { it.collectionId != null }
+                    .groupBy { it.collectionId!! }
+                collectionCovers.value = byCollection.mapValues { (_, collectionLinks) ->
+                    collectionLinks
+                        .sortedByDescending { it.saveDate }
+                        .take(4)
+                        .map { link ->
+                            CollectionCover(
+                                seed = extractDomain(link.url),
+                                imageUrl = link.customImageUrl?.takeIf { it.isNotBlank() }
+                                    ?: link.previewImageUrl?.takeIf { it.isNotBlank() }
+                            )
+                        }
+                }
+                collectionLastSaved.value = byCollection.mapValues { (_, collectionLinks) ->
+                    collectionLinks.maxOf { it.saveDate }
+                }
             }
         }
     }
@@ -125,6 +153,8 @@ class CollectionsViewModel @Inject constructor(
         filteredAndSortedCollections,
         collectionsWithCounts,
         collectionThumbnails,
+        collectionCovers,
+        collectionLastSaved,
         _searchQuery,
         _sortOrder,
         _isLoading,
@@ -134,16 +164,20 @@ class CollectionsViewModel @Inject constructor(
         val collections = flows[0] as List<Collection>
         val counts = flows[1] as Map<Long, Int>
         val thumbnails = flows[2] as Map<Long, List<String>>
-        val searchQuery = flows[3] as String
-        val sortOrder = flows[4] as SortOrder
-        val isLoading = flows[5] as Boolean
-        val isRefreshing = flows[6] as Boolean
-        val error = flows[7] as String?
+        val covers = flows[3] as Map<Long, List<CollectionCover>>
+        val lastSaved = flows[4] as Map<Long, Date>
+        val searchQuery = flows[5] as String
+        val sortOrder = flows[6] as SortOrder
+        val isLoading = flows[7] as Boolean
+        val isRefreshing = flows[8] as Boolean
+        val error = flows[9] as String?
 
         CollectionsUiState(
             collections = collections,
             collectionsWithCounts = counts,
             collectionThumbnails = thumbnails,
+            collectionCovers = covers,
+            collectionLastSaved = lastSaved,
             searchQuery = searchQuery,
             sortOrder = sortOrder,
             isLoading = isLoading,
