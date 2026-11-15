@@ -1107,6 +1107,7 @@ fun HomeScreen(
                                     link = link,
                                     collectionId = link.collectionId,
                                     collectionName = collectionMap[link.collectionId]?.name,
+                                    inGrid = true,
                                     isMultiSelectMode = uiState.isMultiSelectMode,
                                     isSelected = uiState.selectedLinks.contains(link.id),
                                     onCardClick = {

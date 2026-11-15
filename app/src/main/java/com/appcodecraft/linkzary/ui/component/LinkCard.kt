@@ -10,6 +10,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,7 +21,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -162,6 +164,8 @@ fun LinkCard(
     modifier: Modifier = Modifier,
     collectionId: Long? = null,
     collectionName: String? = null,
+    /** Grid mode (half-width cards): the footer name wins space per v5.1. */
+    inGrid: Boolean = false,
     isMultiSelectMode: Boolean = false,
     isSelected: Boolean = false,
     onLongPress: () -> Unit = {},
@@ -358,58 +362,28 @@ fun LinkCard(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // Footer: unread dot + timestamp · ONE collection pill · kebab.
-                // v4.1 allocation fix: the timestamp is MEASURED first at its
-                // natural (now compact) width — no weight — and the chip takes
-                // whatever remains with a minimum comfortable width before it
-                // may ellipsize. Equal weights (the old fix) starved BOTH
-                // texts even when space was free ("15h a…", "Te…").
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (link.readStatus == "UNREAD") {
-                        Box(
-                            modifier = Modifier
-                                .size(6.dp)
-                                .background(
-                                    color = MaterialTheme.colorScheme.primary,
-                                    shape = CircleShape
-                                )
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                    }
-                    Text(
-                        text = formatRelativeSaveDate(link.saveDate, compact = true),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                        maxLines = 1,
-                        softWrap = false
+                // v5.1 fix v2: MEASURED allocation, not weighted. Chip and
+                // timestamp natural widths come from a TextMeasurer and go
+                // into planCardFooter (see CardFooterPlan for the rules):
+                // the chip ellipsizes only when it exceeds ALL remaining
+                // space; in grid the timestamp drops to date-only, then
+                // hides, then the dot yields — the name wins space.
+                if (collectionName != null && !isMultiSelectMode) {
+                    FooterWithChip(
+                        link = link,
+                        collectionName = collectionName,
+                        chipContainer = chipContainer,
+                        chipOnContainer = chipOnContainer,
+                        inGrid = inGrid,
+                        onMoreClick = onMoreClick,
+                        moreContentDescription = stringResource(R.string.home_more_options)
                     )
-
-                    if (collectionName != null && !isMultiSelectMode) {
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Surface(
-                            shape = RoundedCornerShape(50),
-                            color = chipContainer,
-                            modifier = Modifier
-                                .weight(1f, fill = false)
-                                .widthIn(min = 48.dp)
-                        ) {
-                            Text(
-                                text = collectionName,
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontWeight = FontWeight.SemiBold
-                                ),
-                                color = chipOnContainer,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                            )
-                        }
-                    }
-
+                } else {
+                    FooterWithoutChip(
+                        isUnread = link.readStatus == "UNREAD",
+                        saveDate = link.saveDate
+                    )
                     Spacer(modifier = Modifier.width(8.dp))
-
                     IconButton(
                         onClick = onMoreClick,
                         modifier = Modifier.size(32.dp)
@@ -424,6 +398,158 @@ fun LinkCard(
                 }
             }
         }
+    }
+}
+
+/** Footer geometry shared by the allocator and the renderers. */
+private val FOOTER_KEBAB_DP = 32f
+private val FOOTER_GAP_DP = 8f
+private val FOOTER_DOT_DP = 12f // 6dp dot + 6dp gap
+private val FOOTER_CHIP_PADDING_DP = 20f // 10dp horizontal padding per side
+
+/**
+ * Measured footer when a collection chip is present (v5.1). Runs the
+ * allocator on real text widths and renders exactly what it decides:
+ * natural chip when it fits (with whichever timestamp fits most
+ * informatively), fixed-width ellipsized chip only as the last resort.
+ */
+@Composable
+private fun FooterWithChip(
+    link: com.appcodecraft.linkzary.data.entity.SavedLink,
+    collectionName: String,
+    chipContainer: Color,
+    chipOnContainer: Color,
+    inGrid: Boolean,
+    onMoreClick: () -> Unit,
+    moreContentDescription: String
+) {
+    val density = LocalDensity.current
+    val textMeasurer = rememberTextMeasurer()
+    val chipStyle = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold)
+    val timestampStyle = MaterialTheme.typography.labelSmall
+    val timestampColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+    val fontScale = density.fontScale
+
+    // Timestamp candidates, most informative first. Grid drops to the
+    // date-only form first (v5.1 rule #2); list keeps compact only.
+    val dateOnly = remember(link.id) { getCachedDateFormat("d MMM").format(link.saveDate) }
+    val compact = remember(link.id) { formatRelativeSaveDate(link.saveDate, compact = true) }
+    val candidateLabels = if (inGrid) listOf(dateOnly, compact) else listOf(compact)
+    val options = candidateLabels.map { label ->
+        TimestampOption(label, with(density) {
+            textMeasurer.measure(label, timestampStyle, maxLines = 1, softWrap = false)
+                .size.width.toDp().value
+        })
+    }
+    val chipNatural = with(density) {
+        textMeasurer.measure(collectionName, chipStyle, maxLines = 1, softWrap = false)
+            .size.width.toDp().value + FOOTER_CHIP_PADDING_DP
+    }
+
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+        val available = with(density) { constraints.maxWidth.toDp().value }
+        val plan = planCardFooter(
+            availableWidthDp = available,
+            chipNaturalWidthDp = chipNatural,
+            timestampOptions = options,
+            kebabWidthDp = FOOTER_KEBAB_DP,
+            gapDp = FOOTER_GAP_DP,
+            dotWidthDp = FOOTER_DOT_DP,
+            allowYield = inGrid
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (link.readStatus == "UNREAD" && plan.showUnreadDot) {
+                Box(
+                    modifier = Modifier
+                        .size(6.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.primary,
+                            shape = CircleShape
+                        )
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+            }
+
+            if (plan.timestampLabel != null) {
+                Text(
+                    text = plan.timestampLabel,
+                    style = timestampStyle,
+                    color = timestampColor,
+                    maxLines = 1,
+                    softWrap = false
+                )
+                Spacer(modifier = Modifier.width(FOOTER_GAP_DP.dp))
+            }
+
+            Surface(
+                shape = RoundedCornerShape(50),
+                color = chipContainer,
+                modifier = if (plan.chipTruncated) {
+                    Modifier.width(plan.chipWidthDp.dp)
+                } else {
+                    Modifier
+                }
+            ) {
+                Text(
+                    text = collectionName,
+                    style = chipStyle,
+                    color = chipOnContainer,
+                    maxLines = 1,
+                    softWrap = false,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = if (plan.chipTruncated) {
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 10.dp, vertical = 4.dp)
+                    } else {
+                        Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                    }
+                )
+            }
+
+            Spacer(modifier = Modifier.width(FOOTER_GAP_DP.dp))
+
+            IconButton(
+                onClick = onMoreClick,
+                modifier = Modifier.size(FOOTER_KEBAB_DP.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.MoreVert,
+                    contentDescription = moreContentDescription,
+                    modifier = Modifier.size(18.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+/** Footer for cards with no collection: dot + compact timestamp, no chip. */
+@Composable
+private fun FooterWithoutChip(isUnread: Boolean, saveDate: java.util.Date) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        if (isUnread) {
+            Box(
+                modifier = Modifier
+                    .size(6.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.primary,
+                        shape = CircleShape
+                    )
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+        }
+        Text(
+            text = formatRelativeSaveDate(saveDate, compact = true),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+            maxLines = 1,
+            softWrap = false
+        )
     }
 }
 

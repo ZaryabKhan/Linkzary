@@ -111,13 +111,13 @@ fun LinkzaryTheme(
         }
     }
 
-    // "Use Linkzary colors" (audit #4): forces the brand indigo palette over
-    // Material You dynamic color. Default stays dynamic.
+    // "Use Linkzary colors" (audit #4, v5.1 default ON): the brand indigo
+    // palette is the default scheme everywhere; Material You is opt-in.
     val useBrandColors by if (userPreferencesManager != null) {
         userPreferencesManager.useBrandColors.collectAsState()
     } else {
         remember {
-            mutableStateOf(false)
+            mutableStateOf(true)
         }
     }
     

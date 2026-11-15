@@ -255,6 +255,7 @@ fun CollectionDetailScreen(
                                 link = link,
                                 collectionId = uiState.collection?.id,
                                 collectionName = uiState.collection?.name,
+                                inGrid = true,
                                 isMultiSelectMode = uiState.isMultiSelectMode,
                                 isSelected = uiState.selectedLinks.contains(link.id),
                                 onCardClick = {
