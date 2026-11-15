@@ -48,6 +48,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
@@ -186,19 +187,13 @@ fun CollectionDetailScreen(
                     )
                 }
                 
-                IconButton(
-                    onClick = { viewModel.toggleGridView() },
-                    modifier = Modifier
-                        .size(48.dp)
-                        .background(
-                            color = if (isGridView) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f) else Color.Transparent,
-                            shape = RoundedCornerShape(12.dp)
-                        )
+                IconToggleButton(
+                    checked = isGridView,
+                    onCheckedChange = { viewModel.toggleGridView() }
                 ) {
                     Icon(
                         imageVector = if (isGridView) Icons.AutoMirrored.Filled.ViewList else Icons.Default.GridView,
                         contentDescription = if (isGridView) stringResource(R.string.home_switch_to_list) else stringResource(R.string.home_switch_to_grid),
-                        tint = if (isGridView) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(24.dp)
                     )
                 }

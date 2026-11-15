@@ -6,6 +6,7 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -113,7 +114,13 @@ fun LinkzaryApp(
             )
         },
         containerColor = MaterialTheme.colorScheme.background,
-        contentColor = MaterialTheme.colorScheme.onBackground
+        contentColor = MaterialTheme.colorScheme.onBackground,
+        // Screens own their window insets: CollectionDetail's tonal header goes
+        // full-bleed behind the status bar, TopAppBar screens handle the inset
+        // themselves, and plain screens (Settings/Collections/Stats) apply
+        // statusBarsPadding at their root. A Scaffold-level top inset here
+        // double-padded those and left the status bar on the background color.
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { innerPadding ->
         LinkzaryNavigation(
             navController = navController,

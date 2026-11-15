@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -48,6 +49,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
@@ -102,7 +104,7 @@ fun CollectionsScreen(
         derivedStateOf { uiState.collectionsWithCounts }
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+    Box(modifier = Modifier.fillMaxSize().statusBarsPadding().background(MaterialTheme.colorScheme.background)) {
 
         // Custom header (matches HomeScreen style)
         Row(
@@ -126,21 +128,14 @@ fun CollectionsScreen(
             )
 
             // View toggle
-            IconButton(
-                onClick = { viewModel.toggleGridView() },
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(
-                        color = if (isGridView) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f)
-                        else Color.Transparent,
-                        shape = RoundedCornerShape(10.dp)
-                    )
+            IconToggleButton(
+                checked = isGridView,
+                onCheckedChange = { viewModel.toggleGridView() }
             ) {
                 Icon(
                     imageVector = if (isGridView) Icons.AutoMirrored.Filled.ViewList else Icons.Default.GridView,
                     contentDescription = if (isGridView) stringResource(R.string.home_switch_list_view) else stringResource(R.string.home_switch_grid_view),
-                    tint = if (isGridView) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(24.dp)
                 )
             }
 
