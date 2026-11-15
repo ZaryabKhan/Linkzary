@@ -80,7 +80,7 @@ class SettingsViewModel @Inject constructor(
 
     fun backupToDrive(
         context: android.content.Context,
-        onAuthIntent: (android.content.Intent) -> Unit = {}
+        onConsentNeeded: (android.content.IntentSender) -> Unit = {}
     ) {
         viewModelScope.launch {
             _driveStatus.value = DriveBackupStatus.InProgress
@@ -88,7 +88,7 @@ class SettingsViewModel @Inject constructor(
                 val links = linkRepository.getAllLinks().first()
                 val collections = collectionRepository.getAllCollections().first()
                 val json = importExportService.buildBackupJson(links, collections)
-                val result = driveBackupService.backup(context, json, onAuthIntent)
+                val result = driveBackupService.backup(context, json, onConsentNeeded)
                 _driveStatus.value = when {
                     result == null -> DriveBackupStatus.Success
                     result == "signin" -> DriveBackupStatus.NeedsSignIn
@@ -103,14 +103,14 @@ class SettingsViewModel @Inject constructor(
 
     fun restoreFromDrive(
         context: android.content.Context,
-        onAuthIntent: (android.content.Intent) -> Unit = {}
+        onConsentNeeded: (android.content.IntentSender) -> Unit = {}
     ) {
         viewModelScope.launch {
             _driveStatus.value = DriveBackupStatus.InProgress
             try {
                 // Every Drive outcome is explicit now; failures surface in the
                 // UI instead of silently doing nothing.
-                val json = when (val result = driveBackupService.restore(context, onAuthIntent)) {
+                val json = when (val result = driveBackupService.restore(context, onConsentNeeded)) {
                     is com.appcodecraft.linkzary.data.service.DriveBackupService.DriveRestoreResult.Success ->
                         result.json
                     com.appcodecraft.linkzary.data.service.DriveBackupService.DriveRestoreResult.NeedsSignIn -> {
