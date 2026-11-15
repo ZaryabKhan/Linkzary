@@ -25,6 +25,7 @@ import com.appcodecraft.linkzary.data.preferences.UserPreferencesManager
 import com.appcodecraft.linkzary.navigation.LinkzaryNavigation
 import com.appcodecraft.linkzary.navigation.Screen
 import com.appcodecraft.linkzary.ui.component.LinkzaryBottomNavigationBar
+import com.appcodecraft.linkzary.ui.component.LinkzaryHaptics
 import com.appcodecraft.linkzary.ui.screen.onboarding.OnboardingScreen
 import com.appcodecraft.linkzary.ui.theme.LinkzaryTheme
 import com.appcodecraft.linkzary.utils.LocaleHelper
@@ -51,6 +52,13 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             LinkzaryTheme(userPreferencesManager = userPreferencesManager) {
+                // Keep the global haptics gate in step with the persisted
+                // preference (v4.1). StateFlow's current value means the gate
+                // is correct from the first frame, before any collection.
+                val hapticsEnabled by userPreferencesManager.hapticsEnabled.collectAsState()
+                androidx.compose.runtime.LaunchedEffect(hapticsEnabled) {
+                    LinkzaryHaptics.enabled = hapticsEnabled
+                }
                 LinkzaryApp(
                     sharedUrl = null,
                     userPreferencesManager = userPreferencesManager

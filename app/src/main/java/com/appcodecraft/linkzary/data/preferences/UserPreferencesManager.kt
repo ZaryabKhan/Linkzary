@@ -54,6 +54,11 @@ class UserPreferencesManager(context: Context) {
     private val _useBrandColors = MutableStateFlow(getUseBrandColors())
     val useBrandColors: StateFlow<Boolean> = _useBrandColors.asStateFlow()
 
+    // Haptic feedback preference (v4.1): subtle M3 haptics on key touches.
+    // Default ON; gates LinkzaryHaptics globally.
+    private val _hapticsEnabled = MutableStateFlow(getHapticsEnabled())
+    val hapticsEnabled: StateFlow<Boolean> = _hapticsEnabled.asStateFlow()
+
     // First-run coach-mark (audit #8): shown exactly once, only for users
     // with zero links saved.
     private val _hasSeenCoachMark = MutableStateFlow(getHasSeenCoachMark())
@@ -174,6 +179,18 @@ class UserPreferencesManager(context: Context) {
         return sharedPreferences.getBoolean(KEY_USE_BRAND_COLORS, false)
     }
 
+    // Haptics (v4.1)
+    fun setHapticsEnabled(enabled: Boolean) {
+        sharedPreferences.edit()
+            .putBoolean(KEY_HAPTICS_ENABLED, enabled)
+            .apply()
+        _hapticsEnabled.value = enabled
+    }
+
+    private fun getHapticsEnabled(): Boolean {
+        return sharedPreferences.getBoolean(KEY_HAPTICS_ENABLED, true)
+    }
+
     // Coach-mark
     fun markCoachMarkSeen() {
         sharedPreferences.edit()
@@ -249,6 +266,7 @@ class UserPreferencesManager(context: Context) {
         private const val KEY_COLLECTION_DETAIL_GRID_VIEW = "collection_detail_grid_view"
         private const val KEY_HAS_DONATED = "has_donated"
         private const val KEY_USE_BRAND_COLORS = "use_brand_colors"
+        private const val KEY_HAPTICS_ENABLED = "haptics_enabled"
         private const val KEY_HAS_SEEN_COACH_MARK = "has_seen_coach_mark"
         private const val KEY_LAST_ONBOARDED_VERSION_CODE = "last_onboarded_version_code"
         private const val KEY_HOME_SORT_ORDER = "home_sort_order"

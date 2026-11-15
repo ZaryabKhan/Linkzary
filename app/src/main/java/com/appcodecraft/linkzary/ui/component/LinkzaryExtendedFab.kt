@@ -91,8 +91,13 @@ fun LinkzaryExtendedFab(
         ),
         modifier = modifier
     ) {
+        val haptics = rememberLinkzaryHaptics()
         ExtendedFloatingActionButton(
-            onClick = onClick,
+            onClick = {
+                // v4.1: CONFIRM haptic on the FAB press (gated).
+                haptics(LinkzaryHaptic.CONFIRM)
+                onClick()
+            },
             interactionSource = interactionSource,
             modifier = Modifier.graphicsLayer {
                 // Press feedback: quick springy squash (the scallop's ghost).

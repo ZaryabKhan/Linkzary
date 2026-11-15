@@ -46,6 +46,7 @@ import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.RssFeed
 import androidx.compose.material.icons.rounded.Security
 import androidx.compose.material.icons.rounded.Share
+import androidx.compose.material.icons.rounded.Vibration
 import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.icons.rounded.Upload
@@ -87,6 +88,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.appcodecraft.linkzary.BuildConfig
 import com.appcodecraft.linkzary.R
+import com.appcodecraft.linkzary.ui.component.LinkzaryHaptic
+import com.appcodecraft.linkzary.ui.component.rememberLinkzaryHaptics
 import com.appcodecraft.linkzary.data.preferences.ThemeMode
 import com.appcodecraft.linkzary.data.preferences.UserPreferencesManager
 import com.appcodecraft.linkzary.ui.theme.LinkzaryTheme
@@ -313,6 +316,19 @@ fun SettingsScreen(
                     subtitle = stringResource(R.string.settings_use_brand_colors_desc),
                     checked = useBrandColors,
                     onCheckedChange = { userPreferencesManager.setUseBrandColors(it) }
+                )
+            }
+
+            // Haptic feedback (v4.1): subtle M3 haptics on key touches. Kept a
+            // self-contained item so Pixel's v5 Settings layout can move it.
+            item {
+                val hapticsEnabled by userPreferencesManager.hapticsEnabled.collectAsState()
+                SettingsToggleItem(
+                    icon = Icons.Rounded.Vibration,
+                    title = stringResource(R.string.settings_haptic_feedback),
+                    subtitle = stringResource(R.string.settings_haptic_feedback_desc),
+                    checked = hapticsEnabled,
+                    onCheckedChange = { userPreferencesManager.setHapticsEnabled(it) }
                 )
             }
 
@@ -937,8 +953,13 @@ fun SettingsToggleItem(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
+    val toggleHaptics = rememberLinkzaryHaptics()
     Card(
-        onClick = { onCheckedChange(!checked) },
+        onClick = {
+            // v4.1: subtle CLOCK_TICK on toggle flip (gated).
+            toggleHaptics(LinkzaryHaptic.TICK)
+            onCheckedChange(!checked)
+        },
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(
@@ -981,7 +1002,10 @@ fun SettingsToggleItem(
 
             Switch(
                 checked = checked,
-                onCheckedChange = onCheckedChange
+                onCheckedChange = { newValue ->
+                    toggleHaptics(LinkzaryHaptic.TICK)
+                    onCheckedChange(newValue)
+                }
             )
         }
     }

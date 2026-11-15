@@ -63,6 +63,7 @@ fun LinkzaryBottomNavigationBar(
     // lowest surface so the brand primaryContainer pill has real contrast
     // (tone-90 pill on the old tone-94 bar was invisible in light mode).
     NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest) {
+        val navHaptics = rememberLinkzaryHaptics()
         bottomNavItems.forEach { item ->
             val isSelected = currentRoute == item.screen.route
 
@@ -102,6 +103,8 @@ fun LinkzaryBottomNavigationBar(
                 ),
                 onClick = {
                     if (currentRoute != item.screen.route) {
+                        // v4.1: subtle CLOCK_TICK on nav item select (gated).
+                        navHaptics(LinkzaryHaptic.TICK)
                         navController.navigate(item.screen.route) {
                             popUpTo(navController.graph.startDestinationId) {
                                 saveState = true
