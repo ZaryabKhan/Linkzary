@@ -544,7 +544,9 @@
     <string name="settings_share_app_description">Tell friends about Linkzary</string>
     <string name="settings_share_app_choice">Share Linkzary via</string>
     <string name="settings_haptic_feedback">Haptic feedback</string>
-    <string name="settings_haptic_feedback_desc">Subtle vibration on taps and actions</string>
+    <string name="settings_haptic_feedback_desc">Vibrate on save, delete and undo</string>
+    <string name="settings_donation_one_time_copy">One-time, give what you like — as often as you want.</string>
+    <string name="settings_donate">Donate</string>
     <string name="settings_merge_duplicates">Merge duplicate links</string>
     <string name="settings_merge_duplicates_description">%1$d duplicate links found</string>
     <string name="merge_duplicates_title">Merge duplicates?</string>
