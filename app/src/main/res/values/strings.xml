@@ -130,6 +130,7 @@
 
     <!-- Create Collection Dialog -->
     <string name="create_collection_title">Create Collection</string>
+    <string name="create_collection_subtitle">Group links by topic</string>
     <string name="create_collection_name_label">Collection Name</string>
     <string name="create_collection_name_placeholder">Enter collection name</string>
     <string name="create_collection_name_hint">Collection name</string>
@@ -531,6 +532,17 @@
     <string name="settings_drive_restore">Restore from Google Drive</string>
     <string name="settings_drive_restore_description">Bring back your last Drive backup (duplicates are skipped)</string>
     <string name="settings_drive_restore_done">Restored %1$d links from Drive</string>
+    <string name="settings_drive_back_up_now">Back up now</string>
+    <string name="settings_drive_restore_short">Restore</string>
+    <string name="settings_drive_hero_title">Drive Backup</string>
+    <string name="settings_section_appearance">Appearance</string>
+    <string name="settings_section_library">Library</string>
+    <string name="settings_section_support">Support</string>
+    <string name="settings_rss_feeds">RSS feeds</string>
+    <string name="settings_rss_feeds_description">Follow and read your feeds</string>
+    <string name="settings_share_app">Share app</string>
+    <string name="settings_share_app_description">Tell friends about Linkzary</string>
+    <string name="settings_share_app_choice">Share Linkzary via</string>
     <string name="settings_merge_duplicates">Merge duplicate links</string>
     <string name="settings_merge_duplicates_description">%1$d duplicate links found</string>
     <string name="merge_duplicates_title">Merge duplicates?</string>
