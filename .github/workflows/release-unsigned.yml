@@ -15,7 +15,7 @@ jobs:
       - name: Checkout v1.2.1 code commit
         uses: actions/checkout@v4
         with:
-          ref: fccd8e2329cb00701cda5aceaf35e5d1121a11e1
+          ref: 1dd7cf0c2a19f426633bc72bfec6659458965645
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -33,7 +33,7 @@ jobs:
         run: |
           SHA=$(git rev-parse HEAD)
           echo "HEAD=$SHA"
-          if [ "$SHA" != "fccd8e2329cb00701cda5aceaf35e5d1121a11e1" ]; then
+          if [ "$SHA" != "1dd7cf0c2a19f426633bc72bfec6659458965645" ]; then
             echo "::error::Checkout is not the v1.2.0 release commit a76f957"
             exit 1
           fi
