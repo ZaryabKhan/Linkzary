@@ -97,4 +97,42 @@ class RelativeTimeTest {
         val now = dateAt(2026, 11, 13, 0, 1)
         assertEquals("Yesterday", formatRelativeSaveDate(dateAt(2026, 11, 12, 22, 0), now))
     }
+
+    // ── v4.1 compact footer forms: stable SHORT labels the footer width
+    // allocation relies on (P1 fix — "15h ago" over-cropped grid footers).
+
+    @Test
+    fun `compact under a minute is now`() {
+        val now = nowAt(12, 30)
+        assertEquals("now", formatRelativeSaveDate(Date(now.time - 30_000), now, compact = true))
+    }
+
+    @Test
+    fun `compact minutes use bare m`() {
+        val now = nowAt(12, 30)
+        assertEquals("5m", formatRelativeSaveDate(Date(now.time - 5 * 60_000), now, compact = true))
+        assertEquals("59m", formatRelativeSaveDate(Date(now.time - 59 * 60_000), now, compact = true))
+    }
+
+    @Test
+    fun `compact same day uses bare h`() {
+        val now = nowAt(23, 0)
+        val saved = dateAt(now.year + 1900, now.month + 1, now.date, 8, 0)
+        assertEquals("15h", formatRelativeSaveDate(saved, now, compact = true))
+    }
+
+    @Test
+    fun `compact days use bare d`() {
+        val now = dateAt(2026, 11, 14, 10, 0)
+        // Yesterday -> 1d in compact (no "Yesterday" word)
+        assertEquals("1d", formatRelativeSaveDate(dateAt(2026, 11, 13, 10, 0), now, compact = true))
+        assertEquals("6d", formatRelativeSaveDate(dateAt(2026, 11, 8, 10, 0), now, compact = true))
+    }
+
+    @Test
+    fun `compact a week or older uses day and month only`() {
+        val now = dateAt(2026, 11, 14, 10, 0)
+        val formatted = formatRelativeSaveDate(dateAt(2026, 11, 7, 10, 0), now, compact = true)
+        assertEquals("7 Nov", formatted)
+    }
 }
