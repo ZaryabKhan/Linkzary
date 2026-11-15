@@ -1,21 +1,21 @@
 name: Unsigned Release Artifacts
 
-# Manual build of UNSIGNED release bundle + APK for v1.2.0 (a76f957).
+# Manual build of UNSIGNED release bundle + APK for v1.2.1 (release branch tip).
 # Signing happens locally (jarsigner/apksigner with the real keystores,
 # which never touch CI). Build-only per standing order — no local Gradle.
 on:
   push:
-    branches: [ "release-v120-unsigned" ]
+    branches: [ "release-v1.2.1" ]
 
 jobs:
   unsigned-release:
     name: Unsigned Release Bundle + APK
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout v1.2.0
+      - name: Checkout v1.2.1 code commit
         uses: actions/checkout@v4
         with:
-          ref: a76f957de007cb8b4a43ca7fbd810786edec572c
+          ref: ac6a8886075176c0c804414f8884dde476a2f73f
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -29,11 +29,11 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Confirm checkout is at a76f957 (v1.2.0)
+      - name: Confirm checkout is at the v1.2.1 code commit
         run: |
           SHA=$(git rev-parse HEAD)
           echo "HEAD=$SHA"
-          if [ "$SHA" != "a76f957de007cb8b4a43ca7fbd810786edec572c" ]; then
+          if [ "$SHA" != "ac6a8886075176c0c804414f8884dde476a2f73f" ]; then
             echo "::error::Checkout is not the v1.2.0 release commit a76f957"
             exit 1
           fi
