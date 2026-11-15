@@ -247,9 +247,14 @@ fun SettingsScreen(
                         )
                     }
                     Spacer(modifier = Modifier.height(12.dp))
-                    DriveBackupHeroCard(
+                    // v5.2 spec: chromatic Drive hero (DriveBackupCard.kt) replaces
+                    // the washed-out v5 hero. Launchers/retry logic untouched.
+                    DriveBackupCard(
+                        title = stringResource(R.string.settings_drive_hero_title),
                         statusText = driveHeroStatusText(driveStatus),
-                        isWorking = driveStatus is DriveBackupStatus.InProgress,
+                        state = driveCardState(driveStatus),
+                        backUpLabel = stringResource(R.string.settings_drive_back_up_now),
+                        restoreLabel = stringResource(R.string.settings_drive_restore_short),
                         onBackUpNow = {
                         if (viewModel.isDriveConnected(context)) {
                             retryPendingDriveAction = {
@@ -784,102 +789,13 @@ private fun driveHeroStatusText(status: DriveBackupStatus?): String = when (stat
     null -> "Save all links and collections to your own Drive"
 }
 
-/**
- * Drive Backup HERO card (spec v4 §3 #1): full-width primaryContainer card,
- * cookie-clipped glyph tile, status line, Back-up-now (filled) + Restore
- * (outlined) pill buttons. Vivid accent target per spec v4 §1/§5.
- */
-@Composable
-fun DriveBackupHeroCard(
-    statusText: String,
-    isWorking: Boolean,
-    onBackUpNow: () -> Unit,
-    onRestore: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(com.appcodecraft.linkzary.ui.theme.CookieShape)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.CloudSync,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = stringResource(R.string.settings_drive_hero_title),
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.SemiBold
-                    ),
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-                Text(
-                    text = statusText,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Button(
-                        onClick = onBackUpNow,
-                        enabled = !isWorking,
-                        shape = RoundedCornerShape(50),
-                        contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                            horizontal = 16.dp, vertical = 8.dp
-                        ),
-                        modifier = Modifier.height(36.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.settings_drive_back_up_now),
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    OutlinedButton(
-                        onClick = onRestore,
-                        enabled = !isWorking,
-                        shape = RoundedCornerShape(50),
-                        contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                            horizontal = 16.dp, vertical = 8.dp
-                        ),
-                        modifier = Modifier.height(36.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.settings_drive_restore_short),
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
-                }
-            }
-        }
-    }
+/** Dot state for the v5.2 DriveBackupCard (success/error/working dot colors). */
+private fun driveCardState(status: DriveBackupStatus?): com.appcodecraft.linkzary.ui.component.DriveCardState = when (status) {
+    is DriveBackupStatus.InProgress -> com.appcodecraft.linkzary.ui.component.DriveCardState.WORKING
+    is DriveBackupStatus.Success, is DriveBackupStatus.Restored -> com.appcodecraft.linkzary.ui.component.DriveCardState.SUCCESS
+    is DriveBackupStatus.Error, is DriveBackupStatus.NeedsSignIn, is DriveBackupStatus.NeedsPermission ->
+        com.appcodecraft.linkzary.ui.component.DriveCardState.ERROR
+    null -> com.appcodecraft.linkzary.ui.component.DriveCardState.IDLE
 }
 
 /** Share-app intent (spec v4 §3 #5, Support section). */
