@@ -117,7 +117,7 @@ class SettingsViewModel @Inject constructor(
                         _driveStatus.value = DriveBackupStatus.NeedsSignIn
                         return@launch
                     }
-                    com.appcodecraft.linkzary.data.service.DriveBackupService.DriveRestoreResult.NeedsPermission -> {
+                    is com.appcodecraft.linkzary.data.service.DriveBackupService.DriveRestoreResult.NeedsPermission -> {
                         _driveStatus.value = DriveBackupStatus.NeedsPermission
                         return@launch
                     }
