@@ -16,7 +16,13 @@ data class ExportCollection(
     val name: String,
     val description: String?,
     val createdAt: String,
-    val updatedAt: String
+    val updatedAt: String,
+    // Bug build 2026-11-15: user-chosen icon and color previously dropped on
+    // backup/restore (import recreated every collection with defaults), which
+    // read as "icons not remembered". Defaults keep old backups parsing — the
+    // Json instance uses ignoreUnknownKeys + coerceInputValues.
+    val color: String = "#6366F1",
+    val icon: String = "Folder"
 )
 
 @Serializable

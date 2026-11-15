@@ -42,7 +42,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -225,12 +224,18 @@ fun BookmarkCard(
                     }
                 }
 
-                // Collection badge overlay (bottom-left)
+                // Collection badge overlay removed from the thumbnail (bug build
+                // 2026-11-15): at 64dp grid height it collided with the centered
+                // wordmark. The badge now renders in the content column below.
+            }
+
+            // Card Content
+            Column(modifier = Modifier.padding(16.dp)) {
+                // Collection chip (moved out of the thumbnail so it can never
+                // overlap the header/wordmark), same harmonized tonal style.
                 if (collectionName != null && collectionColor != null && !isMultiSelectMode) {
                     val parsedColor = runCatching { Color(collectionColor.toColorInt()) }
                         .getOrDefault(MaterialTheme.colorScheme.primary)
-                    // Spec v2 §1 rule 2: real container tone for the badge —
-                    // harmonized container + matching on-color, never alpha.
                     val harmonized = com.appcodecraft.linkzary.ui.theme.harmonizedContainerTone(
                         design = parsedColor,
                         source = MaterialTheme.colorScheme.primary,
@@ -242,9 +247,6 @@ fun BookmarkCard(
                         dark = androidx.compose.foundation.isSystemInDarkTheme()
                     )
                     Surface(
-                        modifier = Modifier
-                            .align(Alignment.BottomStart)
-                            .padding(12.dp),
                         shape = androidx.compose.foundation.shape.CircleShape,
                         color = harmonized
                     ) {
@@ -259,11 +261,9 @@ fun BookmarkCard(
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                         )
                     }
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
-            }
 
-            // Card Content
-            Column(modifier = Modifier.padding(16.dp)) {
                 // Domain + favicon + broken link indicator
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -279,16 +279,29 @@ fun BookmarkCard(
                         Spacer(modifier = Modifier.width(4.dp))
                     }
                     if (!link.favicon.isNullOrBlank()) {
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(link.favicon)
-                                .memoryCachePolicy(coil.request.CachePolicy.ENABLED)
-                                .diskCachePolicy(coil.request.CachePolicy.ENABLED)
-                                .build(),
-                            contentDescription = "Favicon for ${link.title}",
-                            modifier = Modifier.size(20.dp),
-                            error = ColorPainter(generateColorFromDomain(domain).copy(alpha = 0.2f))
-                        )
+                        // Bug build 2026-11-15: a failed favicon load used to
+                        // render as a raw colored square (ColorPainter). Track
+                        // the error and fall back to the lettered site icon.
+                        var faviconFailed by remember(link.id, link.favicon) {
+                            mutableStateOf(false)
+                        }
+                        if (faviconFailed) {
+                            FallbackSiteIcon(
+                                domain = domain,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        } else {
+                            AsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(link.favicon)
+                                    .memoryCachePolicy(coil.request.CachePolicy.ENABLED)
+                                    .diskCachePolicy(coil.request.CachePolicy.ENABLED)
+                                    .build(),
+                                contentDescription = "Favicon for ${link.title}",
+                                modifier = Modifier.size(20.dp),
+                                onError = { faviconFailed = true }
+                            )
+                        }
                         Spacer(modifier = Modifier.width(8.dp))
                     }
                     Text(
@@ -305,6 +318,8 @@ fun BookmarkCard(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // Title with read status indicator
+                // Bug build 2026-11-15: the UNREAD bullet dot before the title
+                // is dropped (read as stray clutter); READ/ARCHIVED keep icons.
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -327,16 +342,7 @@ fun BookmarkCard(
                                 tint = MaterialTheme.colorScheme.outline
                             )
                         }
-                        else -> {
-                            Box(
-                                modifier = Modifier
-                                    .size(10.dp)
-                                    .background(
-                                        color = MaterialTheme.colorScheme.primary,
-                                        shape = CircleShape
-                                    )
-                            )
-                        }
+                        else -> {}
                     }
 
                     Text(

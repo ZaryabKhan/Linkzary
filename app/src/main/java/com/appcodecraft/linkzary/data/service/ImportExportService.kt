@@ -84,7 +84,9 @@ class ImportExportService @Inject constructor() {
                 name = collection.name,
                 description = "",
                 createdAt = dateFormat.format(collection.createdDate),
-                updatedAt = dateFormat.format(collection.createdDate)
+                updatedAt = dateFormat.format(collection.createdDate),
+                color = collection.color,
+                icon = collection.icon
             )
         }
         val exportLinks = links.map { link ->
@@ -132,7 +134,9 @@ class ImportExportService @Inject constructor() {
                     name = collection.name,
                     description = "", // Collection entity doesn't have description
                     createdAt = dateFormat.format(collection.createdDate),
-                    updatedAt = dateFormat.format(collection.createdDate)
+                    updatedAt = dateFormat.format(collection.createdDate),
+                    color = collection.color,
+                    icon = collection.icon
                 )
             }
             
@@ -507,7 +511,10 @@ class ImportExportService @Inject constructor() {
             
             val newCollection = Collection(
                 name = finalName,
-                color = "#2196F3" // Default blue color
+                // Bug build 2026-11-15: restore keeps the user's chosen icon
+                // and color instead of resetting every collection to defaults.
+                color = exportCollection.color,
+                icon = exportCollection.icon
             )
             
             val newId = onCollectionInsert(newCollection)

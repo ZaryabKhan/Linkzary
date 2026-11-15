@@ -790,14 +790,7 @@ fun HomeScreen(
     // content scrolls under a fixed header (enterAlways caused jank).
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
-    // List state drives the FAB morph (cookie scallop at rest, pill when scrolled)
     val listState = androidx.compose.foundation.lazy.rememberLazyListState()
-    val isScrolled by remember {
-        derivedStateOf {
-            listState.firstVisibleItemIndex > 0 ||
-                listState.firstVisibleItemScrollOffset > 200
-        }
-    }
 
     // Outer Box only positions overlays (action bar, coach-mark, FAB);
     // the app bar and the list must be siblings in a Column so they stack
@@ -1382,13 +1375,11 @@ fun HomeScreen(
     }
 
     // Floating Action Button (overlay, bottom-right)
-    // Spec v2 §2.3: the one LinkzaryFab — primaryContainer cookie scallop at
-    // rest, labeled pill when scrolled.
+    // Standard M3 extended FAB — full label, never clips.
     if (!uiState.isMultiSelectMode && !showCoachMark) {
         com.appcodecraft.linkzary.ui.component.LinkzaryFab(
             label = stringResource(R.string.home_add_link),
             onClick = { showAddLinkDialog = true },
-            isScrolled = isScrolled,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(16.dp)
