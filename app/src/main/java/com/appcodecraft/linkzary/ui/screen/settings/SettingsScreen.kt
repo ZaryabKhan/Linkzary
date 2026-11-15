@@ -1077,8 +1077,11 @@ fun LanguageSelectionDialog(
         dismissLabel = stringResource(R.string.common_cancel),
         onDismiss = onDismiss
     ) {
-        LazyColumn {
-            items(languages) { (name, code) ->
+        // v5.1.1 crash fix: LazyColumn inside the dialog's verticalScroll
+        // column crashed on open (infinite height constraint). The scaffold
+        // scrolls, so this is a plain Column now.
+        Column {
+            languages.forEach { (name, code) ->
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()

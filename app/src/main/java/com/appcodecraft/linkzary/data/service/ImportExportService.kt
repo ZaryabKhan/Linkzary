@@ -16,6 +16,7 @@ import com.appcodecraft.linkzary.data.model.ImportStep
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -239,7 +240,10 @@ class ImportExportService @Inject constructor() {
     }
     
     /**
-     * Imports data from a file with progress tracking
+     * Imports data from a file with progress tracking.
+     * v5.1.1: the whole upstream (file read, JSON parse, duplicate scan,
+     * insert chunks) runs on Dispatchers.IO via [flowOn] — the collector
+     * stays on Main for UI state only.
      */
     suspend fun importData(
         context: Context,
@@ -249,13 +253,13 @@ class ImportExportService @Inject constructor() {
         existingLinks: List<SavedLink>,
         onProgress: (ImportProgress) -> Unit,
         onCollectionInsert: suspend (Collection) -> Long,
-        onLinkInsert: suspend (SavedLink) -> Unit
+        onLinksInsert: suspend (List<SavedLink>) -> Unit
     ): Flow<ImportResult> = flow {
         try {
             onProgress(createProgress(ImportStep.PARSING_FILE, 0.1f, "Parsing import file...", 0, 0))
-            
+
             val content = readFileContent(context, uri)
-            
+
             val result = if (isJsonFormat(content)) {
                 try {
                     importFromJson(
@@ -265,7 +269,7 @@ class ImportExportService @Inject constructor() {
                         existingLinks = existingLinks,
                         onProgress = onProgress,
                         onCollectionInsert = onCollectionInsert,
-                        onLinkInsert = onLinkInsert
+                        onLinksInsert = onLinksInsert
                     )
                 } catch (e: Exception) {
                     android.util.Log.e("ImportExportService", "JSON import failed in importData: ${e.message}", e)
@@ -286,10 +290,10 @@ class ImportExportService @Inject constructor() {
                     existingLinks = existingLinks,
                     onProgress = onProgress,
                     onCollectionInsert = onCollectionInsert,
-                    onLinkInsert = onLinkInsert
+                    onLinksInsert = onLinksInsert
                 )
             }
-            
+
             emit(result)
         } catch (e: Exception) {
             emit(ImportResult(
@@ -301,6 +305,11 @@ class ImportExportService @Inject constructor() {
                 errorMessage = e.message ?: "Unknown error occurred"
             ))
         }
+    }.flowOn(Dispatchers.IO)
+
+    companion object {
+        /** v5.1.1: links insert in bounded chunks, not 100+ single-row transactions. */
+        private const val INSERT_CHUNK_SIZE = 50
     }
     
     // Private helper methods
@@ -451,7 +460,7 @@ class ImportExportService @Inject constructor() {
         existingLinks: List<SavedLink>,
         onProgress: (ImportProgress) -> Unit,
         onCollectionInsert: suspend (Collection) -> Long,
-        onLinkInsert: suspend (SavedLink) -> Unit
+        onLinksInsert: suspend (List<SavedLink>) -> Unit
     ): ImportResult {
         try {
             val exportData = json.decodeFromString<ExportData>(content)
@@ -540,17 +549,31 @@ class ImportExportService @Inject constructor() {
         
         var importedLinks = 0
         var skippedLinks = 0
-        
-        // Process links
+
+        // Process links. v5.1.1: chunked inserts (50 per transaction) instead
+        // of one insert per row; blank/invalid rows are repaired or skipped,
+        // never fatal.
+        val pendingChunk = ArrayList<SavedLink>(INSERT_CHUNK_SIZE)
+
+        suspend fun flushChunk() {
+            if (pendingChunk.isNotEmpty()) {
+                onLinksInsert(pendingChunk.toList())
+                importedLinks += pendingChunk.size
+                pendingChunk.clear()
+            }
+        }
+
         exportData.links.forEachIndexed { index, exportLink ->
-            val isDuplicate = existingLinks.any { it.url == exportLink.url }
-            
-            if (!isDuplicate) {
+            val url = exportLink.url.trim()
+            val isDuplicate = url.isNotEmpty() && existingLinks.any { it.url == url }
+
+            if (!isDuplicate && url.isNotEmpty()) {
                 val newCollectionId = exportLink.collectionId?.let { collectionIdMap[it] }
 
                 val newLink = SavedLink(
-                    url = exportLink.url,
-                    title = exportLink.title,
+                    url = url,
+                    // Repair: a blank title would render as an invisible card.
+                    title = exportLink.title.trim().ifBlank { url },
                     note = exportLink.description ?: "",
                     collectionId = newCollectionId,
                     isPinned = exportLink.isPinned,
@@ -558,12 +581,14 @@ class ImportExportService @Inject constructor() {
                     previewImageUrl = exportLink.previewImageUrl
                 )
 
-                onLinkInsert(newLink)
-                importedLinks++
+                pendingChunk.add(newLink)
+                if (pendingChunk.size >= INSERT_CHUNK_SIZE) {
+                    flushChunk()
+                }
             } else {
                 skippedLinks++
             }
-            
+
             onProgress(createProgress(
                 ImportStep.PROCESSING_LINKS,
                 0.5f + (0.4f * (index + 1) / exportData.links.size),
@@ -572,6 +597,7 @@ class ImportExportService @Inject constructor() {
                 totalItems
             ))
         }
+        flushChunk()
         
         onProgress(createProgress(
             ImportStep.COMPLETED,
@@ -611,7 +637,7 @@ class ImportExportService @Inject constructor() {
         existingLinks: List<SavedLink>,
         onProgress: (ImportProgress) -> Unit,
         onCollectionInsert: suspend (Collection) -> Long,
-        onLinkInsert: suspend (SavedLink) -> Unit
+        onLinksInsert: suspend (List<SavedLink>) -> Unit
     ): ImportResult {
         val lines = content.lines().filter { it.isNotBlank() }
         if (lines.isEmpty()) throw IOException("File is empty")
@@ -689,7 +715,17 @@ class ImportExportService @Inject constructor() {
             dataLines.size
         ))
         
-        // Second pass: create links
+        // Second pass: create links. v5.1.1: chunked inserts like the JSON path.
+        val pendingChunk = ArrayList<SavedLink>(INSERT_CHUNK_SIZE)
+
+        suspend fun flushChunk() {
+            if (pendingChunk.isNotEmpty()) {
+                onLinksInsert(pendingChunk.toList())
+                importedLinks += pendingChunk.size
+                pendingChunk.clear()
+            }
+        }
+
         dataLines.forEachIndexed { index, line ->
             try {
                 val columns = parseCsvLine(line)
@@ -705,24 +741,24 @@ class ImportExportService @Inject constructor() {
                     val previewImageUrl = if (columns.size > 8) {
                         columns[8].trim().removeSurrounding("\"").takeIf { it.isNotEmpty() }
                     } else null
-                    
-                    val isDuplicate = existingLinks.any { it.url == url }
 
-                    if (!isDuplicate) {
+                    val isDuplicate = url.isNotEmpty() && existingLinks.any { it.url == url }
+
+                    if (!isDuplicate && url.isNotEmpty()) {
                         val collectionId = collectionName?.let { collectionNameToIdMap[it] }
-                        
-                        val newLink = SavedLink(
+
+                        pendingChunk.add(SavedLink(
                             url = url,
-                            title = title,
+                            title = title.trim().ifBlank { url },
                             note = description ?: "",
                             collectionId = collectionId,
                             isPinned = isPinned,
                             favicon = faviconUrl,
                             previewImageUrl = previewImageUrl
-                        )
-                        
-                        onLinkInsert(newLink)
-                        importedLinks++
+                        ))
+                        if (pendingChunk.size >= INSERT_CHUNK_SIZE) {
+                            flushChunk()
+                        }
                     } else {
                         skippedLinks++
                     }
@@ -731,7 +767,7 @@ class ImportExportService @Inject constructor() {
                  // Skip malformed lines
                  skippedLinks++
              }
-            
+
             onProgress(createProgress(
                 ImportStep.PROCESSING_LINKS,
                 0.4f + (0.5f * (index + 1) / dataLines.size),
@@ -740,6 +776,7 @@ class ImportExportService @Inject constructor() {
                 dataLines.size
             ))
         }
+        flushChunk()
         
         onProgress(createProgress(
             ImportStep.COMPLETED,
