@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -23,6 +24,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Bookmark
 import androidx.compose.material.icons.rounded.ChevronRight
@@ -85,6 +87,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.appcodecraft.linkzary.BuildConfig
 import com.appcodecraft.linkzary.R
@@ -218,18 +222,35 @@ fun SettingsScreen(
             scrollBehavior = settingsScrollBehavior,
             containerColor = MaterialTheme.colorScheme.surface
         )
-        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(8.dp))
+        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(40.dp))
 
         LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            // v5 breathable rhythm: 16dp row gaps inside and between sections.
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // ── 1. Drive Backup HERO card (spec v4 §3 #1) — directly under the
-            // header, primaryContainer fill, status line + Back up now / Restore.
+            // ── Welcome block (spec v5 §1): quiet Donation card on TOP, loud
+            // Drive hero below, 12dp shared gap — they read as one composed
+            // header. 48dp gap after separates them from the list.
             item {
-                DriveBackupHeroCard(
-                    statusText = driveHeroStatusText(driveStatus),
-                    isWorking = driveStatus is DriveBackupStatus.InProgress,
-                    onBackUpNow = {
+                Column {
+                    if (hasDonated) {
+                        com.appcodecraft.linkzary.ui.component.DonationCardThanks(
+                            title = stringResource(R.string.donation_v3_thanks_title),
+                            subtitle = stringResource(R.string.donation_v3_thanks_subtitle)
+                        )
+                    } else {
+                        com.appcodecraft.linkzary.ui.component.DonationCardCompact(
+                            title = stringResource(R.string.donation_v3_title),
+                            subtitle = stringResource(R.string.settings_donation_one_time_copy),
+                            donateLabel = stringResource(R.string.settings_donate),
+                            onDonateClick = onNavigateToDonation
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    DriveBackupHeroCard(
+                        statusText = driveHeroStatusText(driveStatus),
+                        isWorking = driveStatus is DriveBackupStatus.InProgress,
+                        onBackUpNow = {
                         if (viewModel.isDriveConnected(context)) {
                             retryPendingDriveAction = {
                                 viewModel.backupToDrive(context) { intent -> driveAuthLauncher.launch(intent) }
@@ -283,8 +304,14 @@ fun SettingsScreen(
                             )
                         }
                     },
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    modifier = Modifier.fillMaxWidth()
                 )
+                }
+            }
+
+            // ── 48dp gap: welcome block → first section (spec v5 §1)
+            item {
+                Spacer(modifier = Modifier.height(32.dp))
             }
 
             // ── 2. Appearance (spec v4 §3 #2)
@@ -319,19 +346,6 @@ fun SettingsScreen(
                 )
             }
 
-            // Haptic feedback (v4.1): subtle M3 haptics on key touches. Kept a
-            // self-contained item so Pixel's v5 Settings layout can move it.
-            item {
-                val hapticsEnabled by userPreferencesManager.hapticsEnabled.collectAsState()
-                SettingsToggleItem(
-                    icon = Icons.Rounded.Vibration,
-                    title = stringResource(R.string.settings_haptic_feedback),
-                    subtitle = stringResource(R.string.settings_haptic_feedback_desc),
-                    checked = hapticsEnabled,
-                    onCheckedChange = { userPreferencesManager.setHapticsEnabled(it) }
-                )
-            }
-
             item {
                 SettingsItem(
                     icon = Icons.Rounded.Language,
@@ -343,9 +357,23 @@ fun SettingsScreen(
                 )
             }
 
+            // Haptic feedback (v4.1, v5 §1): subtle M3 haptics on key touches.
+            // Spec v5 slot: Appearance, after Language. Self-contained item so
+            // Pixel's v5+ layouts can move it freely.
+            item {
+                val hapticsEnabled by userPreferencesManager.hapticsEnabled.collectAsState()
+                SettingsToggleItem(
+                    icon = Icons.Rounded.Vibration,
+                    title = stringResource(R.string.settings_haptic_feedback),
+                    subtitle = stringResource(R.string.settings_haptic_feedback_desc),
+                    checked = hapticsEnabled,
+                    onCheckedChange = { userPreferencesManager.setHapticsEnabled(it) }
+                )
+            }
+
             // ── 3. Library (spec v4 §3 #3)
             item {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(28.dp))
                 SettingsSectionHeader(stringResource(R.string.settings_section_library))
             }
 
@@ -395,7 +423,7 @@ fun SettingsScreen(
 
             // ── 4. Data (spec v4 §3 #4) — Clear data last, in error tones
             item {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(28.dp))
                 SettingsSectionHeader(stringResource(R.string.settings_data))
             }
 
@@ -433,25 +461,13 @@ fun SettingsScreen(
                 )
             }
 
-            // ── 5. Support (spec v4 §3 #5) — donation compact + Rate + Share
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-                SettingsSectionHeader(stringResource(R.string.settings_section_support))
-            }
+            // ── 5. Support section REMOVED (spec v5 §2): donation moved to
+            // the top welcome block; Rate/Share moved into About.
 
+            // ── 6. About (spec v4 §3 #6) — keeps Rate/Share per build order
             item {
-                if (hasDonated) {
-                    com.appcodecraft.linkzary.ui.component.DonationCardThanks(
-                        title = stringResource(R.string.donation_v3_thanks_title),
-                        subtitle = stringResource(R.string.donation_v3_thanks_subtitle)
-                    )
-                } else {
-                    com.appcodecraft.linkzary.ui.component.DonationCardCompact(
-                        title = stringResource(R.string.donation_v3_title),
-                        subtitle = stringResource(R.string.donation_v3_subtitle),
-                        onDonateClick = onNavigateToDonation
-                    )
-                }
+                Spacer(modifier = Modifier.height(28.dp))
+                SettingsSectionHeader(stringResource(R.string.settings_about))
             }
 
             item {
@@ -474,12 +490,6 @@ fun SettingsScreen(
                         shareApp(context)
                     }
                 )
-            }
-
-            // ── 6. About (spec v4 §3 #6)
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-                SettingsSectionHeader(stringResource(R.string.settings_about))
             }
 
             item {
@@ -749,12 +759,17 @@ fun DonationHeader(
 
 @Composable
 fun SettingsSectionHeader(title: String) {
+    // Spec v5 §1: light uppercase overline — 12sp/600, onSurfaceVariant at
+    // 55%, letterspaced 0.08em. The loud primary bold headers are gone.
     Text(
-        text = title,
-        style = MaterialTheme.typography.titleMedium,
-        fontWeight = FontWeight.SemiBold,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(vertical = 8.dp)
+        text = title.uppercase(),
+        style = MaterialTheme.typography.labelSmall.copy(
+            fontSize = 12.sp,
+            fontWeight = FontWeight.SemiBold,
+            letterSpacing = 0.08.em
+        ),
+        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
+        modifier = Modifier.padding(bottom = 0.dp)
     )
 }
 
@@ -890,8 +905,10 @@ fun SettingsItem(
 ) {
     Card(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 80.dp),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
         )
@@ -899,18 +916,29 @@ fun SettingsItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = if (isDestructive) 
-                    MaterialTheme.colorScheme.error 
-                else 
-                    MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(24.dp)
-            )
+            // Spec v5 §1: 24dp glyph in a 36dp surfaceContainerHigh circle.
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        shape = CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = if (isDestructive)
+                        MaterialTheme.colorScheme.error
+                    else
+                        MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
             
             Spacer(modifier = Modifier.width(16.dp))
             
@@ -960,8 +988,10 @@ fun SettingsToggleItem(
             toggleHaptics(LinkzaryHaptic.TICK)
             onCheckedChange(!checked)
         },
-        modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 80.dp),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
         )
@@ -969,15 +999,26 @@ fun SettingsToggleItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(24.dp)
-            )
+            // Spec v5 §1: 24dp glyph in a 36dp surfaceContainerHigh circle.
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        shape = CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.width(16.dp))
 
