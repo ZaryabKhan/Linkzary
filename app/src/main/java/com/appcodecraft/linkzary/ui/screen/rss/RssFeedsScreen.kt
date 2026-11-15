@@ -159,7 +159,7 @@ fun RssFeedsScreen(
                         .padding(padding)
                         .padding(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 16.dp)
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(top = 16.dp, bottom = 96.dp)
                 ) {
                     items(uiState.feeds) { feed ->
                         FeedItem(
@@ -191,7 +191,7 @@ fun RssFeedsScreen(
                         .padding(padding)
                         .padding(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 16.dp)
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(top = 16.dp, bottom = 96.dp)
                 ) {
                     items(uiState.feedItems) { item ->
                         FeedItemCard(

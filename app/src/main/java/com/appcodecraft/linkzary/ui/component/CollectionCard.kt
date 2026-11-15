@@ -96,34 +96,36 @@ fun CollectionCard(
     linkCount: Int,
     onCardClick: () -> Unit,
     onMoreClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    shapeVariant: Int = 0
+    modifier: Modifier = Modifier
 ) {
     // Static interaction source for click handling only
     val interactionSource = remember { MutableInteractionSource() }
     val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
 
-    // Safely parse collection color, falling back to primary if invalid
-    val collectionColor = runCatching { Color(collection.color.toColorInt()) }
-        .getOrDefault(MaterialTheme.colorScheme.primary)
-    val dark = androidx.compose.foundation.isSystemInDarkTheme()
-    // Spec v2 §2.6: the TEXT card is always an extraLarge (28dp) rounded
-    // rectangle — expressive shapes never carry text. The variation moves
-    // INSIDE, onto the icon tile (rounded / cookie / clover, safe-zone sized).
-    val harmonized = com.appcodecraft.linkzary.ui.theme.harmonizedContainerTone(
-        design = collectionColor,
-        source = MaterialTheme.colorScheme.primary,
-        dark = dark
-    )
-    val onHarmonized = com.appcodecraft.linkzary.ui.theme.harmonizedOnContainerTone(
-        design = collectionColor,
-        source = MaterialTheme.colorScheme.primary,
-        dark = dark
-    )
-    val tileShape = when (shapeVariant % 3) {
-        1 -> com.appcodecraft.linkzary.ui.theme.CookieShape
-        2 -> com.appcodecraft.linkzary.ui.theme.CloverShape
-        else -> RoundedCornerShape(16.dp)
+    // Addendum (2026-11-15) #1/#2: shape party REVOKED — one card shape, one
+    // fixed icon slot for every collection. Icon color = brand indigo tonal
+    // family only (primaryContainer/onPrimaryContainer); no per-card hues.
+    // #3: '0 links' collections get a visibly muted treatment.
+    val isMuted = linkCount == 0
+    val tileContainer = if (isMuted) {
+        MaterialTheme.colorScheme.surfaceContainerHigh
+    } else {
+        MaterialTheme.colorScheme.primaryContainer
+    }
+    val onTileContainer = if (isMuted) {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    } else {
+        MaterialTheme.colorScheme.onPrimaryContainer
+    }
+    val titleColor = if (isMuted) {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    } else {
+        MaterialTheme.colorScheme.onSurface
+    }
+    val countColor = if (isMuted) {
+        MaterialTheme.colorScheme.outline
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
     }
 
     Card(
@@ -150,19 +152,19 @@ fun CollectionCard(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            // Icon tile: rotating expressive shape, harmonized tonal fill,
-            // glyph in onContainer (spec v2 §4)
+            // Fixed icon slot (addendum #1): 48dp tile, fixed 16dp-corner
+            // shape, 24dp glyph centered — content can never overflow.
             Box(
                 modifier = Modifier
                     .size(48.dp)
-                    .clip(tileShape)
-                    .background(harmonized),
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(tileContainer),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = getCollectionGlyph(collection.icon),
                     contentDescription = null,
-                    tint = onHarmonized,
+                    tint = onTileContainer,
                     modifier = Modifier.size(24.dp)
                 )
             }
@@ -176,7 +178,7 @@ fun CollectionCard(
                 style = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.SemiBold
                 ),
-                color = MaterialTheme.colorScheme.onSurface,
+                color = titleColor,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
@@ -190,7 +192,7 @@ fun CollectionCard(
                     stringResource(R.string.collections_link_count_plural, linkCount)
                 },
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = countColor
             )
         }
     }
@@ -203,20 +205,9 @@ fun SmallCollectionCard(
     onCardClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val collectionColor = runCatching { Color(collection.color.toColorInt()) }
-        .getOrDefault(MaterialTheme.colorScheme.primary)
-    val dark = androidx.compose.foundation.isSystemInDarkTheme()
-    // Spec v2 §2.6/§4: same tonal tile system as the grid card
-    val harmonized = com.appcodecraft.linkzary.ui.theme.harmonizedContainerTone(
-        design = collectionColor,
-        source = MaterialTheme.colorScheme.primary,
-        dark = dark
-    )
-    val onHarmonized = com.appcodecraft.linkzary.ui.theme.harmonizedOnContainerTone(
-        design = collectionColor,
-        source = MaterialTheme.colorScheme.primary,
-        dark = dark
-    )
+    // Addendum #2: brand indigo tonal family only for icon tiles
+    val tileContainer = MaterialTheme.colorScheme.primaryContainer
+    val onTileContainer = MaterialTheme.colorScheme.onPrimaryContainer
     Card(
         modifier = modifier
             .width(130.dp)
@@ -237,13 +228,13 @@ fun SmallCollectionCard(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(RoundedCornerShape(14.dp))
-                    .background(harmonized),
+                    .background(tileContainer),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = getCollectionGlyph(collection.icon),
                     contentDescription = stringResource(R.string.collections_collection_icon),
-                    tint = onHarmonized,
+                    tint = onTileContainer,
                     modifier = Modifier.size(20.dp)
                 )
             }

@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
@@ -23,6 +24,7 @@ import com.appcodecraft.linkzary.R
  * onSecondaryContainer with a 0.9→1 icon scale-in; inactive transparent +
  * onSurfaceVariant. Uses only scheme roles, so it works on any surface.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ViewModeToggle(
     isGridView: Boolean,
@@ -45,13 +47,7 @@ fun ViewModeToggle(
                         scaleY = if (!isGridView) 1f else 0.9f
                     }
                 )
-            },
-            colors = SegmentedButtonDefaults.itemColors(
-                activeContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                activeContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                inactiveContainerColor = androidx.compose.ui.graphics.Color.Transparent,
-                inactiveContentColor = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            }
         ) {
             Text(" ")
         }
@@ -68,13 +64,7 @@ fun ViewModeToggle(
                         scaleY = if (isGridView) 1f else 0.9f
                     }
                 )
-            },
-            colors = SegmentedButtonDefaults.itemColors(
-                activeContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                activeContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                inactiveContainerColor = androidx.compose.ui.graphics.Color.Transparent,
-                inactiveContentColor = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            }
         ) {
             Text(" ")
         }

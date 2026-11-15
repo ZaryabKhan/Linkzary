@@ -953,6 +953,7 @@ fun HomeScreen(
 
             // Read status filter chips
             item(key = "filters") {
+                Box(modifier = Modifier.fillMaxWidth()) {
                 LazyRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     contentPadding = PaddingValues(horizontal = 0.dp)
@@ -1001,6 +1002,23 @@ fun HomeScreen(
                         )
                     }
                 }
+                // Addendum #6: fade edge signals the row scrolls horizontally —
+                // the 'Archived' chip never looks hard-clipped.
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .width(24.dp)
+                        .height(48.dp)
+                        .background(
+                            brush = androidx.compose.ui.graphics.Brush.horizontalGradient(
+                                colors = listOf(
+                                    Color.Transparent,
+                                    MaterialTheme.colorScheme.surfaceContainerLow
+                                )
+                            )
+                        )
+                )
+                } // Box (fade wrapper)
             }
 
             // Tag filter section (audit #7: fades/expands in and out)

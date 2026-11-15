@@ -131,16 +131,11 @@ fun BookmarkCard(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    // Spec v2 §2.5: large 16:9 (list) / 4:3 (grid) ratios only
-                    // for REAL images; the fallback is a compact 56dp strip.
-                    .then(
-                        if (!effectiveImageUrl.isNullOrBlank() && !showPreviewFallback) {
-                            Modifier.aspectRatio(if (isGrid) 4f / 3f else 16f / 9f)
-                        } else {
-                            Modifier.height(56.dp)
-                        }
-                    )
-                    .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+                    // Addendum #8: thumbnails ~half previous height — fixed
+                    // 100dp (list) / 64dp (grid) for BOTH images and fallback,
+                    // so rows align. Corner radius = card radius (16dp).
+                    .height(if (isGrid) 64.dp else 100.dp)
+                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
             ) {
                 if (!effectiveImageUrl.isNullOrBlank() && !showPreviewFallback) {
                     AsyncImage(
@@ -156,46 +151,32 @@ fun BookmarkCard(
                         onError = { showPreviewFallback = true }
                     )
                 } else {
-                    // Spec v2 §2.5 fallback strip: harmonized domain-tone
-                    // container, favicon + small domain label, left-aligned.
-                    // No giant wordmark, ever.
-                    val domainTone = com.appcodecraft.linkzary.ui.theme.harmonizedContainerTone(
-                        design = generateColorFromDomain(domain),
+                    // Addendum #8: fallback tone from the BRAND palette (no
+                    // per-domain hues), smaller CENTERED wordmark.
+                    val brandTone = com.appcodecraft.linkzary.ui.theme.harmonizedContainerTone(
+                        design = MaterialTheme.colorScheme.primary,
                         source = MaterialTheme.colorScheme.primary,
                         dark = androidx.compose.foundation.isSystemInDarkTheme()
                     )
-                    val onDomainTone = com.appcodecraft.linkzary.ui.theme.harmonizedOnContainerTone(
-                        design = generateColorFromDomain(domain),
+                    val onBrandTone = com.appcodecraft.linkzary.ui.theme.harmonizedOnContainerTone(
+                        design = MaterialTheme.colorScheme.primary,
                         source = MaterialTheme.colorScheme.primary,
                         dark = androidx.compose.foundation.isSystemInDarkTheme()
                     )
-                    Row(
+                    Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(domainTone)
-                            .padding(horizontal = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                            .background(brandTone),
+                        contentAlignment = Alignment.Center
                     ) {
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data("https://www.google.com/s2/favicons?domain=$domain&sz=64")
-                                .memoryCachePolicy(coil.request.CachePolicy.ENABLED)
-                                .diskCachePolicy(coil.request.CachePolicy.ENABLED)
-                                .build(),
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp),
-                            error = ColorPainter(onDomainTone.copy(alpha = 0.3f))
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = domain,
-                            style = MaterialTheme.typography.labelMedium.copy(
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium
-                            ),
-                            color = onDomainTone,
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = onBrandTone,
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.padding(horizontal = 16.dp)
                         )
                     }
                 }
