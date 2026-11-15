@@ -8,9 +8,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,15 +18,13 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Error
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.Card
@@ -38,33 +36,23 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.appcodecraft.linkzary.R
 import com.appcodecraft.linkzary.data.entity.SavedLink
-import com.appcodecraft.linkzary.ui.theme.collectionContainerDark
-import com.appcodecraft.linkzary.ui.theme.collectionContainerLight
-import com.appcodecraft.linkzary.ui.theme.collectionHue
-import com.appcodecraft.linkzary.ui.theme.collectionOnContainerDark
-import com.appcodecraft.linkzary.ui.theme.collectionOnContainerLight
-import androidx.compose.foundation.isSystemInDarkTheme
+import com.appcodecraft.linkzary.ui.theme.linkzaryHuePair
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -83,7 +71,6 @@ internal fun calendarDaysBetween(date: Date, now: Date): Int {
     val cal1 = java.util.Calendar.getInstance()
     val cal2 = java.util.Calendar.getInstance()
     cal1.timeInMillis = date.time
-    cal2.timeInMillis = now.time
     cal1.set(java.util.Calendar.HOUR_OF_DAY, 0)
     cal1.set(java.util.Calendar.MINUTE, 0)
     cal1.set(java.util.Calendar.SECOND, 0)
@@ -97,14 +84,10 @@ internal fun calendarDaysBetween(date: Date, now: Date): Int {
 }
 
 /**
- * Relative footer time for cards, per design audit #3. Pure and testable:
- * [now] is injectable; day math uses local calendar days, not 24h blocks, so
- * timezone/DST boundaries cannot shift a date a day off.
- *
- * [compact] = true (v4.1 footer fix) gives the stable SHORT forms the footer
- * allocates width by — "now", "5m", "2h", "1d", "6d", then "d MMM" — so the
- * timestamp never needs more than a few characters and the collection chip
- * keeps its room. Long forms stay available for other surfaces.
+ * Relative time, pure and testable: [now] is injectable; day math uses local
+ * calendar days, not 24h blocks, so timezone/DST boundaries cannot shift a
+ * date a day off. [compact] gives the stable short forms used where space is
+ * tight; v6's source line uses the long form ("2h ago").
  */
 fun formatRelativeSaveDate(date: Date, now: Date = Date(), compact: Boolean = false): String {
     if (compact) {
@@ -143,18 +126,18 @@ fun extractDomain(url: String): String {
 }
 
 /**
- * LinkCard v3 (spec v3 §2.1) — THE one link card for Home, CollectionDetail
- * and list mode. Vertical structure; NOTHING overlaps the thumbnail:
+ * LinkCard v6 (spec v6 §1–2) — the complete card redesign. Quiet body
+ * (surfaceContainerLowest, no stroke, no shadow), LOUD cover, metadata
+ * minimal:
  *
- *   thumbnail 16:9 (top corners 24dp) — no chips, no text on image, ever
- *   favicon(18dp) + domain (12sp)
- *   title 16sp/600, 2 lines max
- *   snippet 13sp, 2 lines max (optional)
- *   footer: unread dot + timestamp · ONE collection pill · overflow
+ *   cover 16:9 (grid) / 96dp square (list) — image OR generated gradient,
+ *       never a grey placeholder (CoverPlaceholder)
+ *   source line 18dp: unread dot · favicon 16dp · domain · · timestamp
+ *       (the timestamp moved here from the footer — de-cramping step 1)
+ *   title 16sp/600 max 2 lines · snippet 13sp/400 max 2 lines, collapses
+ *   footer 32dp: ONE collection chip left, kebab right — exactly 2 elements
  *
- * Collection pill = tonal hue pair from the collection's id (§1.1); when no
- * collection, no pill. Favicon fallback = letter tile (never a raw square).
- * Press morph: scale 0.97 spring + corner 24→16dp (80ms), per spec §1.2.
+ * Press morph: scale 0.97 + corner morph 80ms (v3 stands).
  */
 @Composable
 fun LinkCard(
@@ -164,8 +147,7 @@ fun LinkCard(
     modifier: Modifier = Modifier,
     collectionId: Long? = null,
     collectionName: String? = null,
-    /** Grid mode (half-width cards): the footer name wins space per v5.1. */
-    inGrid: Boolean = false,
+    listMode: Boolean = false,
     isMultiSelectMode: Boolean = false,
     isSelected: Boolean = false,
     onLongPress: () -> Unit = {},
@@ -177,7 +159,7 @@ fun LinkCard(
     val isDark = isSystemInDarkTheme()
     val accent = MaterialTheme.colorScheme.primary
 
-    // Press morph (spec §1.2): 24dp → 16dp corner squash + 0.97 scale.
+    // Press morph (v3 §1.2): 24dp → 16dp corner squash + 0.97 scale.
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
@@ -185,23 +167,31 @@ fun LinkCard(
         animationSpec = spring(stiffness = 600f),
         label = "card-press-scale"
     )
+    val restCorner = if (listMode) 20.dp else 24.dp
     val corner by animateDpAsState(
-        targetValue = if (pressed) 16.dp else 24.dp,
+        targetValue = if (pressed) 16.dp else restCorner,
         animationSpec = tween(durationMillis = 80),
         label = "card-press-corner"
     )
 
-    val chipContainer: Color
-    val chipOnContainer: Color
-    if (collectionId != null) {
-        val hue = collectionHue(collectionId)
-        chipContainer = if (isDark) collectionContainerDark(hue, accent)
-        else collectionContainerLight(hue, accent)
-        chipOnContainer = if (isDark) collectionOnContainerDark(hue, accent)
-        else collectionOnContainerLight(hue, accent)
+    val (chipContainer, chipOnContainer) = if (collectionId != null) {
+        linkzaryHuePair(collectionId, accent, isDark)
     } else {
-        chipContainer = MaterialTheme.colorScheme.surfaceContainerHigh
-        chipOnContainer = MaterialTheme.colorScheme.onSurfaceVariant
+        MaterialTheme.colorScheme.surfaceContainerHigh to MaterialTheme.colorScheme.onSurfaceVariant
+    }
+
+    val tapGesture = Modifier.pointerInput(isMultiSelectMode, onCardClick, onSelectClick, onLongPress) {
+        detectTapGestures(
+            onTap = {
+                // v4.1: subtle M3 CLOCK_TICK on card tap (gated).
+                haptics(LinkzaryHaptic.TICK)
+                if (isMultiSelectMode) onSelectClick() else onCardClick()
+            },
+            onLongPress = {
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                onLongPress()
+            }
+        )
     }
 
     Card(
@@ -211,23 +201,7 @@ fun LinkCard(
                 scaleX = scale
                 scaleY = scale
             }
-            .pointerInput(isMultiSelectMode, onCardClick, onSelectClick, onLongPress) {
-                detectTapGestures(
-                    onTap = {
-                        // v4.1: subtle M3 CLOCK_TICK on card tap (gated).
-                        haptics(LinkzaryHaptic.TICK)
-                        if (isMultiSelectMode) {
-                            onSelectClick()
-                        } else {
-                            onCardClick()
-                        }
-                    },
-                    onLongPress = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        onLongPress()
-                    }
-                )
-            },
+            .then(tapGesture),
         shape = RoundedCornerShape(corner),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
@@ -238,301 +212,191 @@ fun LinkCard(
             color = MaterialTheme.colorScheme.primary
         ) else null
     ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            // ── Thumbnail 16:9, top corners clipped, NOTHING overlaid ──
-            val effectiveImageUrl = link.customImageUrl?.takeIf { it.isNotBlank() }
-                ?: link.previewImageUrl?.takeIf { it.isNotBlank() }
-            var showPreviewFallback by remember(link.id, effectiveImageUrl) { mutableStateOf(false) }
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(16f / 9f)
-                    .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-            ) {
-                if (!effectiveImageUrl.isNullOrBlank() && !showPreviewFallback) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(effectiveImageUrl)
-                            .crossfade(true)
-                            .memoryCachePolicy(coil.request.CachePolicy.ENABLED)
-                            .diskCachePolicy(coil.request.CachePolicy.ENABLED)
-                            .build(),
-                        contentDescription = null, // decorative preview; title conveys meaning
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop,
-                        onError = { showPreviewFallback = true }
-                    )
-                } else {
-                    // Quiet fallback tone + smaller centered wordmark (v2 §2.6 #8).
-                    val brandTone = com.appcodecraft.linkzary.ui.theme.harmonizedContainerTone(
-                        design = accent,
-                        source = accent,
-                        dark = isDark
-                    )
-                    val onBrandTone = com.appcodecraft.linkzary.ui.theme.harmonizedOnContainerTone(
-                        design = accent,
-                        source = accent,
-                        dark = isDark
-                    )
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(brandTone),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = domain,
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = onBrandTone,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.padding(horizontal = 16.dp)
-                        )
-                    }
-                }
-            }
-
-            // ── Content column: 16dp sides / 14dp top / 12dp bottom ──
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 16.dp, top = 14.dp, end = 16.dp, bottom = 12.dp)
-            ) {
-                // Favicon + domain row (12sp domain, 18dp letter-tile fallback)
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (link.isAlive == false) {
-                        Icon(
-                            imageVector = Icons.Rounded.Error,
-                            contentDescription = stringResource(R.string.link_broken),
-                            modifier = Modifier.size(16.dp),
-                            tint = MaterialTheme.colorScheme.error
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                    }
-                    SiteBadge(
-                        faviconUrl = link.favicon,
-                        domain = domain,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = domain,
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            fontWeight = FontWeight.Medium
-                        ),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(6.dp))
-
-                // Title 16sp/600, 2 lines
-                Text(
-                    text = link.title,
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.SemiBold
-                    ),
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    color = if (link.readStatus == "READ" || link.readStatus == "ARCHIVED") {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    } else {
-                        MaterialTheme.colorScheme.onSurface
-                    }
-                )
-
-                // Snippet, 2 lines (optional)
-                if (link.note.isNotBlank()) {
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(
-                        text = link.note,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Footer: unread dot + timestamp · ONE collection pill · kebab.
-                // v5.1 fix v2: MEASURED allocation, not weighted. Chip and
-                // timestamp natural widths come from a TextMeasurer and go
-                // into planCardFooter (see CardFooterPlan for the rules):
-                // the chip ellipsizes only when it exceeds ALL remaining
-                // space; in grid the timestamp drops to date-only, then
-                // hides, then the dot yields — the name wins space.
-                if (collectionName != null && !isMultiSelectMode) {
-                    FooterWithChip(
-                        link = link,
-                        collectionName = collectionName,
-                        chipContainer = chipContainer,
-                        chipOnContainer = chipOnContainer,
-                        inGrid = inGrid,
-                        onMoreClick = onMoreClick,
-                        moreContentDescription = stringResource(R.string.home_more_options)
-                    )
-                } else {
-                    FooterWithoutChip(
-                        isUnread = link.readStatus == "UNREAD",
-                        saveDate = link.saveDate
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    IconButton(
-                        onClick = onMoreClick,
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.MoreVert,
-                            contentDescription = stringResource(R.string.home_more_options),
-                            modifier = Modifier.size(18.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
+        if (listMode) {
+            ListCardBody(
+                link = link,
+                domain = domain,
+                collectionName = collectionName,
+                chipContainer = chipContainer,
+                chipOnContainer = chipOnContainer,
+                isMultiSelectMode = isMultiSelectMode,
+                onMoreClick = onMoreClick
+            )
+        } else {
+            GridCardBody(
+                link = link,
+                domain = domain,
+                collectionName = collectionName,
+                chipContainer = chipContainer,
+                chipOnContainer = chipOnContainer,
+                isMultiSelectMode = isMultiSelectMode,
+                onMoreClick = onMoreClick
+            )
         }
     }
 }
 
-/** Footer geometry shared by the allocator and the renderers. */
-private val FOOTER_KEBAB_DP = 32f
-private val FOOTER_GAP_DP = 8f
-private val FOOTER_DOT_DP = 12f // 6dp dot + 6dp gap
-private val FOOTER_CHIP_PADDING_DP = 20f // 10dp horizontal padding per side
+/** Effective cover image: custom override first, then the preview URL. */
+private fun coverImageOf(link: SavedLink): String? =
+    link.customImageUrl?.takeIf { it.isNotBlank() }
+        ?: link.previewImageUrl?.takeIf { it.isNotBlank() }
 
 /**
- * Measured footer when a collection chip is present (v5.1). Runs the
- * allocator on real text widths and renders exactly what it decides:
- * natural chip when it fits (with whichever timestamp fits most
- * informatively), fixed-width ellipsized chip only as the last resort.
+ * Grid body (spec v6 §1): 16:9 cover, content column 14dp sides / 12dp top /
+ * 14dp bottom with 6dp gaps, footer = chip + kebab only.
  */
 @Composable
-private fun FooterWithChip(
-    link: com.appcodecraft.linkzary.data.entity.SavedLink,
-    collectionName: String,
+private fun GridCardBody(
+    link: SavedLink,
+    domain: String,
+    collectionName: String?,
     chipContainer: Color,
     chipOnContainer: Color,
-    inGrid: Boolean,
-    onMoreClick: () -> Unit,
-    moreContentDescription: String
+    isMultiSelectMode: Boolean,
+    onMoreClick: () -> Unit
 ) {
-    val density = LocalDensity.current
-    val textMeasurer = rememberTextMeasurer()
-    val chipStyle = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold)
-    val timestampStyle = MaterialTheme.typography.labelSmall
-    val timestampColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-    val fontScale = density.fontScale
-
-    // Timestamp candidates, most informative first. Grid drops to the
-    // date-only form first (v5.1 rule #2); list keeps compact only.
-    val dateOnly = remember(link.id) { getCachedDateFormat("d MMM").format(link.saveDate) }
-    val compact = remember(link.id) { formatRelativeSaveDate(link.saveDate, compact = true) }
-    val candidateLabels = if (inGrid) listOf(dateOnly, compact) else listOf(compact)
-    val options = candidateLabels.map { label ->
-        TimestampOption(label, with(density) {
-            textMeasurer.measure(label, timestampStyle, maxLines = 1, softWrap = false)
-                .size.width.toDp().value
-        })
-    }
-    val chipNatural = with(density) {
-        textMeasurer.measure(collectionName, chipStyle, maxLines = 1, softWrap = false)
-            .size.width.toDp().value + FOOTER_CHIP_PADDING_DP
-    }
-
-    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-        val available = with(density) { constraints.maxWidth.toDp().value }
-        val plan = planCardFooter(
-            availableWidthDp = available,
-            chipNaturalWidthDp = chipNatural,
-            timestampOptions = options,
-            kebabWidthDp = FOOTER_KEBAB_DP,
-            gapDp = FOOTER_GAP_DP,
-            dotWidthDp = FOOTER_DOT_DP,
-            allowYield = inGrid
+    Column(modifier = Modifier.fillMaxWidth()) {
+        // Cover 16:9, top corners clipped, NOTHING overlaps it.
+        CoverPlaceholder(
+            seed = domain,
+            imageUrl = coverImageOf(link),
+            cornerRadius = 24.dp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(16f / 9f)
         )
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 14.dp, top = 12.dp, end = 14.dp, bottom = 14.dp)
         ) {
-            if (link.readStatus == "UNREAD" && plan.showUnreadDot) {
-                Box(
-                    modifier = Modifier
-                        .size(6.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.primary,
-                            shape = CircleShape
-                        )
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-            }
+            SourceLine(link = link, domain = domain)
 
-            if (plan.timestampLabel != null) {
-                Text(
-                    text = plan.timestampLabel,
-                    style = timestampStyle,
-                    color = timestampColor,
-                    maxLines = 1,
-                    softWrap = false
-                )
-                Spacer(modifier = Modifier.width(FOOTER_GAP_DP.dp))
-            }
+            Spacer(modifier = Modifier.height(6.dp))
 
-            Surface(
-                shape = RoundedCornerShape(50),
-                color = chipContainer,
-                modifier = if (plan.chipTruncated) {
-                    Modifier.width(plan.chipWidthDp.dp)
+            Text(
+                text = link.title,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.SemiBold
+                ),
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                color = if (link.readStatus == "READ" || link.readStatus == "ARCHIVED") {
+                    MaterialTheme.colorScheme.onSurfaceVariant
                 } else {
-                    Modifier
+                    MaterialTheme.colorScheme.onSurface
                 }
-            ) {
+            )
+
+            if (link.note.isNotBlank()) {
+                Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = collectionName,
-                    style = chipStyle,
-                    color = chipOnContainer,
-                    maxLines = 1,
-                    softWrap = false,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = if (plan.chipTruncated) {
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 10.dp, vertical = 4.dp)
-                    } else {
-                        Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                    }
+                    text = link.note,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
 
-            Spacer(modifier = Modifier.width(FOOTER_GAP_DP.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-            IconButton(
-                onClick = onMoreClick,
-                modifier = Modifier.size(FOOTER_KEBAB_DP.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.MoreVert,
-                    contentDescription = moreContentDescription,
-                    modifier = Modifier.size(18.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            CardFooter(
+                collectionName = collectionName,
+                chipContainer = chipContainer,
+                chipOnContainer = chipOnContainer,
+                isMultiSelectMode = isMultiSelectMode,
+                onMoreClick = onMoreClick
+            )
         }
     }
 }
 
-/** Footer for cards with no collection: dot + compact timestamp, no chip. */
+/**
+ * List body (spec v6 §2): 104dp row, 96dp cover left (16dp radius, 12dp from
+ * row edges), quiet content right. Row gap lives on the screen (10dp).
+ */
 @Composable
-private fun FooterWithoutChip(isUnread: Boolean, saveDate: java.util.Date) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        if (isUnread) {
+private fun ListCardBody(
+    link: SavedLink,
+    domain: String,
+    collectionName: String?,
+    chipContainer: Color,
+    chipOnContainer: Color,
+    isMultiSelectMode: Boolean,
+    onMoreClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 104.dp)
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        CoverPlaceholder(
+            seed = domain,
+            imageUrl = coverImageOf(link),
+            cornerRadius = 16.dp,
+            modifier = Modifier.size(96.dp)
+        )
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            SourceLine(link = link, domain = domain)
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = link.title,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.SemiBold
+                ),
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                color = if (link.readStatus == "READ" || link.readStatus == "ARCHIVED") {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                } else {
+                    MaterialTheme.colorScheme.onSurface
+                }
+            )
+
+            if (link.note.isNotBlank()) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = link.note,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            CardFooter(
+                collectionName = collectionName,
+                chipContainer = chipContainer,
+                chipOnContainer = chipOnContainer,
+                isMultiSelectMode = isMultiSelectMode,
+                onMoreClick = onMoreClick
+            )
+        }
+    }
+}
+
+/**
+ * Source line (spec v6 §1.3, de-cramping step 1): unread dot · favicon ·
+ * domain · · timestamp — metadata about the source, 18dp tall.
+ */
+@Composable
+private fun SourceLine(link: SavedLink, domain: String) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.height(18.dp)
+    ) {
+        if (link.readStatus == "UNREAD") {
             Box(
                 modifier = Modifier
                     .size(6.dp)
@@ -543,8 +407,40 @@ private fun FooterWithoutChip(isUnread: Boolean, saveDate: java.util.Date) {
             )
             Spacer(modifier = Modifier.width(6.dp))
         }
+
+        SiteBadge(
+            faviconUrl = link.favicon,
+            domain = domain,
+            modifier = Modifier.size(16.dp)
+        )
+
+        Spacer(modifier = Modifier.width(6.dp))
+
+        val displayDomain = if (domain.length > 20) domain.take(20) + "…" else domain
         Text(
-            text = formatRelativeSaveDate(saveDate, compact = true),
+            text = displayDomain,
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontWeight = FontWeight.Medium
+            ),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            softWrap = false
+        )
+
+        Spacer(modifier = Modifier.width(4.dp))
+
+        Text(
+            text = "·",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+            maxLines = 1,
+            softWrap = false
+        )
+
+        Spacer(modifier = Modifier.width(4.dp))
+
+        Text(
+            text = formatRelativeSaveDate(link.saveDate),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
             maxLines = 1,
@@ -554,9 +450,68 @@ private fun FooterWithoutChip(isUnread: Boolean, saveDate: java.util.Date) {
 }
 
 /**
- * 18dp favicon with letter-tile fallback (spec v3 §2.1): a failed or missing
- * favicon renders as a tinted circle with the domain initial — never a raw
- * colored square. Tile hue derives from the domain hash, harmonized to brand.
+ * Footer (spec v6 §1.5, de-cramping step 2): 32dp row, chip left, kebab
+ * right — exactly two elements. The chip keeps v5.1's corrected text
+ * metrics: it renders at natural width when it fits (half-width grid cards
+ * show "Test Collection" whole) and ellipsizes only into the space the kebab
+ * leaves. Kebab: 24dp glyph in a 40dp target (48dp effective via M3 minimum
+ * touch).
+ */
+@Composable
+private fun CardFooter(
+    collectionName: String?,
+    chipContainer: Color,
+    chipOnContainer: Color,
+    isMultiSelectMode: Boolean,
+    onMoreClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().height(32.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (collectionName != null && !isMultiSelectMode) {
+            Surface(
+                shape = RoundedCornerShape(50),
+                color = chipContainer,
+                modifier = Modifier
+                    .heightIn(min = 28.dp)
+                    .weight(1f, fill = false)
+            ) {
+                Text(
+                    text = collectionName,
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontWeight = FontWeight.SemiBold
+                    ),
+                    color = chipOnContainer,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    softWrap = false,
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        IconButton(
+            onClick = onMoreClick,
+            modifier = Modifier.size(40.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.MoreVert,
+                contentDescription = stringResource(R.string.home_more_options),
+                modifier = Modifier.size(24.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+/**
+ * Favicon with letter-tile fallback (v3 rule): a failed or missing favicon
+ * renders as a tinted circle with the domain initial — never a raw colored
+ * square. Tile hue via the one v6 §4 utility, so "Use Linkzary colors"
+ * governs it like every other surface.
  */
 @Composable
 fun SiteBadge(
@@ -572,8 +527,8 @@ fun SiteBadge(
     if (failed) {
         LetterTile(domain = domain, modifier = modifier)
     } else {
-        AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
+        coil.compose.AsyncImage(
+            model = coil.request.ImageRequest.Builder(LocalContext.current)
                 .data(faviconUrl)
                 .memoryCachePolicy(coil.request.CachePolicy.ENABLED)
                 .diskCachePolicy(coil.request.CachePolicy.ENABLED)
@@ -589,11 +544,7 @@ fun SiteBadge(
 private fun LetterTile(domain: String, modifier: Modifier = Modifier) {
     val isDark = isSystemInDarkTheme()
     val accent = MaterialTheme.colorScheme.primary
-    val hue = collectionHue(domain.hashCode().toLong())
-    val container = if (isDark) collectionContainerDark(hue, accent)
-    else collectionContainerLight(hue, accent)
-    val onContainer = if (isDark) collectionOnContainerDark(hue, accent)
-    else collectionOnContainerLight(hue, accent)
+    val (container, onContainer) = linkzaryHuePair(domain, accent, isDark)
     Box(
         modifier = modifier
             .background(color = container, shape = CircleShape),

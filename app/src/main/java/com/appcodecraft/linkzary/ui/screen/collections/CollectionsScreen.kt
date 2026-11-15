@@ -287,7 +287,8 @@ fun CollectionsScreen(
                                 CollectionCard(
                                     collection = collection,
                                     linkCount = collectionMap[collection.id] ?: 0,
-                                    thumbnails = uiState.collectionThumbnails[collection.id] ?: emptyList(),
+                                    covers = uiState.collectionCovers[collection.id] ?: emptyList(),
+                                    lastSaved = uiState.collectionLastSaved[collection.id],
                                     onCardClick = {
                                         navController?.navigate(
                                             Screen.CollectionDetail.createRoute(collection.id.toString())
@@ -310,7 +311,8 @@ fun CollectionsScreen(
                         CollectionCard(
                             collection = collection,
                             linkCount = collectionMap[collection.id] ?: 0,
-                            thumbnails = uiState.collectionThumbnails[collection.id] ?: emptyList(),
+                            covers = uiState.collectionCovers[collection.id] ?: emptyList(),
+                            lastSaved = uiState.collectionLastSaved[collection.id],
                             onCardClick = {
                                 navController?.navigate(
                                     Screen.CollectionDetail.createRoute(collection.id.toString())

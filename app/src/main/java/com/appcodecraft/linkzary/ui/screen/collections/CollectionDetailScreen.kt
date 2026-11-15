@@ -246,8 +246,9 @@ fun CollectionDetailScreen(
                 if (isGridView) {
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(2),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        // v6 §1.1: 14dp grid rhythm
+                        verticalArrangement = Arrangement.spacedBy(14.dp),
+                        horizontalArrangement = Arrangement.spacedBy(14.dp),
                         contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 96.dp)
                     ) {
                         itemsIndexed(filteredLinks, key = { _, link -> link.id }) { index, link ->
@@ -255,7 +256,6 @@ fun CollectionDetailScreen(
                                 link = link,
                                 collectionId = uiState.collection?.id,
                                 collectionName = uiState.collection?.name,
-                                inGrid = true,
                                 isMultiSelectMode = uiState.isMultiSelectMode,
                                 isSelected = uiState.selectedLinks.contains(link.id),
                                 onCardClick = {
@@ -283,7 +283,7 @@ fun CollectionDetailScreen(
                 } else {
                     LazyColumn(
                         state = detailListState,
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
                         contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 96.dp)
                     ) {
                         lazyColumnItemsIndexed(filteredLinks, key = { _, link -> link.id }) { index, link ->
@@ -291,6 +291,7 @@ fun CollectionDetailScreen(
                                 link = link,
                                 collectionId = uiState.collection?.id,
                                 collectionName = uiState.collection?.name,
+                                listMode = true,
                                 isMultiSelectMode = uiState.isMultiSelectMode,
                                 isSelected = uiState.selectedLinks.contains(link.id),
                                 onCardClick = {

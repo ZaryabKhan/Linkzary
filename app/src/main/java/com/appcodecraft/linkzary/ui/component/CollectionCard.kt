@@ -9,14 +9,17 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Book
@@ -63,12 +66,8 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.appcodecraft.linkzary.R
 import com.appcodecraft.linkzary.data.entity.Collection
-import com.appcodecraft.linkzary.ui.theme.collectionContainerDark
-import com.appcodecraft.linkzary.ui.theme.collectionContainerLight
-import com.appcodecraft.linkzary.ui.theme.collectionHue
-import com.appcodecraft.linkzary.ui.theme.collectionOnContainerDark
-import com.appcodecraft.linkzary.ui.theme.collectionOnContainerLight
-import com.appcodecraft.linkzary.ui.theme.LinkzaryTheme
+import com.appcodecraft.linkzary.ui.theme.linkzaryHuePair
+import java.util.Date
 
 /**
  * The one glyph mapping: M3 rounded glyphs inside a hue-tinted tile. The
@@ -99,25 +98,29 @@ fun getCollectionGlyph(iconName: String?): ImageVector {
     }
 }
 
-/** Hue container/on-container pair for a collection id, theme-aware (spec v3 §1.1). */
+/** Hue container/on-container pair for a collection id, theme-aware (spec v3 §1.1).
+ *  v6 §4: delegates to the one shared linkzaryHuePair util. */
 @Composable
 fun collectionHuePair(collectionId: Long): Pair<Color, Color> {
     val isDark = isSystemInDarkTheme()
     val accent = MaterialTheme.colorScheme.primary
-    val hue = collectionHue(collectionId)
-    return if (isDark) {
-        collectionContainerDark(hue, accent) to collectionOnContainerDark(hue, accent)
-    } else {
-        collectionContainerLight(hue, accent) to collectionOnContainerLight(hue, accent)
-    }
+    return linkzaryHuePair(collectionId, accent, isDark)
 }
 
+/** One mosaic slot for a collection's newest links (spec v6 §3): the seed
+ *  drives the generated cover when the link has no image. */
+data class CollectionCover(
+    val seed: String,
+    val imageUrl: String?
+)
+
 /**
- * CollectionCard v3 (spec v3 §2.4): per-collection hue identity + thumbnail
- * fan. Name + kebab on top; a fan of up to 3 real thumbnails (56dp, -6°,
- * overlapping 8dp) when filled; a hue-tinted glyph tile holding the
- * user-picked icon when empty — never a grey void. 4dp hue strip on the top
- * edge. Count pill bottom-right in collContainer.
+ * CollectionCard v6 (spec v6 §3): the collection's own content is its cover.
+ * 16:9 mosaic — 2×2 of the newest four link covers (real or generated);
+ * 1–3 links span the full cover with one cover; 0 links show a calm hue
+ * field with one centered 48dp glyph tile. Header: 32dp glyph tile + name +
+ * count pill; meta line "Last saved 2h ago". v3's top-edge hue strip and
+ * the thumbnail fan are retired.
  */
 @Composable
 fun CollectionCard(
@@ -126,16 +129,26 @@ fun CollectionCard(
     onCardClick: () -> Unit,
     onMoreClick: () -> Unit,
     modifier: Modifier = Modifier,
-    thumbnails: List<String> = emptyList()
+    covers: List<CollectionCover> = emptyList(),
+    lastSaved: Date? = null
 ) {
     val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (pressed) 0.97f else 1f,
+        animationSpec = spring(stiffness = 600f),
+        label = "collection-press-scale"
+    )
     val (hueContainer, hueOnContainer) = collectionHuePair(collection.id)
 
     Card(
         modifier = modifier
             .fillMaxWidth()
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
             .combinedClickable(
                 interactionSource = interactionSource,
                 indication = null,
@@ -151,84 +164,28 @@ fun CollectionCard(
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(IntrinsicSize.Min)
-        ) {
-            // 12dp saturated hue band (spec v4 §5) — vivid accent, still per-hue
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(12.dp)
-                    .background(hueContainer)
+        Column(modifier = Modifier.fillMaxWidth()) {
+            MosaicCover(
+                covers = covers,
+                hueContainer = hueContainer,
+                hueOnContainer = hueOnContainer,
+                glyph = getCollectionGlyph(collection.icon)
             )
 
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(start = 12.dp, top = 10.dp, end = 12.dp, bottom = 12.dp)
             ) {
-                // Name + kebab
+                // Header: glyph tile + name + count pill
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = collection.name,
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.SemiBold
-                        ),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f)
-                    )
-                    IconButton(
-                        onClick = onMoreClick,
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.MoreVert,
-                            contentDescription = stringResource(R.string.home_more_options),
-                            modifier = Modifier.size(18.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Fan (filled) or hue glyph tile (empty)
-                if (thumbnails.isNotEmpty()) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy((-8).dp)
-                    ) {
-                        thumbnails.take(3).forEachIndexed { index, url ->
-                            AsyncImage(
-                                model = ImageRequest.Builder(LocalContext.current)
-                                    .data(url)
-                                    .crossfade(true)
-                                    .memoryCachePolicy(coil.request.CachePolicy.ENABLED)
-                                    .diskCachePolicy(coil.request.CachePolicy.ENABLED)
-                                    .build(),
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .size(56.dp)
-                                    .graphicsLayer { rotationZ = -6f * (index + 1) }
-                                    .clip(RoundedCornerShape(12.dp))
-                            )
-                        }
-                    }
-                } else {
-                    // Empty: 56dp hue tile (cookie-8 clip, spec v4 §5) with the
-                    // user-picked glyph
                     Box(
                         modifier = Modifier
-                            .size(56.dp)
-                            .clip(com.appcodecraft.linkzary.ui.theme.CookieShape)
+                            .size(32.dp)
+                            .clip(RoundedCornerShape(10.dp))
                             .background(hueContainer),
                         contentAlignment = Alignment.Center
                     ) {
@@ -236,19 +193,124 @@ fun CollectionCard(
                             imageVector = getCollectionGlyph(collection.icon),
                             contentDescription = stringResource(R.string.collections_collection_icon),
                             tint = hueOnContainer,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Text(
+                        text = collection.name,
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.SemiBold
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Surface(
+                        shape = RoundedCornerShape(50),
+                        color = hueContainer
+                    ) {
+                        Text(
+                            text = linkCount.toString(),
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontWeight = FontWeight.Bold
+                            ),
+                            color = hueOnContainer,
+                            maxLines = 1,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp)
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                if (lastSaved != null) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(R.string.collections_last_saved, formatRelativeSaveDate(lastSaved)),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+        }
+    }
+}
 
-                // Count pill bottom-right, hue-tinted
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
+/**
+ * The 16:9 mosaic (spec v6 §3): 2×2 grid of the newest four covers with 3dp
+ * inner gaps, outer top corners following the card (24dp) and inner corners
+ * 8dp. 1–3 links: the first cover spans the full area. 0 links: the whole
+ * cover area in collContainer with one centered 48dp glyph tile.
+ */
+@Composable
+private fun MosaicCover(
+    covers: List<CollectionCover>,
+    hueContainer: Color,
+    hueOnContainer: Color,
+    glyph: ImageVector
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(16f / 9f)
+            .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+            .background(hueContainer)
+    ) {
+        when {
+            covers.isEmpty() -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(hueOnContainer),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = glyph,
+                            contentDescription = null,
+                            tint = hueContainer,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+            }
+
+            covers.size < 4 -> {
+                CoverPlaceholder(
+                    seed = covers[0].seed,
+                    imageUrl = covers[0].imageUrl,
+                    cornerRadius = 0.dp,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+
+            else -> {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(3.dp)
                 ) {
-                    HueCountPill(hueContainer, hueOnContainer, linkCount)
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        horizontalArrangement = Arrangement.spacedBy(3.dp)
+                    ) {
+                        MosaicCell(covers[0], Modifier.weight(1f))
+                        MosaicCell(covers[1], Modifier.weight(1f))
+                    }
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        horizontalArrangement = Arrangement.spacedBy(3.dp)
+                    ) {
+                        MosaicCell(covers[2], Modifier.weight(1f))
+                        MosaicCell(covers[3], Modifier.weight(1f))
+                    }
                 }
             }
         }
@@ -256,21 +318,13 @@ fun CollectionCard(
 }
 
 @Composable
-private fun HueCountPill(container: Color, onContainer: Color, count: Int) {
-    androidx.compose.material3.Surface(
-        shape = RoundedCornerShape(50),
-        color = container
-    ) {
-        Text(
-            text = if (count == 1) {
-                stringResource(R.string.collections_link_count_single, count)
-            } else {
-                stringResource(R.string.collections_link_count_plural, count)
-            },
-            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
-            color = onContainer,
-            maxLines = 1,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+private fun RowScope.MosaicCell(cover: CollectionCover, modifier: Modifier) {
+    Box(modifier = modifier.fillMaxSize()) {
+        CoverPlaceholder(
+            seed = cover.seed,
+            imageUrl = cover.imageUrl,
+            cornerRadius = 8.dp,
+            modifier = Modifier.fillMaxSize()
         )
     }
 }
