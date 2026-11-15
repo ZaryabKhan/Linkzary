@@ -2,8 +2,8 @@ package com.appcodecraft.linkzary.ui.component
 
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ViewList
-import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.automirrored.rounded.ViewList
+import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -40,7 +40,7 @@ fun ViewModeToggle(
             shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
             icon = {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ViewList,
+                    imageVector = Icons.AutoMirrored.Rounded.ViewList,
                     contentDescription = stringResource(R.string.home_switch_to_list_view),
                     modifier = Modifier.graphicsLayer {
                         scaleX = if (!isGridView) 1f else 0.9f
@@ -57,7 +57,7 @@ fun ViewModeToggle(
             shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
             icon = {
                 Icon(
-                    imageVector = Icons.Default.GridView,
+                    imageVector = Icons.Rounded.GridView,
                     contentDescription = stringResource(R.string.home_switch_to_grid_view),
                     modifier = Modifier.graphicsLayer {
                         scaleX = if (isGridView) 1f else 0.9f

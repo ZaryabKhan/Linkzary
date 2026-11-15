@@ -16,11 +16,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.DriveFileMove
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.CreateNewFolder
-import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.FolderOpen
+import androidx.compose.material.icons.automirrored.rounded.DriveFileMove
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.CreateNewFolder
+import androidx.compose.material.icons.rounded.Folder
+import androidx.compose.material.icons.rounded.FolderOpen
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -105,7 +105,7 @@ fun ShareScreen(
                         fontWeight = FontWeight.Bold
                     )
                     IconButton(onClick = onFinish) {
-                        Icon(Icons.Default.Close, contentDescription = "Close")
+                        Icon(Icons.Rounded.Close, contentDescription = "Close")
                     }
                 }
 
@@ -157,7 +157,7 @@ fun ShareScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
-                                imageVector = if (selectedCollection != null) Icons.Default.Folder else Icons.Default.FolderOpen,
+                                imageVector = if (selectedCollection != null) Icons.Rounded.Folder else Icons.Rounded.FolderOpen,
                                 contentDescription = null,
                                 tint = Color(collectionColor),
                                 modifier = Modifier.size(24.dp)
@@ -177,7 +177,7 @@ fun ShareScreen(
                             }
                             Spacer(modifier = Modifier.weight(1f))
                             Icon(
-                                imageVector = Icons.AutoMirrored.Filled.DriveFileMove,
+                                imageVector = Icons.AutoMirrored.Rounded.DriveFileMove,
                                 contentDescription = "Change",
                                 tint = MaterialTheme.colorScheme.primary
                             )
@@ -248,7 +248,7 @@ fun ShareScreen(
                     // No Collection option
                     item {
                         CollectionOption(
-                            icon = Icons.Default.FolderOpen,
+                            icon = Icons.Rounded.FolderOpen,
                             name = stringResource(R.string.move_link_no_collection),
                             color = MaterialTheme.colorScheme.outline.value.toInt(),
                             isSelected = uiState.selectedCollectionId == null,
@@ -298,7 +298,7 @@ fun ShareScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.CreateNewFolder,
+                                    imageVector = Icons.Rounded.CreateNewFolder,
                                     contentDescription = stringResource(R.string.cd_create_new_collection),
                                     tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(24.dp)
@@ -320,47 +320,14 @@ fun ShareScreen(
         }
     }
 
-    // Create Collection Bottom Sheet/Dialog
+    // Create Collection — the ONE shared dialog (spec v4 §2.2)
     if (showCreateCollectionSheet) {
-        var newCollectionName by remember { mutableStateOf("") }
-        var newCollectionColor by remember { mutableStateOf(0xFF6366F1.toInt()) }
-        var newCollectionIcon by remember { mutableStateOf("Folder") }
-        
-        androidx.compose.material3.AlertDialog(
-             onDismissRequest = { showCreateCollectionSheet = false },
-             title = {
-                 Row(verticalAlignment = Alignment.CenterVertically) {
-                     Icon(Icons.Default.CreateNewFolder, null, tint = MaterialTheme.colorScheme.primary)
-                     Spacer(Modifier.width(8.dp))
-                     Text(stringResource(R.string.create_collection_title))
-                 }
-             },
-             text = {
-                 CreateCollectionForm(
-                     name = newCollectionName,
-                     onNameChange = { newCollectionName = it },
-                     selectedColor = newCollectionColor,
-                     onColorSelected = { newCollectionColor = it },
-                     selectedIcon = newCollectionIcon,
-                     onIconSelected = { newCollectionIcon = it }
-                 )
-             },
-             confirmButton = {
-                 TextButton(
-                     onClick = {
-                         viewModel.createCollection(newCollectionName, newCollectionColor, newCollectionIcon)
-                         showCreateCollectionSheet = false
-                     },
-                     enabled = newCollectionName.isNotBlank()
-                 ) {
-                     Text(stringResource(R.string.create_collection_create))
-                 }
-             },
-             dismissButton = {
-                 TextButton(onClick = { showCreateCollectionSheet = false }) {
-                     Text(stringResource(R.string.create_collection_cancel))
-                 }
-             }
+        com.appcodecraft.linkzary.ui.component.CreateCollectionDialog(
+            onDismiss = { showCreateCollectionSheet = false },
+            onCreate = { newName: String, newColor: Int, newIcon: String ->
+                viewModel.createCollection(newName, newColor, newIcon)
+                showCreateCollectionSheet = false
+            }
         )
     }
 }

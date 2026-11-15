@@ -10,9 +10,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material.icons.filled.SettingsBrightness
+import androidx.compose.material.icons.rounded.DarkMode
+import androidx.compose.material.icons.rounded.LightMode
+import androidx.compose.material.icons.rounded.SettingsBrightness
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -35,53 +35,47 @@ fun ThemeSelectionDialog(
     onDismiss: () -> Unit,
     onThemeSelected: (ThemeMode) -> Unit
 ) {
-    AlertDialog(
+    com.appcodecraft.linkzary.ui.component.LinkzaryDialog(
         onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = "Choose Theme",
-                style = MaterialTheme.typography.headlineSmall
+        icon = Icons.Rounded.Palette,
+        title = "Choose Theme",
+        confirmLabel = null,
+        onConfirm = {},
+        dismissLabel = stringResource(R.string.common_cancel),
+        onDismiss = onDismiss
+    ) {
+        Column(
+            modifier = Modifier.selectableGroup()
+        ) {
+            ThemeOption(
+                icon = Icons.Rounded.LightMode,
+                title = "Light",
+                subtitle = "Always use light theme",
+                selected = currentTheme == ThemeMode.LIGHT,
+                onClick = { onThemeSelected(ThemeMode.LIGHT) }
             )
-        },
-        text = {
-            Column(
-                modifier = Modifier.selectableGroup()
-            ) {
-                ThemeOption(
-                    icon = Icons.Default.LightMode,
-                    title = "Light",
-                    subtitle = "Always use light theme",
-                    selected = currentTheme == ThemeMode.LIGHT,
-                    onClick = { onThemeSelected(ThemeMode.LIGHT) }
-                )
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                ThemeOption(
-                    icon = Icons.Default.DarkMode,
-                    title = "Dark",
-                    subtitle = "Always use dark theme",
-                    selected = currentTheme == ThemeMode.DARK,
-                    onClick = { onThemeSelected(ThemeMode.DARK) }
-                )
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                ThemeOption(
-                    icon = Icons.Default.SettingsBrightness,
-                    title = "System default",
-                    subtitle = "Follow system theme setting",
-                    selected = currentTheme == ThemeMode.SYSTEM,
-                    onClick = { onThemeSelected(ThemeMode.SYSTEM) }
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.common_cancel))
-            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            ThemeOption(
+                icon = Icons.Rounded.DarkMode,
+                title = "Dark",
+                subtitle = "Always use dark theme",
+                selected = currentTheme == ThemeMode.DARK,
+                onClick = { onThemeSelected(ThemeMode.DARK) }
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            ThemeOption(
+                icon = Icons.Rounded.SettingsBrightness,
+                title = "System default",
+                subtitle = "Follow system theme setting",
+                selected = currentTheme == ThemeMode.SYSTEM,
+                onClick = { onThemeSelected(ThemeMode.SYSTEM) }
+            )
         }
-    )
+    }
 }
 
 @Composable

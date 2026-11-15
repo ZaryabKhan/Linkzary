@@ -5,8 +5,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.rounded.Clear
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -51,7 +51,7 @@ fun LinkzarySearchBar(
             placeholder = { Text(placeholder, style = MaterialTheme.typography.bodyLarge) },
             leadingIcon = {
                 Icon(
-                    imageVector = Icons.Default.Search,
+                    imageVector = Icons.Rounded.Search,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -60,7 +60,7 @@ fun LinkzarySearchBar(
                 if (query.isNotEmpty()) {
                     IconButton(onClick = { onClear?.invoke() ?: onQueryChange("") }) {
                         Icon(
-                            imageVector = Icons.Default.Clear,
+                            imageVector = Icons.Rounded.Clear,
                             contentDescription = stringResource(R.string.home_clear_search),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )

@@ -79,6 +79,9 @@ fun LinkzaryNavigation(
                 },
                 onNavigateToStats = {
                     navController.navigate(Screen.Stats.route)
+                },
+                onNavigateToRss = {
+                    navController.navigate(Screen.RssFeeds.route)
                 }
             )
         }

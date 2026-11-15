@@ -35,7 +35,7 @@ import androidx.compose.material.icons.rounded.ShoppingCart
 import androidx.compose.material.icons.rounded.SportsSoccer
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.icons.rounded.Work
-import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -156,11 +156,11 @@ fun CollectionCard(
                 .fillMaxWidth()
                 .height(IntrinsicSize.Min)
         ) {
-            // 4dp hue strip — subtle identity, no "shape party"
+            // 12dp saturated hue band (spec v4 §5) — vivid accent, still per-hue
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(4.dp)
+                    .height(12.dp)
                     .background(hueContainer)
             )
 
@@ -189,7 +189,7 @@ fun CollectionCard(
                         modifier = Modifier.size(32.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Filled.MoreVert,
+                            imageVector = Icons.Rounded.MoreVert,
                             contentDescription = stringResource(R.string.home_more_options),
                             modifier = Modifier.size(18.dp),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
@@ -223,11 +223,12 @@ fun CollectionCard(
                         }
                     }
                 } else {
-                    // Empty: 56dp hue tile holding the user-picked glyph
+                    // Empty: 56dp hue tile (cookie-8 clip, spec v4 §5) with the
+                    // user-picked glyph
                     Box(
                         modifier = Modifier
                             .size(56.dp)
-                            .clip(RoundedCornerShape(12.dp))
+                            .clip(com.appcodecraft.linkzary.ui.theme.CookieShape)
                             .background(hueContainer),
                         contentAlignment = Alignment.Center
                     ) {

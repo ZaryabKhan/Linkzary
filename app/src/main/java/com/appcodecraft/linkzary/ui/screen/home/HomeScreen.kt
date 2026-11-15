@@ -23,36 +23,36 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.DriveFileMove
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.automirrored.filled.Notes
-import androidx.compose.material.icons.automirrored.filled.Sort
-import androidx.compose.material.icons.automirrored.filled.ViewList
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Alarm
-import androidx.compose.material.icons.filled.Archive
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.OpenInBrowser
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.CreateNewFolder
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.FolderOpen
-import androidx.compose.material.icons.filled.GridView
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Link
-import androidx.compose.material.icons.filled.MarkEmailUnread
-import androidx.compose.material.icons.filled.PushPin
-import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.SortByAlpha
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.outlined.PushPin
+import androidx.compose.material.icons.automirrored.rounded.DriveFileMove
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.rounded.Notes
+import androidx.compose.material.icons.automirrored.rounded.Sort
+import androidx.compose.material.icons.automirrored.rounded.ViewList
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Alarm
+import androidx.compose.material.icons.rounded.Archive
+import androidx.compose.material.icons.rounded.Bookmark
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.OpenInBrowser
+import androidx.compose.material.icons.rounded.Clear
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.CreateNewFolder
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Done
+import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.Folder
+import androidx.compose.material.icons.rounded.FolderOpen
+import androidx.compose.material.icons.rounded.GridView
+import androidx.compose.material.icons.rounded.History
+import androidx.compose.material.icons.rounded.Link
+import androidx.compose.material.icons.rounded.MarkEmailUnread
+import androidx.compose.material.icons.rounded.PushPin
+import androidx.compose.material.icons.rounded.Schedule
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.Share
+import androidx.compose.material.icons.rounded.SortByAlpha
+import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.rounded.PushPin
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -120,6 +120,7 @@ import com.appcodecraft.linkzary.R
 import com.appcodecraft.linkzary.data.entity.SavedLink
 import com.appcodecraft.linkzary.navigation.Screen
 import com.appcodecraft.linkzary.ui.component.LinkCard
+import com.appcodecraft.linkzary.ui.component.CreateCollectionDialog
 import com.appcodecraft.linkzary.ui.component.CreateCollectionForm
 import com.appcodecraft.linkzary.ui.component.EditLinkDialog
 import com.appcodecraft.linkzary.ui.component.EmptyStateIllustration
@@ -149,175 +150,46 @@ fun AddLinkDialog(
                 )
     }
 
-    // Spec §6 editor: ModalBottomSheet (16dp corners = shapes.medium, drag
-    // handle) instead of AlertDialog; save is a full-width primary pill pinned
-    // to the sheet bottom.
-    ModalBottomSheet(
+    // Spec v4 §2: migrated to the shared LinkzaryDialog scaffold (mockup v4-dialogs).
+    com.appcodecraft.linkzary.ui.component.LinkzaryDialog(
         onDismissRequest = onDismiss,
-        shape = MaterialTheme.shapes.medium,
-        dragHandle = {
-            Box(
-                modifier = Modifier
-                    .padding(vertical = 12.dp)
-                    .size(width = 32.dp, height = 4.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                        shape = androidx.compose.foundation.shape.CircleShape
-                    )
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
+        icon = Icons.Rounded.Add,
+        title = stringResource(R.string.add_link_title),
+        confirmLabel = stringResource(R.string.add_link_save),
+        onConfirm = { onSave(url) },
+        confirmEnabled = url.isNotBlank() && isValidUrl,
+        dismissLabel = stringResource(R.string.add_link_cancel),
+        onDismiss = onDismiss
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .navigationBarsPadding()
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+        OutlinedTextField(
+            value = url,
+            onValueChange = {
+                url = it
+                isValidUrl = validateUrl(it)
+            },
+            label = { Text(stringResource(R.string.add_link_url_label)) },
+            placeholder = { Text(stringResource(R.string.add_link_url_placeholder)) },
+            leadingIcon = {
                 Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = stringResource(R.string.add_link_title),
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
+                    imageVector = Icons.Rounded.Link,
+                    contentDescription = stringResource(R.string.add_link_url_hint),
+                    tint = if (isValidUrl || url.isEmpty()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error
                 )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    stringResource(R.string.add_link_title),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OutlinedTextField(
-                value = url,
-                onValueChange = {
-                    url = it
-                    isValidUrl = validateUrl(it)
-                },
-                label = { Text(stringResource(R.string.add_link_url_label)) },
-                placeholder = { Text(stringResource(R.string.add_link_url_placeholder)) },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Link,
-                        contentDescription = stringResource(R.string.add_link_url_hint),
-                        tint = if (isValidUrl || url.isEmpty()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error
-                    )
-                },
-                modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.small,
-                singleLine = true,
-                isError = !isValidUrl && url.isNotEmpty(),
-                supportingText = if (!isValidUrl && url.isNotEmpty()) {
-                    { Text(stringResource(R.string.add_link_invalid_url), color = MaterialTheme.colorScheme.error) }
-                } else null
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Full-width primary save pill, pinned to the sheet bottom
-            Button(
-                onClick = { onSave(url) },
-                enabled = url.isNotBlank() && isValidUrl,
-                shape = androidx.compose.foundation.shape.CircleShape,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    stringResource(R.string.add_link_save),
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(vertical = 4.dp)
-                )
-            }
-
-            TextButton(
-                onClick = onDismiss,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(stringResource(R.string.add_link_cancel))
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-        }
+            },
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.small,
+            singleLine = true,
+            isError = !isValidUrl && url.isNotEmpty(),
+            supportingText = if (!isValidUrl && url.isNotEmpty()) {
+                { Text(stringResource(R.string.add_link_invalid_url), color = MaterialTheme.colorScheme.error) }
+            } else null
+        )
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun CreateCollectionDialog(
-    onDismiss: () -> Unit,
-    onCreate: (String, Int, String) -> Unit
-) {
-    var name by remember { mutableStateOf("") }
-    var selectedColor by remember { mutableStateOf(0xFF6366F1.toInt()) }
-    var selectedIcon by remember { mutableStateOf("Folder") }
-    val maxNameLength = 30
-    val hapticFeedback = LocalHapticFeedback.current
-
-    val colors = listOf(
-        0xFF6366F1.toInt(),
-        0xFFEF4444.toInt(),
-        0xFF10B981.toInt(),
-        0xFFF59E0B.toInt(),
-        0xFF8B5CF6.toInt(),
-        0xFF06B6D4.toInt(),
-        0xFFEC4899.toInt(),
-        0xFF84CC16.toInt(),
-        0xFFF97316.toInt(),
-        0xFFEAB308.toInt(),
-        0xFF22C55E.toInt(),
-        0xFF3B82F6.toInt(),
-        0xFFA855F7.toInt(),
-        0xFFE11D48.toInt(),
-        0xFF0EA5E9.toInt(),
-        0xFF64748B.toInt()
-    )
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.CreateNewFolder,
-                    contentDescription = stringResource(R.string.cd_create_collection),
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(stringResource(R.string.create_collection_title))
-            }
-        },
-        text = {
-
-                CreateCollectionForm(
-                    name = name,
-                    onNameChange = { name = it },
-                    selectedColor = selectedColor,
-                    onColorSelected = { selectedColor = it },
-                    selectedIcon = selectedIcon,
-                    onIconSelected = { selectedIcon = it }
-                )
-        },
-        confirmButton = {
-            TextButton(
-                onClick = { onCreate(name, selectedColor, selectedIcon) },
-                enabled = name.isNotBlank()
-            ) {
-                Text(stringResource(R.string.create_collection_create))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.create_collection_cancel))
-            }
-        }
-    )
-}
+// CreateCollectionDialog removed (spec v4 §2.2): the shared
+// com.appcodecraft.linkzary.ui.component.CreateCollectionDialog replaces it;
+// call sites below resolve to it via import.
 
 
 // region Reminders
@@ -357,46 +229,44 @@ fun ReminderPickerDialog(
         }
     } else {
         val timeState = rememberTimePickerState(initialHour = 9, initialMinute = 0, is24Hour = true)
-        AlertDialog(
+        com.appcodecraft.linkzary.ui.component.LinkzaryDialog(
             onDismissRequest = onDismiss,
-            title = { Text(stringResource(R.string.reminder_pick_time)) },
-            text = {
-                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    TimePicker(state = timeState)
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    // DatePicker returns UTC midnight for the selected date,
-                    // but Calendar here runs in the device timezone: reusing
-                    // those millis directly shifted the reminder a full day in
-                    // timezones west of UTC ("wrong date" bug). Take the
-                    // UTC date parts and rebuild them in local time instead.
-                    val pickedUtc = java.util.Calendar.getInstance(
-                        java.util.TimeZone.getTimeZone("UTC")
-                    ).apply { timeInMillis = pickedDateMillis }
-                    val calendar = java.util.Calendar.getInstance().apply {
-                        set(
-                            pickedUtc.get(java.util.Calendar.YEAR),
-                            pickedUtc.get(java.util.Calendar.MONTH),
-                            pickedUtc.get(java.util.Calendar.DAY_OF_MONTH),
-                            timeState.hour,
-                            timeState.minute,
-                            0
-                        )
-                        set(java.util.Calendar.MILLISECOND, 0)
-                        // If the picked time already passed today, fire tomorrow.
-                        if (timeInMillis < System.currentTimeMillis()) {
-                            add(java.util.Calendar.DATE, 1)
-                        }
+            icon = Icons.Rounded.Schedule,
+            title = stringResource(R.string.reminder_pick_time),
+            confirmLabel = stringResource(R.string.reminder_schedule),
+            onConfirm = {
+                // DatePicker returns UTC midnight for the selected date,
+                // but Calendar here runs in the device timezone: reusing
+                // those millis directly shifted the reminder a full day in
+                // timezones west of UTC ("wrong date" bug). Take the
+                // UTC date parts and rebuild them in local time instead.
+                val pickedUtc = java.util.Calendar.getInstance(
+                    java.util.TimeZone.getTimeZone("UTC")
+                ).apply { timeInMillis = pickedDateMillis }
+                val calendar = java.util.Calendar.getInstance().apply {
+                    set(
+                        pickedUtc.get(java.util.Calendar.YEAR),
+                        pickedUtc.get(java.util.Calendar.MONTH),
+                        pickedUtc.get(java.util.Calendar.DAY_OF_MONTH),
+                        timeState.hour,
+                        timeState.minute,
+                        0
+                    )
+                    set(java.util.Calendar.MILLISECOND, 0)
+                    // If the picked time already passed today, fire tomorrow.
+                    if (timeInMillis < System.currentTimeMillis()) {
+                        add(java.util.Calendar.DATE, 1)
                     }
-                    onReminderSelected(calendar.timeInMillis)
-                }) { Text(stringResource(R.string.reminder_schedule)) }
+                }
+                onReminderSelected(calendar.timeInMillis)
             },
-            dismissButton = {
-                TextButton(onClick = { state.value = 0 }) { Text(stringResource(R.string.common_back)) }
+            dismissLabel = stringResource(R.string.common_back),
+            onDismiss = { state.value = 0 }
+        ) {
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                TimePicker(state = timeState)
             }
-        )
+        }
     }
 }
 // endregion
@@ -447,7 +317,7 @@ fun LinkOptionsBottomSheet(
             )
 
             OptionItem(
-                icon = Icons.Default.Edit,
+                icon = Icons.Rounded.Edit,
                 title = stringResource(R.string.link_edit_title),
                 subtitle = stringResource(R.string.link_edit_subtitle),
                 onClick = { showEditDialog = true }
@@ -455,7 +325,7 @@ fun LinkOptionsBottomSheet(
 
             if (link.isOfflineAvailable) {
                 OptionItem(
-                    icon = Icons.AutoMirrored.Filled.Notes,
+                    icon = Icons.AutoMirrored.Rounded.Notes,
                     title = stringResource(R.string.reader_mode),
                     subtitle = stringResource(R.string.reader_mode_subtitle),
                     onClick = {
@@ -466,7 +336,7 @@ fun LinkOptionsBottomSheet(
             }
 
             OptionItem(
-                icon = Icons.Default.Star,
+                icon = Icons.Rounded.Star,
                 title = if (link.isOfflineAvailable) stringResource(R.string.remove_from_offline) else stringResource(R.string.save_for_offline),
                 subtitle = if (link.isOfflineAvailable) "Remove offline content" else "Save content for offline reading",
                 onClick = {
@@ -477,10 +347,10 @@ fun LinkOptionsBottomSheet(
 
             OptionItem(
                 icon = when (link.readStatus) {
-                    "UNREAD" -> Icons.Default.Done
-                    "READ" -> Icons.Default.Archive
-                    "ARCHIVED" -> Icons.Default.MarkEmailUnread
-                    else -> Icons.Default.Done
+                    "UNREAD" -> Icons.Rounded.Done
+                    "READ" -> Icons.Rounded.Archive
+                    "ARCHIVED" -> Icons.Rounded.MarkEmailUnread
+                    else -> Icons.Rounded.Done
                 },
                 title = when (link.readStatus) {
                     "UNREAD" -> stringResource(R.string.link_mark_read_title)
@@ -501,7 +371,7 @@ fun LinkOptionsBottomSheet(
             )
 
             OptionItem(
-                icon = if (link.isPinned) Icons.Default.PushPin else Icons.Outlined.PushPin,
+                icon = if (link.isPinned) Icons.Rounded.PushPin else Icons.Rounded.PushPin,
                 title = if (link.isPinned) stringResource(R.string.link_unpin_title) else stringResource(R.string.link_pin_title),
                 subtitle = if (link.isPinned) stringResource(R.string.link_unpin_subtitle) else stringResource(R.string.link_pin_subtitle),
                 onClick = {
@@ -511,7 +381,7 @@ fun LinkOptionsBottomSheet(
             )
 
             OptionItem(
-                icon = Icons.Default.Alarm,
+                icon = Icons.Rounded.Alarm,
                 title = if (link.reminderAt != null) stringResource(R.string.reminder_remove) else stringResource(R.string.reminder_set),
                 subtitle = if (link.reminderAt != null) {
                     stringResource(R.string.reminder_set_for, viewModel.formatReminderDate(link))
@@ -529,7 +399,7 @@ fun LinkOptionsBottomSheet(
             )
 
             OptionItem(
-                icon = Icons.Default.OpenInBrowser,
+                icon = Icons.Rounded.OpenInBrowser,
                 title = stringResource(R.string.link_open_browser_title),
                 subtitle = stringResource(R.string.link_open_browser_subtitle),
                 onClick = {
@@ -544,7 +414,7 @@ fun LinkOptionsBottomSheet(
             )
 
             OptionItem(
-                icon = Icons.Default.Share,
+                icon = Icons.Rounded.Share,
                 title = stringResource(R.string.share_link_title),
                 subtitle = stringResource(R.string.share_link_subtitle),
                 onClick = {
@@ -558,14 +428,14 @@ fun LinkOptionsBottomSheet(
             )
 
             OptionItem(
-                icon = Icons.AutoMirrored.Filled.DriveFileMove,
+                icon = Icons.AutoMirrored.Rounded.DriveFileMove,
                 title = stringResource(R.string.link_move_title),
                 subtitle = stringResource(R.string.link_move_subtitle),
                 onClick = { showCollectionDialog = true }
             )
 
             OptionItem(
-                icon = Icons.Default.Delete,
+                icon = Icons.Rounded.Delete,
                 title = stringResource(R.string.link_delete_title),
                 subtitle = stringResource(R.string.link_delete_subtitle),
                 onClick = { showDeleteConfirmation = true },
@@ -631,32 +501,22 @@ fun LinkOptionsBottomSheet(
     }
 
     if (showDeleteConfirmation) {
-        AlertDialog(
+        com.appcodecraft.linkzary.ui.component.LinkzaryDialog(
             onDismissRequest = { showDeleteConfirmation = false },
-            title = { Text(stringResource(R.string.delete_link_title)) },
-            text = { Text(stringResource(R.string.delete_link_message)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        onDelete()
-                        showDeleteConfirmation = false
-                        onDismiss()
-                    }
-                ) {
-                    Text(
-                        text = stringResource(R.string.delete_link_confirm),
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
+            icon = Icons.Rounded.Delete,
+            title = stringResource(R.string.delete_link_title),
+            confirmLabel = stringResource(R.string.delete_link_confirm),
+            onConfirm = {
+                onDelete()
+                showDeleteConfirmation = false
+                onDismiss()
             },
-            dismissButton = {
-                TextButton(
-                    onClick = { showDeleteConfirmation = false }
-                ) {
-                    Text(stringResource(R.string.delete_link_cancel))
-                }
-            }
-        )
+            dismissLabel = stringResource(R.string.delete_link_cancel),
+            onDismiss = { showDeleteConfirmation = false },
+            destructive = true
+        ) {
+            Text(stringResource(R.string.delete_link_message))
+        }
     }
 }
 
@@ -811,7 +671,7 @@ fun HomeScreen(
     if (!uiState.isMultiSelectMode) {
         com.appcodecraft.linkzary.ui.component.LinkzaryTopBar(
             title = stringResource(R.string.home_linkzary_title),
-            leadingGlyph = Icons.Default.Bookmark,
+            leadingGlyph = Icons.Rounded.Bookmark,
             actions = {
                 // View toggle (spec v2 §2.4)
                 com.appcodecraft.linkzary.ui.component.ViewModeToggle(
@@ -827,7 +687,7 @@ fun HomeScreen(
                         onClick = { showSortMenu = true }
                     ) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.Sort,
+                            imageVector = Icons.AutoMirrored.Rounded.Sort,
                             contentDescription = stringResource(R.string.home_sort_options),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -840,27 +700,27 @@ fun HomeScreen(
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.home_pinned_first)) },
                             onClick = { viewModel.setSortOrder(LinkSortOrder.PINNED_FIRST); showSortMenu = false },
-                            leadingIcon = { Icon(Icons.Default.PushPin, contentDescription = null) }
+                            leadingIcon = { Icon(Icons.Rounded.PushPin, contentDescription = null) }
                         )
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.home_newest_first)) },
                             onClick = { viewModel.setSortOrder(LinkSortOrder.DATE_DESC); showSortMenu = false },
-                            leadingIcon = { Icon(Icons.Default.Schedule, contentDescription = null) }
+                            leadingIcon = { Icon(Icons.Rounded.Schedule, contentDescription = null) }
                         )
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.home_oldest_first)) },
                             onClick = { viewModel.setSortOrder(LinkSortOrder.DATE_ASC); showSortMenu = false },
-                            leadingIcon = { Icon(Icons.Default.History, contentDescription = null) }
+                            leadingIcon = { Icon(Icons.Rounded.History, contentDescription = null) }
                         )
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.home_title_a_z)) },
                             onClick = { viewModel.setSortOrder(LinkSortOrder.TITLE_ASC); showSortMenu = false },
-                            leadingIcon = { Icon(Icons.Default.SortByAlpha, contentDescription = null) }
+                            leadingIcon = { Icon(Icons.Rounded.SortByAlpha, contentDescription = null) }
                         )
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.home_title_z_a)) },
                             onClick = { viewModel.setSortOrder(LinkSortOrder.TITLE_DESC); showSortMenu = false },
-                            leadingIcon = { Icon(Icons.Default.SortByAlpha, contentDescription = null) }
+                            leadingIcon = { Icon(Icons.Rounded.SortByAlpha, contentDescription = null) }
                         )
                     }
                 }
@@ -931,7 +791,7 @@ fun HomeScreen(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Icon(
-                                        Icons.Default.History,
+                                        Icons.Rounded.History,
                                         contentDescription = null,
                                         modifier = Modifier.size(16.dp),
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant
@@ -948,7 +808,7 @@ fun HomeScreen(
                                         modifier = Modifier.size(24.dp)
                                     ) {
                                         Icon(
-                                            Icons.Default.Close,
+                                            Icons.Rounded.Close,
                                             contentDescription = "Remove",
                                             modifier = Modifier.size(14.dp),
                                             tint = MaterialTheme.colorScheme.onSurfaceVariant
@@ -977,7 +837,7 @@ fun HomeScreen(
                             },
                             selected = uiState.readStatusFilter == ReadStatusFilter.ALL,
                             leadingIcon = if (uiState.readStatusFilter == ReadStatusFilter.ALL) {
-                                { ChipLeadingCheck(Icons.Default.Check) }
+                                { ChipLeadingCheck(Icons.Rounded.Check) }
                             } else null
                         )
                     }
@@ -987,7 +847,7 @@ fun HomeScreen(
                             label = { Text(stringResource(R.string.filter_unread) + " (${uiState.unreadCount})") },
                             selected = uiState.readStatusFilter == ReadStatusFilter.UNREAD,
                             leadingIcon = if (uiState.readStatusFilter == ReadStatusFilter.UNREAD) {
-                                { ChipLeadingCheck(Icons.Default.MarkEmailUnread) }
+                                { ChipLeadingCheck(Icons.Rounded.MarkEmailUnread) }
                             } else null
                         )
                     }
@@ -997,7 +857,7 @@ fun HomeScreen(
                             label = { Text(stringResource(R.string.filter_read) + " (${uiState.readCount})") },
                             selected = uiState.readStatusFilter == ReadStatusFilter.READ,
                             leadingIcon = if (uiState.readStatusFilter == ReadStatusFilter.READ) {
-                                { ChipLeadingCheck(Icons.Default.Done) }
+                                { ChipLeadingCheck(Icons.Rounded.Done) }
                             } else null
                         )
                     }
@@ -1007,7 +867,7 @@ fun HomeScreen(
                             label = { Text(stringResource(R.string.filter_archived) + " (${uiState.archivedCount})") },
                             selected = uiState.readStatusFilter == ReadStatusFilter.ARCHIVED,
                             leadingIcon = if (uiState.readStatusFilter == ReadStatusFilter.ARCHIVED) {
-                                { ChipLeadingCheck(Icons.Default.Archive) }
+                                { ChipLeadingCheck(Icons.Rounded.Archive) }
                             } else null
                         )
                     }
@@ -1071,7 +931,7 @@ fun HomeScreen(
                                     label = { Text(tag) },
                                     selected = selectedTags.contains(tag),
                                     leadingIcon = if (selectedTags.contains(tag)) {
-                                        { ChipLeadingCheck(Icons.Default.Check, stringResource(R.string.home_selected)) }
+                                        { ChipLeadingCheck(Icons.Rounded.Check, stringResource(R.string.home_selected)) }
                                     } else null
                                 )
                             }
@@ -1090,7 +950,7 @@ fun HomeScreen(
                     Column {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
-                                imageVector = Icons.Default.Folder,
+                                imageVector = Icons.Rounded.Folder,
                                 contentDescription = stringResource(R.string.nav_collections),
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(20.dp)
@@ -1108,7 +968,7 @@ fun HomeScreen(
                                 modifier = Modifier.size(32.dp)
                             ) {
                                 Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                    imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
                                     contentDescription = stringResource(R.string.home_recent_collections),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.size(24.dp)
@@ -1142,7 +1002,7 @@ fun HomeScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        imageVector = if (localSearchQuery.isBlank()) Icons.Default.History else Icons.Default.Search,
+                        imageVector = if (localSearchQuery.isBlank()) Icons.Rounded.History else Icons.Rounded.Search,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(20.dp)
@@ -1324,13 +1184,13 @@ fun HomeScreen(
                     )
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         IconButton(onClick = { showCollectionPicker = true }, modifier = Modifier.size(40.dp)) {
-                            Icon(Icons.AutoMirrored.Filled.DriveFileMove, contentDescription = stringResource(R.string.multi_select_move_to_collection), tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                            Icon(Icons.AutoMirrored.Rounded.DriveFileMove, contentDescription = stringResource(R.string.multi_select_move_to_collection), tint = MaterialTheme.colorScheme.onPrimaryContainer)
                         }
                         IconButton(onClick = { viewModel.batchDeleteLinks() }, modifier = Modifier.size(40.dp)) {
-                            Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.multi_select_delete_selected), tint = MaterialTheme.colorScheme.error)
+                            Icon(Icons.Rounded.Delete, contentDescription = stringResource(R.string.multi_select_delete_selected), tint = MaterialTheme.colorScheme.error)
                         }
                         IconButton(onClick = { viewModel.exitMultiSelectMode() }, modifier = Modifier.size(40.dp)) {
-                            Icon(Icons.Default.Close, contentDescription = stringResource(R.string.multi_select_cancel_selection), tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                            Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.multi_select_cancel_selection), tint = MaterialTheme.colorScheme.onPrimaryContainer)
                         }
                     }
                 }
@@ -1359,7 +1219,7 @@ fun HomeScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Share,
+                        imageVector = Icons.Rounded.Share,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(40.dp)
@@ -1447,7 +1307,7 @@ fun HomeScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Row(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Folder, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Icon(Icons.Rounded.Folder, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                             Spacer(modifier = Modifier.width(16.dp))
                             Text(stringResource(R.string.batch_uncategorized), style = MaterialTheme.typography.bodyLarge)
                         }

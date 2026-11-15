@@ -23,13 +23,13 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.CloudSync
-import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
+import androidx.compose.material.icons.rounded.Bookmark
+import androidx.compose.material.icons.rounded.CloudSync
+import androidx.compose.material.icons.rounded.Folder
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -176,7 +176,7 @@ fun OnboardingScreen(
                     )
                 } else {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                        imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
                         contentDescription = stringResource(R.string.onboarding_next)
                     )
                 }
@@ -276,7 +276,7 @@ private fun OnboardingSupportPage(onFinish: () -> Unit, onSupport: () -> Unit) {
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = Icons.Default.Favorite,
+                imageVector = Icons.Rounded.Favorite,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(56.dp)
@@ -392,7 +392,7 @@ private fun IllustrationTile(
 private fun OnboardingIllustrationSave() {
     Row(verticalAlignment = Alignment.CenterVertically) {
         IllustrationTile(
-            icon = Icons.Default.Share,
+            icon = Icons.Rounded.Share,
             tint = MaterialTheme.colorScheme.primary,
             shape = RoundedCornerShape(24.dp)
         )
@@ -409,7 +409,7 @@ private fun OnboardingIllustrationSave() {
         }
         Spacer(modifier = Modifier.width(16.dp))
         IllustrationTile(
-            icon = Icons.Default.Bookmark,
+            icon = Icons.Rounded.Bookmark,
             tint = MaterialTheme.colorScheme.primary,
             shape = MaterialTheme.shapes.extraLarge
         )
@@ -421,7 +421,7 @@ private fun OnboardingIllustrationSave() {
 private fun OnboardingIllustrationCollections() {
     Row(verticalAlignment = Alignment.CenterVertically) {
         IllustrationTile(
-            icon = Icons.Default.Folder,
+            icon = Icons.Rounded.Folder,
             tint = MaterialTheme.colorScheme.primary,
             shape = com.appcodecraft.linkzary.ui.theme.CookieShape
         )
@@ -452,7 +452,7 @@ private fun OnboardingIllustrationCollections() {
 private fun OnboardingIllustrationBackup() {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         IllustrationTile(
-            icon = Icons.Default.CloudSync,
+            icon = Icons.Rounded.CloudSync,
             tint = MaterialTheme.colorScheme.primary,
             shape = RoundedCornerShape(28.dp)
         )
@@ -475,7 +475,7 @@ private fun OnboardingIllustrationBackup() {
 private fun OnboardingIllustrationReminders() {
     Box(contentAlignment = Alignment.TopEnd) {
         IllustrationTile(
-            icon = Icons.Default.Notifications,
+            icon = Icons.Rounded.Notifications,
             tint = MaterialTheme.colorScheme.primary,
             shape = RoundedCornerShape(24.dp)
         )

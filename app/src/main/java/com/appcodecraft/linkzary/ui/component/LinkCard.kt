@@ -23,9 +23,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Error
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -284,7 +284,7 @@ fun LinkCard(
                 ) {
                     if (link.isAlive == false) {
                         Icon(
-                            imageVector = Icons.Default.Error,
+                            imageVector = Icons.Rounded.Error,
                             contentDescription = stringResource(R.string.link_broken),
                             modifier = Modifier.size(16.dp),
                             tint = MaterialTheme.colorScheme.error
@@ -397,7 +397,7 @@ fun LinkCard(
                         modifier = Modifier.size(32.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.MoreVert,
+                            imageVector = Icons.Rounded.MoreVert,
                             contentDescription = stringResource(R.string.home_more_options),
                             modifier = Modifier.size(18.dp),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant

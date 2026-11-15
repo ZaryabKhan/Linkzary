@@ -24,21 +24,21 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Sort
-import androidx.compose.material.icons.automirrored.filled.ViewList
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.CreateNewFolder
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.GridView
-import androidx.compose.material.icons.filled.Link
-import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.SortByAlpha
-import androidx.compose.material.icons.outlined.FolderOpen
-import androidx.compose.material.icons.outlined.SearchOff
+import androidx.compose.material.icons.automirrored.rounded.Sort
+import androidx.compose.material.icons.automirrored.rounded.ViewList
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.CreateNewFolder
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.Folder
+import androidx.compose.material.icons.rounded.GridView
+import androidx.compose.material.icons.rounded.Link
+import androidx.compose.material.icons.rounded.Schedule
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.SortByAlpha
+import androidx.compose.material.icons.rounded.FolderOpen
+import androidx.compose.material.icons.rounded.SearchOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
@@ -118,7 +118,7 @@ fun CollectionsScreen(
         // The one standard header (spec v2 §2.1) — no screen-local header Row
         com.appcodecraft.linkzary.ui.component.LinkzaryTopBar(
             title = stringResource(R.string.nav_collections),
-            leadingGlyph = Icons.Default.Folder,
+            leadingGlyph = Icons.Rounded.Folder,
             actions = {
                 com.appcodecraft.linkzary.ui.component.ViewModeToggle(
                     isGridView = isGridView,
@@ -133,7 +133,7 @@ fun CollectionsScreen(
                         onClick = { showSortMenu = true }
                     ) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.Sort,
+                            imageVector = Icons.AutoMirrored.Rounded.Sort,
                             contentDescription = stringResource(R.string.home_sort_options),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -146,22 +146,22 @@ fun CollectionsScreen(
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.collections_sort_name_az)) },
                             onClick = { viewModel.setSortOrder(SortOrder.NAME_ASC); showSortMenu = false },
-                            leadingIcon = { Icon(Icons.Default.SortByAlpha, contentDescription = null) }
+                            leadingIcon = { Icon(Icons.Rounded.SortByAlpha, contentDescription = null) }
                         )
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.collections_sort_name_za)) },
                             onClick = { viewModel.setSortOrder(SortOrder.NAME_DESC); showSortMenu = false },
-                            leadingIcon = { Icon(Icons.Default.SortByAlpha, contentDescription = null) }
+                            leadingIcon = { Icon(Icons.Rounded.SortByAlpha, contentDescription = null) }
                         )
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.collections_sort_most_links)) },
                             onClick = { viewModel.setSortOrder(SortOrder.LINK_COUNT_DESC); showSortMenu = false },
-                            leadingIcon = { Icon(Icons.Default.Link, contentDescription = null) }
+                            leadingIcon = { Icon(Icons.Rounded.Link, contentDescription = null) }
                         )
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.collections_sort_recently_created)) },
                             onClick = { viewModel.setSortOrder(SortOrder.DATE_DESC); showSortMenu = false },
-                            leadingIcon = { Icon(Icons.Default.Schedule, contentDescription = null) }
+                            leadingIcon = { Icon(Icons.Rounded.Schedule, contentDescription = null) }
                         )
                     }
                 }
@@ -202,7 +202,7 @@ fun CollectionsScreen(
                             Text(stringResource(R.string.nav_collections) + " ($count)")
                         },
                         selected = true,
-                        leadingIcon = { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                        leadingIcon = { Icon(Icons.Rounded.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
                     )
                     if (uiState.collectionsWithCounts.values.sum() > 0) {
                         FilterChip(
@@ -211,7 +211,7 @@ fun CollectionsScreen(
                                 Text("${uiState.collectionsWithCounts.values.sum()} ${stringResource(R.string.collections_total_links).lowercase()}")
                             },
                             selected = false,
-                            leadingIcon = { Icon(Icons.Default.Link, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                            leadingIcon = { Icon(Icons.Rounded.Link, contentDescription = null, modifier = Modifier.size(16.dp)) }
                         )
                     }
                 }
@@ -239,7 +239,7 @@ fun CollectionsScreen(
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Icon(
                                 imageVector = if (uiState.searchQuery.isBlank())
-                                    Icons.Outlined.FolderOpen else Icons.Outlined.SearchOff,
+                                    Icons.Rounded.FolderOpen else Icons.Rounded.SearchOff,
                                 contentDescription = null,
                                 modifier = Modifier.size(48.dp),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
@@ -382,12 +382,11 @@ fun CollectionsScreen(
         }
     }
 
-    // Create Collection Dialog
+    // Create Collection Dialog — shared component (spec v4 §2.2)
     if (showCreateCollectionDialog) {
-        CollectionsCreateCollectionDialog(
+        com.appcodecraft.linkzary.ui.component.CreateCollectionDialog(
             onDismiss = { showCreateCollectionDialog = false },
-            onCreate = { name: String, color: String, icon: String ->
-                val colorInt = color.toColorInt()
+            onCreate = { name: String, colorInt: Int, icon: String ->
                 viewModel.createCollection(name, colorInt, icon)
                 showCreateCollectionDialog = false
             }
@@ -411,63 +410,8 @@ fun CollectionsScreen(
     }
 }
 
-// Replaced custom implementation with shared component usage
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun CollectionsCreateCollectionDialog(
-    onDismiss: () -> Unit,
-    onCreate: (String, String, String) -> Unit
-) {
-    var name by remember { mutableStateOf("") }
-    var selectedColor by remember { mutableStateOf(0xFF6366F1.toInt()) }
-    var selectedIcon by remember { mutableStateOf("Folder") }
-    
-    val hapticFeedback = LocalHapticFeedback.current
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.CreateNewFolder,
-                    contentDescription = stringResource(R.string.collections_create_collection),
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(stringResource(R.string.collections_create_collection))
-            }
-        },
-        text = {
-            CreateCollectionForm(
-                name = name,
-                onNameChange = { name = it },
-                selectedColor = selectedColor,
-                onColorSelected = { selectedColor = it },
-                selectedIcon = selectedIcon,
-                onIconSelected = { selectedIcon = it }
-            )
-        },
-        confirmButton = {
-            TextButton(
-                onClick = { 
-                    val hexColor = String.format("#%06X", selectedColor and 0xFFFFFF)
-                    onCreate(name, hexColor, selectedIcon) 
-                },
-                enabled = name.isNotBlank()
-            ) {
-                Text(stringResource(R.string.common_create))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.common_cancel))
-            }
-        }
-    )
-}
+// CollectionsCreateCollectionDialog removed (spec v4 §2.2): the shared
+// com.appcodecraft.linkzary.ui.component.CreateCollectionDialog replaces it.
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -531,7 +475,7 @@ fun CollectionOptionsBottomSheet(
 
             // Options
             OptionItem(
-                icon = Icons.Default.Edit,
+                icon = Icons.Rounded.Edit,
                 title = stringResource(R.string.collections_edit_collection),
                 subtitle = stringResource(R.string.collections_edit_description),
                 onClick = {
@@ -540,7 +484,7 @@ fun CollectionOptionsBottomSheet(
             )
 
             OptionItem(
-                icon = Icons.Default.Delete,
+                icon = Icons.Rounded.Delete,
                 title = stringResource(R.string.collections_delete_collection),
                 subtitle = stringResource(R.string.collections_delete_description),
                 onClick = {
@@ -565,35 +509,21 @@ fun CollectionOptionsBottomSheet(
 
     // Delete Confirmation Dialog
     if (showDeleteConfirmation) {
-        AlertDialog(
+        com.appcodecraft.linkzary.ui.component.LinkzaryDialog(
             onDismissRequest = { showDeleteConfirmation = false },
-            title = { Text(stringResource(R.string.collections_delete_confirmation_title)) },
-            text = {
-                Text(
-                    stringResource(R.string.collections_delete_confirmation_message, collection.name)
-                )
+            icon = Icons.Rounded.Delete,
+            title = stringResource(R.string.collections_delete_confirmation_title),
+            confirmLabel = stringResource(R.string.common_delete),
+            onConfirm = {
+                onDelete()
+                showDeleteConfirmation = false
             },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        onDelete()
-                        showDeleteConfirmation = false
-                    },
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error
-                    )
-                ) {
-                    Text(stringResource(R.string.common_delete))
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { showDeleteConfirmation = false }
-                ) {
-                    Text(stringResource(R.string.common_cancel))
-                }
-            }
-        )
+            dismissLabel = stringResource(R.string.common_cancel),
+            onDismiss = { showDeleteConfirmation = false },
+            destructive = true
+        ) {
+            Text(stringResource(R.string.collections_delete_confirmation_message, collection.name))
+        }
     }
 }
 
@@ -606,69 +536,46 @@ fun EditCollectionDialog(
     onSave: (Collection) -> Unit
 ) {
     var name by remember { mutableStateOf(collection.name) }
-    var selectedColor by remember { 
+    var selectedColor by remember {
         mutableStateOf(try {
             android.graphics.Color.parseColor(collection.color)
         } catch (e: Exception) {
             0xFF6366F1.toInt()
-        }) 
+        })
     }
     var selectedIcon by remember { mutableStateOf(collection.icon) }
-    
-    val hapticFeedback = LocalHapticFeedback.current
 
-    AlertDialog(
+    com.appcodecraft.linkzary.ui.component.LinkzaryDialog(
         onDismissRequest = onDismiss,
-        title = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = stringResource(R.string.collections_edit_collection),
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(stringResource(R.string.collections_edit_collection))
-            }
-        },
-        text = {
-            CreateCollectionForm(
-                name = name,
-                onNameChange = { name = it },
-                selectedColor = selectedColor,
-                onColorSelected = { selectedColor = it },
-                selectedIcon = selectedIcon,
-                onIconSelected = { selectedIcon = it }
+        icon = Icons.Rounded.Edit,
+        title = stringResource(R.string.collections_edit_collection),
+        confirmLabel = stringResource(R.string.common_save),
+        onConfirm = {
+            val hexColor = String.format("#%06X", selectedColor and 0xFFFFFF)
+            val updatedCollection = collection.copy(
+                name = name.trim(),
+                color = hexColor,
+                icon = selectedIcon
             )
+            onSave(updatedCollection)
         },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    val hexColor = String.format("#%06X", selectedColor and 0xFFFFFF)
-                    val updatedCollection = collection.copy(
-                        name = name.trim(),
-                        color = hexColor,
-                        icon = selectedIcon
-                    )
-                    onSave(updatedCollection)
-                },
-                enabled = name.isNotBlank() && (
-                    name.trim() != collection.name || 
-                    String.format("#%06X", selectedColor and 0xFFFFFF) != collection.color ||
-                    selectedIcon != collection.icon
-                )
-            ) {
-                Text(stringResource(R.string.common_save))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.common_cancel))
-            }
-        }
-    )
+        confirmEnabled = name.isNotBlank() && (
+            name.trim() != collection.name ||
+            String.format("#%06X", selectedColor and 0xFFFFFF) != collection.color ||
+            selectedIcon != collection.icon
+        ),
+        dismissLabel = stringResource(R.string.common_cancel),
+        onDismiss = onDismiss
+    ) {
+        CreateCollectionForm(
+            name = name,
+            onNameChange = { name = it },
+            selectedColor = selectedColor,
+            onColorSelected = { selectedColor = it },
+            selectedIcon = selectedIcon,
+            onIconSelected = { selectedIcon = it }
+        )
+    }
 }
 
 @Preview

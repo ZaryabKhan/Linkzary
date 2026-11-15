@@ -13,16 +13,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.CloudSync
-import androidx.compose.material.icons.filled.DataObject
-import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.FileDownload
-import androidx.compose.material.icons.filled.FileUpload
-import androidx.compose.material.icons.filled.Preview
-import androidx.compose.material.icons.filled.Public
-import androidx.compose.material.icons.filled.TableChart
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.CloudSync
+import androidx.compose.material.icons.rounded.DataObject
+import androidx.compose.material.icons.rounded.Error
+import androidx.compose.material.icons.rounded.FileDownload
+import androidx.compose.material.icons.rounded.FileUpload
+import androidx.compose.material.icons.rounded.Preview
+import androidx.compose.material.icons.rounded.Public
+import androidx.compose.material.icons.rounded.TableChart
+import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -59,28 +59,16 @@ fun ExportDataDialog(
     onExportCsv: () -> Unit,
     onExportHtml: () -> Unit = {}
 ) {
-    AlertDialog(
+    com.appcodecraft.linkzary.ui.component.LinkzaryDialog(
         onDismissRequest = onDismiss,
-        title = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.FileDownload,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Export Data",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        },
-        text = {
-            Column {
+        icon = Icons.Rounded.FileDownload,
+        title = "Export Data",
+        confirmLabel = null,
+        onConfirm = {},
+        dismissLabel = stringResource(R.string.common_cancel),
+        onDismiss = onDismiss
+    ) {
+        Column {
                 Text(
                     text = "Choose the format to export your bookmarks and collections:",
                     style = MaterialTheme.typography.bodyMedium
@@ -104,7 +92,7 @@ fun ExportDataDialog(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
-                                imageVector = Icons.Default.DataObject,
+                                imageVector = Icons.Rounded.DataObject,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.primary
                             )
@@ -152,7 +140,7 @@ fun ExportDataDialog(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
-                                imageVector = Icons.Default.TableChart,
+                                imageVector = Icons.Rounded.TableChart,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.primary
                             )
@@ -200,7 +188,7 @@ fun ExportDataDialog(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Public,
+                                imageVector = Icons.Rounded.Public,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.primary
                             )
@@ -230,14 +218,8 @@ fun ExportDataDialog(
                     }
                 }
             }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.common_cancel))
-            }
         }
-    )
+    }
 }
 
 @Composable
@@ -245,28 +227,19 @@ fun ImportDataDialog(
     onDismiss: () -> Unit,
     onSelectFile: () -> Unit
 ) {
-    AlertDialog(
+    com.appcodecraft.linkzary.ui.component.LinkzaryDialog(
         onDismissRequest = onDismiss,
-        title = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.FileUpload,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Import Data",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+        icon = Icons.Rounded.FileUpload,
+        title = "Import Data",
+        confirmLabel = stringResource(R.string.settings_select_file),
+        onConfirm = {
+            onSelectFile()
+            onDismiss()
         },
-        text = {
-            Column {
+        dismissLabel = stringResource(R.string.common_cancel),
+        onDismiss = onDismiss
+    ) {
+        Column {
                 Text(
                     text = "Import bookmarks and collections from a backup file.",
                     style = MaterialTheme.typography.bodyMedium
@@ -294,7 +267,7 @@ fun ImportDataDialog(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
-                                imageVector = Icons.Default.DataObject,
+                                imageVector = Icons.Rounded.DataObject,
                                 contentDescription = null,
                                 modifier = Modifier.size(16.dp),
                                 tint = MaterialTheme.colorScheme.primary
@@ -312,7 +285,7 @@ fun ImportDataDialog(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
-                                imageVector = Icons.Default.TableChart,
+                                imageVector = Icons.Rounded.TableChart,
                                 contentDescription = null,
                                 modifier = Modifier.size(16.dp),
                                 tint = MaterialTheme.colorScheme.primary
@@ -342,7 +315,7 @@ fun ImportDataDialog(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Warning,
+                            imageVector = Icons.Rounded.Warning,
                             contentDescription = null,
                             modifier = Modifier.size(16.dp),
                             tint = MaterialTheme.colorScheme.onSecondaryContainer
@@ -356,23 +329,8 @@ fun ImportDataDialog(
                     }
                 }
             }
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    onSelectFile()
-                    onDismiss()
-                }
-            ) {
-                Text(stringResource(R.string.settings_select_file))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.common_cancel))
-            }
         }
-    )
+    }
 }
 
 @Composable
@@ -382,31 +340,19 @@ fun ImportPreviewDialog(
     onConfirmImport: (ImportMode) -> Unit
 ) {
     var selectedMode by remember { mutableStateOf(ImportMode.MERGE_WITH_EXISTING) }
-    
-    AlertDialog(
+
+    com.appcodecraft.linkzary.ui.component.LinkzaryDialog(
         onDismissRequest = onDismiss,
-        title = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Preview,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Import Preview",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        },
-        text = {
-            LazyColumn(
-                modifier = Modifier.heightIn(max = 400.dp)
-            ) {
+        icon = Icons.Rounded.Preview,
+        title = "Import Preview",
+        confirmLabel = stringResource(R.string.settings_import),
+        onConfirm = { onConfirmImport(selectedMode) },
+        dismissLabel = stringResource(R.string.common_cancel),
+        onDismiss = onDismiss
+    ) {
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth()
+        ) {
                 item {
                     // Summary Card
                     Card(
@@ -586,7 +532,7 @@ fun ImportPreviewDialog(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Icon(
-                                            imageVector = Icons.Default.Warning,
+                                            imageVector = Icons.Rounded.Warning,
                                             contentDescription = null,
                                             modifier = Modifier.size(16.dp),
                                             tint = MaterialTheme.colorScheme.error
@@ -604,20 +550,8 @@ fun ImportPreviewDialog(
                     }
                 }
             }
-        },
-        confirmButton = {
-            Button(
-                onClick = { onConfirmImport(selectedMode) }
-            ) {
-                Text(stringResource(R.string.settings_import))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.common_cancel))
-            }
         }
-    )
+    }
 }
 
 @Composable
@@ -625,71 +559,49 @@ fun ImportProgressDialog(
     progress: ImportProgress,
     onDismiss: () -> Unit
 ) {
-    AlertDialog(
+    com.appcodecraft.linkzary.ui.component.LinkzaryDialog(
         onDismissRequest = { /* Prevent dismissal during import */ },
-        title = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.CloudSync,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Importing Data",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        },
-        text = {
-            Column {
-                Text(
-                    text = progress.message,
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                LinearProgressIndicator(
-                    progress = progress.progress,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                Text(
-                    text = "${progress.processedItems} / ${progress.totalItems} items processed",
-                    style = MaterialTheme.typography.bodySmall,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                Text(
-                    text = "Step: ${progress.currentStep.name.replace('_', ' ').lowercase().replaceFirstChar { it.uppercase() }}",
-                    style = MaterialTheme.typography.bodySmall,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        },
-        confirmButton = {
-            if (progress.currentStep == ImportStep.COMPLETED) {
-                Button(onClick = onDismiss) {
-                    Text(stringResource(R.string.common_done))
-                }
-            }
+        icon = Icons.Rounded.CloudSync,
+        title = "Importing Data",
+        confirmLabel = if (progress.currentStep == ImportStep.COMPLETED) stringResource(R.string.common_done) else null,
+        onConfirm = onDismiss
+    ) {
+        Column {
+            Text(
+                text = progress.message,
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            LinearProgressIndicator(
+                progress = progress.progress,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "${progress.processedItems} / ${progress.totalItems} items processed",
+                style = MaterialTheme.typography.bodySmall,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "Step: ${progress.currentStep.name.replace('_', ' ').lowercase().replaceFirstChar { it.uppercase() }}",
+                style = MaterialTheme.typography.bodySmall,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
-    )
+    }
 }
 
 @Composable
@@ -697,28 +609,14 @@ fun ImportResultDialog(
     result: ImportResult,
     onDismiss: () -> Unit
 ) {
-    AlertDialog(
+    com.appcodecraft.linkzary.ui.component.LinkzaryDialog(
         onDismissRequest = onDismiss,
-        title = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = if (result.success) Icons.Default.CheckCircle else Icons.Default.Error,
-                    contentDescription = null,
-                    tint = if (result.success) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = if (result.success) "Import Successful" else "Import Failed",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        },
-        text = {
-            if (result.success) {
+        icon = if (result.success) Icons.Rounded.CheckCircle else Icons.Rounded.Error,
+        title = if (result.success) "Import Successful" else "Import Failed",
+        confirmLabel = stringResource(R.string.common_ok),
+        onConfirm = onDismiss
+    ) {
+        if (result.success) {
                 Column {
                     Text(
                         text = "Your data has been imported successfully!",
@@ -775,11 +673,6 @@ fun ImportResultDialog(
                     )
                 }
             }
-        },
-        confirmButton = {
-            Button(onClick = onDismiss) {
-                Text(stringResource(R.string.common_ok))
-            }
         }
-    )
+    }
 }
