@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -164,9 +165,13 @@ fun DriveBackupCard(
                         maxLines = 1
                     )
                     Spacer(modifier = Modifier.height(6.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    // v6.2 alignment fix: dot rides on the FIRST status line
+                    // (top-aligned, optically centered on the 12.5sp line) so
+                    // a wrapped second line can't detach it from the text.
+                    Row(verticalAlignment = Alignment.Top) {
                         Box(
                             modifier = Modifier
+                                .padding(top = 4.dp)
                                 .size(8.dp)
                                 .graphicsLayer { alpha = resolvedDotAlpha }
                                 .background(color = dotColor, shape = RoundedCornerShape(50))
@@ -183,7 +188,12 @@ fun DriveBackupCard(
 
                 Spacer(modifier = Modifier.width(12.dp))
 
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                // v6.2 alignment fix: stable right column — pills share one
+                // consistent 4dp rhythm and a common right edge.
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
                     Button(
                         onClick = onBackUpNow,
                         enabled = !isWorking,
