@@ -5,6 +5,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import com.appcodecraft.linkzary.data.preferences.UserPreferencesManager
 import com.appcodecraft.linkzary.ui.screen.share.ShareScreen
 import com.appcodecraft.linkzary.ui.theme.LinkzaryTheme
@@ -35,6 +37,11 @@ class ShareActivity : ComponentActivity() {
 
         setContent {
             LinkzaryTheme(userPreferencesManager = userPreferencesManager) {
+                // Haptics gate sync (v4.1) — same as MainActivity.
+                val hapticsEnabled by userPreferencesManager.hapticsEnabled.collectAsState()
+                androidx.compose.runtime.LaunchedEffect(hapticsEnabled) {
+                    com.appcodecraft.linkzary.ui.component.LinkzaryHaptics.enabled = hapticsEnabled
+                }
                 ShareScreen(
                     sharedUrl = sharedUrl,
                     onFinish = {

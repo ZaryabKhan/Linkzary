@@ -75,6 +75,8 @@ fun LinkzaryDialog(
         MaterialTheme.colorScheme.onPrimaryContainer
     }
 
+    val dialogHaptics = rememberLinkzaryHaptics()
+
     Dialog(
         onDismissRequest = onDismissRequest,
         properties = DialogProperties(usePlatformDefaultWidth = false)
@@ -157,7 +159,12 @@ fun LinkzaryDialog(
                     }
                     if (confirmLabel != null) {
                         Button(
-                            onClick = onConfirm,
+                            onClick = {
+                                // v4.1: CONFIRM haptic on dialog confirm,
+                                // destructive included (delete = confirm too).
+                                dialogHaptics(LinkzaryHaptic.CONFIRM)
+                                onConfirm()
+                            },
                             enabled = confirmEnabled,
                             shape = RoundedCornerShape(50),
                             modifier = Modifier.height(40.dp),
