@@ -49,8 +49,9 @@ class UserPreferencesManager(context: Context) {
     private val _hasDonated = MutableStateFlow(getHasDonated())
     val hasDonated: StateFlow<Boolean> = _hasDonated.asStateFlow()
 
-    // Brand color preference (audit #4): when true, the Linkzary indigo
-    // palette overrides Material You dynamic color. Default stays dynamic.
+    // Brand color preference (v5.1): the Linkzary indigo palette is the
+    // DEFAULT — every token surface resolves from it. Users can still switch
+    // to Material You dynamic color in Settings.
     private val _useBrandColors = MutableStateFlow(getUseBrandColors())
     val useBrandColors: StateFlow<Boolean> = _useBrandColors.asStateFlow()
 
@@ -176,7 +177,9 @@ class UserPreferencesManager(context: Context) {
     }
 
     private fun getUseBrandColors(): Boolean {
-        return sharedPreferences.getBoolean(KEY_USE_BRAND_COLORS, false)
+        // v5.1: default ON — new installs get the Linkzary indigo palette,
+        // not Material You. Users who explicitly chose dynamic keep it.
+        return sharedPreferences.getBoolean(KEY_USE_BRAND_COLORS, true)
     }
 
     // Haptics (v4.1)
