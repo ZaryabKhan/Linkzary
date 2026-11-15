@@ -220,7 +220,6 @@ fun ExportDataDialog(
             }
         }
     }
-}
 
 @Composable
 fun ImportDataDialog(
@@ -330,7 +329,6 @@ fun ImportDataDialog(
                 }
             }
         }
-    }
 }
 
 @Composable
@@ -551,7 +549,6 @@ fun ImportPreviewDialog(
                 }
             }
         }
-    }
 }
 
 @Composable
@@ -674,5 +671,4 @@ fun ImportResultDialog(
                 }
             }
         }
-    }
 }
