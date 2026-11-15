@@ -239,9 +239,10 @@ class ImportExportViewModel @Inject constructor(
                         importedCollectionIds.add(id)
                         id
                     },
-                    onLinkInsert = { link ->
-                        val id = linkRepository.insertLink(link)
-                        importedLinkIds.add(id)
+                    // v5.1.1: chunked inserts (the service buffers up to 50 per call)
+                    onLinksInsert = { batch ->
+                        val ids = linkRepository.insertLinks(batch)
+                        importedLinkIds.addAll(ids)
                     }
                 ).collect { result ->
                     if (result.success) {
