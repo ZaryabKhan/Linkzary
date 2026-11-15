@@ -152,7 +152,8 @@ jobs:
       - name: Assert signing cert matches the pinned SHA-1
         run: |
           CERT=$(keytool -printcert -jarfile app-release.aab \
-            | grep "SHA1:" | head -1 | grep -ioE "[0-9a-f]{40}" | tr 'a-f' 'A-F')
+            | grep "SHA1:" | head -1 \
+            | sed 's/.*SHA1: *//' | tr -d ':' | tr -d '[:space:]' | tr 'a-f' 'A-F')
           echo "cert: $CERT"
           if [ "$CERT" != "6721D2A4634EFA3973643CE23DD4A5C291026DE8" ]; then
             echo "::error::Signing cert $CERT does not match the pinned 6721D2A4634EFA3973643CE23DD4A5C291026DE8"
