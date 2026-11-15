@@ -90,7 +90,7 @@ internal fun calendarDaysBetween(date: Date, now: Date): Int {
     cal2.set(java.util.Calendar.MINUTE, 0)
     cal2.set(java.util.Calendar.SECOND, 0)
     cal2.set(java.util.Calendar.MILLISECOND, 0)
-    return ((cal2.timeInMillis - cal1.timeInMillis) / (60_000 * 60_000 * 24)).toInt()
+    return ((cal2.timeInMillis - cal1.timeInMillis) / (24 * 60 * 60 * 1000)).toInt()
 }
 
 /**
