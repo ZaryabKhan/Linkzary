@@ -249,7 +249,7 @@ fun SettingsScreen(
                     Spacer(modifier = Modifier.height(12.dp))
                     // v5.2 spec: chromatic Drive hero (DriveBackupCard.kt) replaces
                     // the washed-out v5 hero. Launchers/retry logic untouched.
-                    DriveBackupCard(
+                    com.appcodecraft.linkzary.ui.component.DriveBackupCard(
                         title = stringResource(R.string.settings_drive_hero_title),
                         statusText = driveHeroStatusText(driveStatus),
                         state = driveCardState(driveStatus),
