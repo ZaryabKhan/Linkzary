@@ -4,7 +4,8 @@ name: Unsigned Release Artifacts
 # Signing happens locally (jarsigner/apksigner with the real keystores,
 # which never touch CI). Build-only per standing order — no local Gradle.
 on:
-  workflow_dispatch:
+  push:
+    branches: [ "release-v120-unsigned" ]
 
 jobs:
   unsigned-release:
