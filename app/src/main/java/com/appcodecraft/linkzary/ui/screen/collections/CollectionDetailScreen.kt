@@ -110,14 +110,7 @@ fun CollectionDetailScreen(
     var showAddLinkDialog by remember { mutableStateOf(false) }
     var showEditCollectionDialog by remember { mutableStateOf(false) }
 
-    // Scroll state drives the FAB morph (spec v2 §2.3)
     val detailListState = androidx.compose.foundation.lazy.rememberLazyListState()
-    val detailListIsScrolled by remember {
-        androidx.compose.runtime.derivedStateOf {
-            detailListState.firstVisibleItemIndex > 0 ||
-                detailListState.firstVisibleItemScrollOffset > 200
-        }
-    }
 
     LaunchedEffect(collectionId) {
         viewModel.loadCollectionDetails(collectionId)
@@ -333,12 +326,11 @@ fun CollectionDetailScreen(
     }
 
         // Add Floating Action Button for adding bookmarks directly to this collection
-        // (spec v2 §2.3: the one LinkzaryFab — cookie at rest, pill when scrolled)
+        // (standard M3 extended FAB)
         if (!uiState.isMultiSelectMode) {
             com.appcodecraft.linkzary.ui.component.LinkzaryFab(
                 label = stringResource(R.string.home_add_link),
                 onClick = { showAddLinkDialog = true },
-                isScrolled = detailListIsScrolled,
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(16.dp)

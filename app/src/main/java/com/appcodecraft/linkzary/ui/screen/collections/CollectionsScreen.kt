@@ -101,14 +101,7 @@ fun CollectionsScreen(
     val isGridView by viewModel.isGridView.collectAsState()
     var showSortMenu by remember { mutableStateOf(false) }
 
-    // Scroll state drives the FAB morph (spec v2 §2.3)
     val collectionsListState = androidx.compose.foundation.lazy.rememberLazyListState()
-    val collectionsListIsScrolled by remember {
-        androidx.compose.runtime.derivedStateOf {
-            collectionsListState.firstVisibleItemIndex > 0 ||
-                collectionsListState.firstVisibleItemScrollOffset > 200
-        }
-    }
 
     // Pre-compute collection lookup map
     val collectionMap by remember(uiState.collectionsWithCounts) {
@@ -364,11 +357,10 @@ fun CollectionsScreen(
 
         } // Column (header + content)
 
-        // The one FAB (spec v2 §2.3) — replaces the plain white circle
+        // The one FAB — standard M3 extended FAB (replaces the cookie morph)
         com.appcodecraft.linkzary.ui.component.LinkzaryFab(
             label = stringResource(R.string.fab_new_collection),
             onClick = { showCreateCollectionDialog = true },
-            isScrolled = collectionsListIsScrolled,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(16.dp)

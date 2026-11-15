@@ -759,7 +759,9 @@ fun DonationHeader(
                     Icon(
                         imageVector = Icons.Default.Favorite,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
+                        // onPrimaryFixedVariant: muted token designed for this
+                        // container — `primary` blended into `primaryFixed`.
+                        tint = MaterialTheme.colorScheme.onPrimaryFixedVariant,
                         modifier = Modifier.size(32.dp)
                     )
                     
@@ -814,7 +816,9 @@ fun DonationHeader(
                     Icon(
                         imageVector = Icons.Default.Favorite,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
+                        // onPrimaryFixedVariant on the primaryFixed card — the
+                        // old `primary` tint vanished against the same hue.
+                        tint = MaterialTheme.colorScheme.onPrimaryFixedVariant,
                         modifier = Modifier.size(32.dp)
                     )
                     
@@ -865,7 +869,9 @@ fun DonationHeader(
                     Text(
                         text = stringResource(R.string.settings_donate_disclaimer),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f),
+                        // onPrimaryFixedVariant (not onPrimaryContainer): the
+                        // dark container token was unreadable on primaryFixed.
+                        color = MaterialTheme.colorScheme.onPrimaryFixedVariant,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
                     )
