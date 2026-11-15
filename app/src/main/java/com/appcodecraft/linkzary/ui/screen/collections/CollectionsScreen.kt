@@ -104,6 +104,9 @@ fun CollectionsScreen(
 
     val collectionsListState = androidx.compose.foundation.lazy.rememberLazyListState()
 
+    // Spec v3 §2.2: FAB hide/return scroll behavior, wired to the list below.
+    val fabBehavior = com.appcodecraft.linkzary.ui.component.rememberLinkzaryFabScrollBehavior()
+
     // Pre-compute collection lookup map
     val collectionMap by remember(uiState.collectionsWithCounts) {
         derivedStateOf { uiState.collectionsWithCounts }
@@ -164,9 +167,6 @@ fun CollectionsScreen(
                 }
             }
         )
-
-        // Spec v3 §2.2: FAB hide/return scroll behavior, wired to the list.
-        val fabBehavior = com.appcodecraft.linkzary.ui.component.rememberLinkzaryFabScrollBehavior()
 
         // Main content — header is a real sibling now, so no hardcoded top pad
         LazyColumn(
