@@ -214,8 +214,7 @@ fun LinkCard(
         border = if (isSelected) androidx.compose.foundation.BorderStroke(
             width = 2.dp,
             color = MaterialTheme.colorScheme.primary
-        ) else null,
-        interactionSource = interactionSource
+        ) else null
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             // ── Thumbnail 16:9, top corners clipped, NOTHING overlaid ──

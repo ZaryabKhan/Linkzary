@@ -793,6 +793,9 @@ fun HomeScreen(
 
     val listState = androidx.compose.foundation.lazy.rememberLazyListState()
 
+    // Spec v3 §2.2: FAB hide/return scroll behavior, wired to the list below.
+    val fabBehavior = com.appcodecraft.linkzary.ui.component.rememberLinkzaryFabScrollBehavior()
+
     // Outer Box only positions overlays (action bar, coach-mark, FAB);
     // the app bar and the list must be siblings in a Column so they stack
     // instead of drawing over each other (hotfix for the batch-2 overlap).
@@ -866,9 +869,6 @@ fun HomeScreen(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         )
     }
-
-    // Spec v3 §2.2: FAB hide/return scroll behavior, wired to the list.
-    val fabBehavior = com.appcodecraft.linkzary.ui.component.rememberLinkzaryFabScrollBehavior()
 
     // Main content with LazyColumn
     LazyColumn(

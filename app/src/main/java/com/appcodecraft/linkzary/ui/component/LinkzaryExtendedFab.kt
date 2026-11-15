@@ -1,9 +1,8 @@
 package com.appcodecraft.linkzary.ui.component
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.DampingRatioMediumBouncy
-import androidx.compose.animation.core.StiffnessMediumLow
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -78,15 +77,15 @@ fun LinkzaryExtendedFab(
         visible = behavior?.isHidden != true,
         enter = slideInVertically(
             animationSpec = spring(
-                dampingRatio = DampingRatioMediumBouncy,
-                stiffness = StiffnessMediumLow
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessMediumLow
             ),
             initialOffsetY = { it }
         ),
         exit = slideOutVertically(
             animationSpec = spring(
-                dampingRatio = DampingRatioMediumBouncy,
-                stiffness = StiffnessMediumLow
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessMediumLow
             ),
             targetOffsetY = { it }
         ),
