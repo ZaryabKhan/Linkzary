@@ -78,3 +78,14 @@
 -dontwarn com.google.api.services.**
 -dontwarn com.google.common.**
 -dontwarn org.apache.http.**
+# Drive backup (v1.2.1): belt-and-braces keeps for the Google API/auth
+# libraries. The Drive REST model classes use reflection for JSON parsing and
+# the auth/http layers are reflectively probed; R8 shrinking of these has been
+# linked to release-only auth failures.
+-keep class com.google.api.services.drive.** { *; }
+-keep class com.google.api.client.http.** { *; }
+-keep class com.google.api.client.json.** { *; }
+-keep class com.google.api.client.googleapis.** { *; }
+-keep class com.google.auth.oauth2.** { *; }
+-keep class com.google.auth.http.** { *; }
+-dontwarn com.google.auth.**

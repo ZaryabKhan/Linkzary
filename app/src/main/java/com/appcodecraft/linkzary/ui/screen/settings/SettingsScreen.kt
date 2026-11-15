@@ -141,12 +141,18 @@ fun SettingsScreen(
     // continued — backup/restore looked dead.
     var retryPendingDriveAction by remember { mutableStateOf<(() -> Unit)?>(null) }
 
+    // Drive consent resolution: AuthorizationClient.authorize() hands us a
+    // PendingIntent's IntentSender when access isn't granted yet; launching it
+    // shows the consent dialog. Granted (or denied) — retry the pending action
+    // so the user sees a real success/failure instead of silence.
     val driveAuthLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { _ ->
-        // Drive permission granted (or denied) — retry the pending action so
-        // the user sees a real success/failure instead of silence.
-        retryPendingDriveAction?.invoke()
+        contract = ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode == android.app.Activity.RESULT_OK) {
+            retryPendingDriveAction?.invoke()
+        } else {
+            viewModel.reportDriveSignInFailure()
+        }
         retryPendingDriveAction = null
     }
 
@@ -258,12 +264,12 @@ fun SettingsScreen(
                         onBackUpNow = {
                         if (viewModel.isDriveConnected(context)) {
                             retryPendingDriveAction = {
-                                viewModel.backupToDrive(context) { intent -> driveAuthLauncher.launch(intent) }
+                                viewModel.backupToDrive(context) { sender -> driveAuthLauncher.launch(androidx.activity.result.IntentSenderRequest.Builder(sender).build()) }
                             }
-                            viewModel.backupToDrive(context) { intent -> driveAuthLauncher.launch(intent) }
+                            viewModel.backupToDrive(context) { sender -> driveAuthLauncher.launch(androidx.activity.result.IntentSenderRequest.Builder(sender).build()) }
                         } else {
                             retryPendingDriveAction = {
-                                viewModel.backupToDrive(context) { intent -> driveAuthLauncher.launch(intent) }
+                                viewModel.backupToDrive(context) { sender -> driveAuthLauncher.launch(androidx.activity.result.IntentSenderRequest.Builder(sender).build()) }
                             }
                             driveSignInLauncher.launch(
                                 com.google.android.gms.auth.api.signin.GoogleSignIn.getClient(
@@ -285,12 +291,12 @@ fun SettingsScreen(
                     onRestore = {
                         if (viewModel.isDriveConnected(context)) {
                             retryPendingDriveAction = {
-                                viewModel.restoreFromDrive(context) { intent -> driveAuthLauncher.launch(intent) }
+                                viewModel.restoreFromDrive(context) { sender -> driveAuthLauncher.launch(androidx.activity.result.IntentSenderRequest.Builder(sender).build()) }
                             }
-                            viewModel.restoreFromDrive(context) { intent -> driveAuthLauncher.launch(intent) }
+                            viewModel.restoreFromDrive(context) { sender -> driveAuthLauncher.launch(androidx.activity.result.IntentSenderRequest.Builder(sender).build()) }
                         } else {
                             retryPendingDriveAction = {
-                                viewModel.restoreFromDrive(context) { intent -> driveAuthLauncher.launch(intent) }
+                                viewModel.restoreFromDrive(context) { sender -> driveAuthLauncher.launch(androidx.activity.result.IntentSenderRequest.Builder(sender).build()) }
                             }
                             driveSignInLauncher.launch(
                                 com.google.android.gms.auth.api.signin.GoogleSignIn.getClient(
