@@ -12,8 +12,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -233,67 +231,67 @@ fun CollectionSelectionDialog(
         dismissLabel = stringResource(R.string.common_cancel),
         onDismiss = onDismiss
     ) {
-        LazyColumn(
+        // v6.2 crash fix: LazyColumn inside LinkzaryDialog's verticalScroll
+        // column is measured with infinite height and crashed the moment the
+        // move dialog opened (same root cause as the v5.1.1 import-preview and
+        // language-picker fixes). Plain Column; the scaffold scrolls.
+        Column(
             modifier = Modifier
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-                item {
-                    CollectionOptionItem(
-                        icon = Icons.Rounded.FolderOpen,
-                        name = stringResource(R.string.move_link_no_collection),
-                        color = MaterialTheme.colorScheme.outline.value.toInt(),
-                        isSelected = currentCollectionId == null,
-                        onClick = { onCollectionSelected(null) }
-                    )
+            CollectionOptionItem(
+                icon = Icons.Rounded.FolderOpen,
+                name = stringResource(R.string.move_link_no_collection),
+                color = MaterialTheme.colorScheme.outline.value.toInt(),
+                isSelected = currentCollectionId == null,
+                onClick = { onCollectionSelected(null) }
+            )
+
+            allCollections.forEach { collection ->
+                val colorInt = try {
+                    android.graphics.Color.parseColor(collection.color)
+                } catch (e: IllegalArgumentException) {
+                    0xFF6366F1.toInt()
                 }
+                CollectionOptionItem(
+                    icon = getCollectionGlyph(collection.icon),
+                    name = collection.name,
+                    color = colorInt,
+                    isSelected = currentCollectionId == collection.id,
+                    onClick = { onCollectionSelected(collection.id) }
+                )
+            }
 
-                items(allCollections) { collection ->
-                    val colorInt = try {
-                        android.graphics.Color.parseColor(collection.color)
-                    } catch (e: IllegalArgumentException) {
-                        0xFF6366F1.toInt()
-                    }
-                    CollectionOptionItem(
-                        icon = getCollectionGlyph(collection.icon),
-                        name = collection.name,
-                        color = colorInt,
-                        isSelected = currentCollectionId == collection.id,
-                        onClick = { onCollectionSelected(collection.id) }
+            Surface(
+                onClick = { onCreateNew() },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.CreateNewFolder,
+                        contentDescription = stringResource(R.string.cd_create_new_collection),
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(24.dp)
                     )
-                }
 
-                item {
-                    Surface(
-                        onClick = { onCreateNew() },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Rounded.CreateNewFolder,
-                                contentDescription = stringResource(R.string.cd_create_new_collection),
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(24.dp)
-                            )
+                    Spacer(modifier = Modifier.width(16.dp))
 
-                            Spacer(modifier = Modifier.width(16.dp))
-
-                            Text(
-                                text = stringResource(R.string.move_link_create_new),
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    }
+                    Text(
+                        text = stringResource(R.string.move_link_create_new),
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 }
             }
         }
+    }
 }
