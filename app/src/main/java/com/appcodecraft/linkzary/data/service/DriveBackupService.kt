@@ -11,7 +11,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.Scope
 import com.google.android.gms.tasks.Tasks
-import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.drive.Drive
@@ -35,9 +34,9 @@ import javax.inject.Singleton
  * Auth (v1.2.1): the deprecated GoogleAuthUtil/GoogleAccountCredential token
  * path — whose GMS-side failures surfaced as bare "key error" messages — is
  * replaced by Google Identity AuthorizationClient (revoke via GoogleSignInClient).
- * Account picking stays on
- * legacy GoogleSignIn; Drive access goes through authorize() → access token →
- * HttpCredentialsAdapter on the Drive REST client.
+ * Account picking stays on legacy GoogleSignIn; Drive access goes through
+ * authorize() → access token → HttpCredentialsAdapter on the Drive REST client.
+ * User-facing error text mapping lives in util/DriveErrorMessages (pure, tested).
  */
 @Singleton
 class DriveBackupService @Inject constructor() {
@@ -47,48 +46,6 @@ class DriveBackupService @Inject constructor() {
         const val RC_SIGN_IN = 7101
         val DRIVE_SCOPE = Scope(DriveScopes.DRIVE_APPDATA)
 
-        /**
-         * Maps a GMS ApiException status code to actionable user text.
-         * Pure — covered by DriveErrorMessagesTest.
-         */
-        fun authErrorMessage(statusCode: Int): String = when (statusCode) {
-            // ConnectionResult.PLAY_SERVICES_*
-            1 -> "Google Play services is needed for Drive backup — enable or update it and try again."
-            2 -> "A newer version of Google Play services is required — update it and try again."
-            3 -> "Google Play services is temporarily unavailable — try again shortly."
-            4 -> "Google Play services is out of date — update it and try again."
-            // Network / server-side
-            7 -> "Network error while talking to Google — check your connection and try again."
-            // DEVELOPER_ERROR: app identity (SHA-1) not registered in the OAuth client
-            10 -> "Google rejected this app's signature setup — reconnect your Google account and try again."
-            // Interrupted / cancelled
-            13 -> "Google sign-in was interrupted — please try again."
-            14 -> "Google sign-in is updating — please try again in a moment."
-            15 -> "Sign-in was cancelled — please try again when ready."
-            16 -> "Sign-in was cancelled — please try again when ready."
-            17 -> "Google Play services is still starting — try again in a moment."
-            18 -> "Google Play services needs to update — follow the prompt and try again."
-            // Auth-layer failures
-            20 -> "Google sign-in is loading — try again in a moment."
-            22 -> "Drive access was revoked — reconnect your account from the Drive card."
-            else -> "Google sign-in error (code $statusCode) — please try again."
-        }
-
-        /**
-         * Maps a Drive/HTTP/IO failure to actionable user text — no bare
-         * exception class names on the card. Pure — covered by tests.
-         */
-        fun driveFailureMessage(e: Exception, default: String): String = when (e) {
-            is GoogleJsonResponseException -> when (e.statusCode) {
-                401 -> "Drive session expired — please try again."
-                403 -> "Drive access was revoked — reconnect your account from the Drive card."
-                404 -> "The backup file is missing on Google Drive."
-                in 500..599 -> "Google Drive is temporarily unavailable — try again later."
-                else -> "Google Drive error (HTTP ${e.statusCode}) — please try again."
-            }
-            is java.io.IOException -> "Network error — check your connection and try again."
-            else -> default
-        }
     }
 
     /** Result of the AuthorizationClient step for one Drive operation. */
@@ -167,7 +124,7 @@ class DriveBackupService @Inject constructor() {
                 else -> DriveAuthStep.Failed("Drive access is not ready — please try again.")
             }
         } catch (e: com.google.android.gms.common.api.ApiException) {
-            DriveAuthStep.Failed(authErrorMessage(e.statusCode))
+            DriveAuthStep.Failed(com.appcodecraft.linkzary.util.DriveErrorMessages.authErrorMessage(e.statusCode))
         } catch (e: Exception) {
             android.util.Log.e("DriveBackup", "authorize failed", e)
             DriveAuthStep.Failed("Drive access is not ready — please try again.")
@@ -215,10 +172,10 @@ class DriveBackupService @Inject constructor() {
                     null
                 } catch (e: GoogleJsonResponseException) {
                     e.printStackTrace()
-                    "error: ${driveFailureMessage(e, "Backup failed — please try again.")}"
+                    "error: ${com.appcodecraft.linkzary.util.DriveErrorMessages.driveFailureMessage(e, "Backup failed — please try again.")}"
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    "error: ${driveFailureMessage(e, "Backup failed — please try again.")}"
+                    "error: ${com.appcodecraft.linkzary.util.DriveErrorMessages.driveFailureMessage(e, "Backup failed — please try again.")}"
                 }
             }
             is DriveAuthStep.NeedsConsent -> {
@@ -266,10 +223,10 @@ class DriveBackupService @Inject constructor() {
                     DriveRestoreResult.Success(json)
                 } catch (e: GoogleJsonResponseException) {
                     e.printStackTrace()
-                    DriveRestoreResult.Error(driveFailureMessage(e, "Restore failed — please try again."))
+                    DriveRestoreResult.Error(com.appcodecraft.linkzary.util.DriveErrorMessages.driveFailureMessage(e, "Restore failed — please try again."))
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    DriveRestoreResult.Error(driveFailureMessage(e, "Restore failed — please try again."))
+                    DriveRestoreResult.Error(com.appcodecraft.linkzary.util.DriveErrorMessages.driveFailureMessage(e, "Restore failed — please try again."))
                 }
             }
             is DriveAuthStep.NeedsConsent -> {
