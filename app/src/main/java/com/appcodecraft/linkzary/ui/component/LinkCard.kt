@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -94,12 +95,26 @@ internal fun calendarDaysBetween(date: Date, now: Date): Int {
 }
 
 /**
- * Relative footer time for cards ("Just now", "5m ago", "2h ago", "Yesterday",
- * "4d ago", then an absolute date), per design audit #3. Pure and testable:
+ * Relative footer time for cards, per design audit #3. Pure and testable:
  * [now] is injectable; day math uses local calendar days, not 24h blocks, so
  * timezone/DST boundaries cannot shift a date a day off.
+ *
+ * [compact] = true (v4.1 footer fix) gives the stable SHORT forms the footer
+ * allocates width by — "now", "5m", "2h", "1d", "6d", then "d MMM" — so the
+ * timestamp never needs more than a few characters and the collection chip
+ * keeps its room. Long forms stay available for other surfaces.
  */
-fun formatRelativeSaveDate(date: Date, now: Date = Date()): String {
+fun formatRelativeSaveDate(date: Date, now: Date = Date(), compact: Boolean = false): String {
+    if (compact) {
+        val diffInMillis = now.time - date.time
+        val minutes = diffInMillis / (60 * 1000)
+        if (minutes < 1) return "now"
+        if (minutes < 60) return "${minutes}m"
+        val days = calendarDaysBetween(date, now)
+        if (days < 1) return "${diffInMillis / (60 * 60 * 1000)}h"
+        if (days < 7) return "${days}d"
+        return getCachedDateFormat("d MMM").format(date)
+    }
     val diffInMillis = now.time - date.time
     val minutes = diffInMillis / (60 * 1000)
     if (minutes < 1) return "Just now"
@@ -154,6 +169,7 @@ fun LinkCard(
 ) {
     val domain = extractDomain(link.url)
     val haptic = LocalHapticFeedback.current
+    val haptics = rememberLinkzaryHaptics()
     val isDark = isSystemInDarkTheme()
     val accent = MaterialTheme.colorScheme.primary
 
@@ -194,6 +210,8 @@ fun LinkCard(
             .pointerInput(isMultiSelectMode, onCardClick, onSelectClick, onLongPress) {
                 detectTapGestures(
                     onTap = {
+                        // v4.1: subtle M3 CLOCK_TICK on card tap (gated).
+                        haptics(LinkzaryHaptic.TICK)
                         if (isMultiSelectMode) {
                             onSelectClick()
                         } else {
@@ -340,10 +358,11 @@ fun LinkCard(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // Footer: unread dot + timestamp · ONE collection pill · kebab.
-                // Width-aware per spec v3 §2.1 ("no clipped text anywhere"):
-                // timestamp and pill are weighted (fill=false) so at any font
-                // scale or column width they ellipsize instead of overflowing
-                // the card onto neighboring content; the kebab stays fixed.
+                // v4.1 allocation fix: the timestamp is MEASURED first at its
+                // natural (now compact) width — no weight — and the chip takes
+                // whatever remains with a minimum comfortable width before it
+                // may ellipsize. Equal weights (the old fix) starved BOTH
+                // texts even when space was free ("15h a…", "Te…").
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -360,12 +379,11 @@ fun LinkCard(
                         Spacer(modifier = Modifier.width(6.dp))
                     }
                     Text(
-                        text = formatRelativeSaveDate(link.saveDate),
+                        text = formatRelativeSaveDate(link.saveDate, compact = true),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f, fill = false)
+                        softWrap = false
                     )
 
                     if (collectionName != null && !isMultiSelectMode) {
@@ -373,12 +391,12 @@ fun LinkCard(
                         Surface(
                             shape = RoundedCornerShape(50),
                             color = chipContainer,
-                            modifier = Modifier.weight(1f, fill = false)
+                            modifier = Modifier
+                                .weight(1f, fill = false)
+                                .widthIn(min = 48.dp)
                         ) {
                             Text(
-                                text = collectionName.let { name ->
-                                    if (name.length > 12) name.take(12) + "…" else name
-                                },
+                                text = collectionName,
                                 style = MaterialTheme.typography.labelSmall.copy(
                                     fontWeight = FontWeight.SemiBold
                                 ),
