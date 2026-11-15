@@ -24,31 +24,31 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.ColorLens
-import androidx.compose.material.icons.filled.CloudDownload
-import androidx.compose.material.icons.filled.CloudSync
-import androidx.compose.material.icons.filled.Construction
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Feedback
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.InsertChart
-import androidx.compose.material.icons.filled.Language
-import androidx.compose.material.icons.filled.MergeType
-import androidx.compose.material.icons.filled.OpenInNew
-import androidx.compose.material.icons.filled.Palette
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.Shuffle
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.Upload
-import androidx.compose.material.icons.filled.VolunteerActivism
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.rounded.Bookmark
+import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.ColorLens
+import androidx.compose.material.icons.rounded.CloudDownload
+import androidx.compose.material.icons.rounded.CloudSync
+import androidx.compose.material.icons.rounded.Construction
+import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Download
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.Feedback
+import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.InsertChart
+import androidx.compose.material.icons.rounded.Language
+import androidx.compose.material.icons.rounded.MergeType
+import androidx.compose.material.icons.rounded.OpenInNew
+import androidx.compose.material.icons.rounded.Palette
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.rounded.Security
+import androidx.compose.material.icons.rounded.Shuffle
+import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.rounded.Upload
+import androidx.compose.material.icons.rounded.VolunteerActivism
+import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -59,6 +59,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -71,6 +72,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -97,7 +99,8 @@ fun SettingsScreen(
     userPreferencesManager: UserPreferencesManager,
     onNavigateToDonation: () -> Unit = {},
     onNavigateToTags: () -> Unit = {},
-    onNavigateToStats: () -> Unit = {}
+    onNavigateToStats: () -> Unit = {},
+    onNavigateToRss: () -> Unit = {}
 ) {
     val context = LocalContext.current
     
@@ -206,7 +209,7 @@ fun SettingsScreen(
     ) {
         com.appcodecraft.linkzary.ui.component.LinkzaryTopBar(
             title = stringResource(R.string.settings_title),
-            leadingGlyph = Icons.Default.Settings,
+            leadingGlyph = Icons.Rounded.Settings,
             scrollBehavior = settingsScrollBehavior,
             containerColor = MaterialTheme.colorScheme.surface
         )
@@ -215,134 +218,13 @@ fun SettingsScreen(
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Donation Header
+            // ── 1. Drive Backup HERO card (spec v4 §3 #1) — directly under the
+            // header, primaryContainer fill, status line + Back up now / Restore.
             item {
-                DonationHeader(
-                    onDonateClick = onNavigateToDonation,
-                    hasDonated = hasDonated
-                )
-            }
-            
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-            
-            // General Section
-            item {
-                SettingsSectionHeader(stringResource(R.string.settings_general))
-            }
-            
-            item {
-                SettingsItem(
-                    icon = Icons.Default.Palette,
-                    title = stringResource(R.string.settings_theme),
-                    subtitle = when (currentThemeMode) {
-                        ThemeMode.LIGHT -> stringResource(R.string.settings_theme_light)
-                        ThemeMode.DARK -> stringResource(R.string.settings_theme_dark)
-                        ThemeMode.SYSTEM -> stringResource(R.string.settings_theme_system)
-                    },
-                    onClick = {
-                        showThemeDialog = true
-                    }
-                )
-            }
-
-            // "Use Linkzary colors" (audit #4): force brand indigo over dynamic color
-            item {
-                val useBrandColors by userPreferencesManager.useBrandColors.collectAsState()
-                SettingsToggleItem(
-                    icon = Icons.Default.ColorLens,
-                    title = stringResource(R.string.settings_use_brand_colors),
-                    subtitle = stringResource(R.string.settings_use_brand_colors_desc),
-                    checked = useBrandColors,
-                    onCheckedChange = { userPreferencesManager.setUseBrandColors(it) }
-                )
-            }
-            
-            item {
-                SettingsItem(
-                    icon = Icons.Default.Language,
-                    title = stringResource(R.string.settings_language),
-                    subtitle = LocaleHelper.getLanguageDisplayName(currentLanguage),
-                    onClick = {
-                        showLanguageDialog = true
-                    }
-                )
-            }
-            
-            // Data Section
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-                SettingsSectionHeader(stringResource(R.string.settings_data))
-            }
-            
-            item {
-                SettingsItem(
-                    icon = Icons.Default.Refresh,
-                    title = "Force Metadata Refresh", // Hardcoded string as requested/placeholder
-                    subtitle = "Update images and titles for all saved links",
-                    onClick = {
-                        viewModel.refreshMetadata()
-                    }
-                )
-            }
-
-            item {
-                SettingsItem(
-                    icon = Icons.Default.Upload,
-                    title = stringResource(R.string.settings_export_data),
-                    subtitle = stringResource(R.string.settings_export_description),
-                    onClick = {
-                        showExportDialog = true
-                    }
-                )
-            }
-            
-            item {
-                SettingsItem(
-                    icon = Icons.Default.Download,
-                    title = stringResource(R.string.settings_import_data),
-                    subtitle = stringResource(R.string.settings_import_description),
-                    onClick = {
-                        showImportDialog = true
-                    }
-                )
-            }
-
-            item {
-                SettingsItem(
-                    icon = Icons.Default.Star,
-                    title = stringResource(R.string.tags),
-                    subtitle = "Manage and rename your tags",
-                    onClick = onNavigateToTags
-                )
-            }
-
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-                SettingsSectionHeader(stringResource(R.string.settings_backup_section))
-            }
-
-            item {
-                SettingsItem(
-                    icon = Icons.Default.CloudSync,
-                    title = stringResource(R.string.settings_drive_backup),
-                    subtitle = when (driveStatus) {
-                        is DriveBackupStatus.InProgress -> stringResource(R.string.settings_drive_working)
-                        is DriveBackupStatus.Success -> stringResource(R.string.settings_drive_backup_done)
-                        is DriveBackupStatus.Restored -> stringResource(
-                            R.string.settings_drive_restore_done,
-                            (driveStatus as DriveBackupStatus.Restored).importedLinks
-                        )
-                        is DriveBackupStatus.Error ->
-                            (driveStatus as DriveBackupStatus.Error).message
-                        is DriveBackupStatus.NeedsSignIn ->
-                            stringResource(R.string.settings_drive_needs_signin)
-                        is DriveBackupStatus.NeedsPermission ->
-                            stringResource(R.string.settings_drive_needs_permission)
-                        else -> stringResource(R.string.settings_drive_backup_description)
-                    },
-                    onClick = {
+                DriveBackupHeroCard(
+                    statusText = driveHeroStatusText(driveStatus),
+                    isWorking = driveStatus is DriveBackupStatus.InProgress,
+                    onBackUpNow = {
                         if (viewModel.isDriveConnected(context)) {
                             retryPendingDriveAction = {
                                 viewModel.backupToDrive(context) { intent -> driveAuthLauncher.launch(intent) }
@@ -368,16 +250,8 @@ fun SettingsScreen(
                                 ).signInIntent
                             )
                         }
-                    }
-                )
-            }
-
-            item {
-                SettingsItem(
-                    icon = Icons.Default.CloudDownload,
-                    title = stringResource(R.string.settings_drive_restore),
-                    subtitle = stringResource(R.string.settings_drive_restore_description),
-                    onClick = {
+                    },
+                    onRestore = {
                         if (viewModel.isDriveConnected(context)) {
                             retryPendingDriveAction = {
                                 viewModel.restoreFromDrive(context) { intent -> driveAuthLauncher.launch(intent) }
@@ -403,13 +277,81 @@ fun SettingsScreen(
                                 ).signInIntent
                             )
                         }
+                    },
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+            }
+
+            // ── 2. Appearance (spec v4 §3 #2)
+            item {
+                SettingsSectionHeader(stringResource(R.string.settings_section_appearance))
+            }
+
+            item {
+                SettingsItem(
+                    icon = Icons.Rounded.Palette,
+                    title = stringResource(R.string.settings_theme),
+                    subtitle = when (currentThemeMode) {
+                        ThemeMode.LIGHT -> stringResource(R.string.settings_theme_light)
+                        ThemeMode.DARK -> stringResource(R.string.settings_theme_dark)
+                        ThemeMode.SYSTEM -> stringResource(R.string.settings_theme_system)
+                    },
+                    onClick = {
+                        showThemeDialog = true
                     }
+                )
+            }
+
+            // "Use Linkzary colors" (audit #4): force brand indigo over dynamic color
+            item {
+                val useBrandColors by userPreferencesManager.useBrandColors.collectAsState()
+                SettingsToggleItem(
+                    icon = Icons.Rounded.ColorLens,
+                    title = stringResource(R.string.settings_use_brand_colors),
+                    subtitle = stringResource(R.string.settings_use_brand_colors_desc),
+                    checked = useBrandColors,
+                    onCheckedChange = { userPreferencesManager.setUseBrandColors(it) }
                 )
             }
 
             item {
                 SettingsItem(
-                    icon = Icons.Default.MergeType,
+                    icon = Icons.Rounded.Language,
+                    title = stringResource(R.string.settings_language),
+                    subtitle = LocaleHelper.getLanguageDisplayName(currentLanguage),
+                    onClick = {
+                        showLanguageDialog = true
+                    }
+                )
+            }
+
+            // ── 3. Library (spec v4 §3 #3)
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                SettingsSectionHeader(stringResource(R.string.settings_section_library))
+            }
+
+            item {
+                SettingsItem(
+                    icon = Icons.Rounded.Star,
+                    title = stringResource(R.string.tags),
+                    subtitle = "Manage and rename your tags",
+                    onClick = onNavigateToTags
+                )
+            }
+
+            item {
+                SettingsItem(
+                    icon = Icons.Rounded.RssFeed,
+                    title = stringResource(R.string.settings_rss_feeds),
+                    subtitle = stringResource(R.string.settings_rss_feeds_description),
+                    onClick = onNavigateToRss
+                )
+            }
+
+            item {
+                SettingsItem(
+                    icon = Icons.Rounded.MergeType,
                     title = stringResource(R.string.settings_merge_duplicates),
                     subtitle = stringResource(
                         R.string.settings_merge_duplicates_description,
@@ -422,26 +364,48 @@ fun SettingsScreen(
                 )
             }
 
-            // Privacy Section
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-                SettingsSectionHeader(stringResource(R.string.settings_privacy))
-            }
-            
             item {
                 SettingsItem(
-                    icon = Icons.Default.Security,
-                    title = stringResource(R.string.settings_privacy_policy),
-                    subtitle = stringResource(R.string.settings_privacy_description),
+                    icon = Icons.Rounded.Refresh,
+                    title = "Force Metadata Refresh", // Hardcoded string as requested/placeholder
+                    subtitle = "Update images and titles for all saved links",
                     onClick = {
-                        openPrivacyPolicy(context)
+                        viewModel.refreshMetadata()
                     }
                 )
             }
-            
+
+            // ── 4. Data (spec v4 §3 #4) — Clear data last, in error tones
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                SettingsSectionHeader(stringResource(R.string.settings_data))
+            }
+
             item {
                 SettingsItem(
-                    icon = Icons.Default.Delete,
+                    icon = Icons.Rounded.Upload,
+                    title = stringResource(R.string.settings_export_data),
+                    subtitle = stringResource(R.string.settings_export_description),
+                    onClick = {
+                        showExportDialog = true
+                    }
+                )
+            }
+
+            item {
+                SettingsItem(
+                    icon = Icons.Rounded.Download,
+                    title = stringResource(R.string.settings_import_data),
+                    subtitle = stringResource(R.string.settings_import_description),
+                    onClick = {
+                        showImportDialog = true
+                    }
+                )
+            }
+
+            item {
+                SettingsItem(
+                    icon = Icons.Rounded.Delete,
                     title = stringResource(R.string.settings_clear_data),
                     subtitle = stringResource(R.string.settings_clear_data_description),
                     onClick = {
@@ -450,42 +414,31 @@ fun SettingsScreen(
                     isDestructive = true
                 )
             }
-            
-            // Statistics Section
+
+            // ── 5. Support (spec v4 §3 #5) — donation compact + Rate + Share
             item {
                 Spacer(modifier = Modifier.height(16.dp))
-                SettingsSectionHeader(stringResource(R.string.settings_stats))
+                SettingsSectionHeader(stringResource(R.string.settings_section_support))
             }
-            
+
+            item {
+                if (hasDonated) {
+                    com.appcodecraft.linkzary.ui.component.DonationCardThanks(
+                        title = stringResource(R.string.donation_v3_thanks_title),
+                        subtitle = stringResource(R.string.donation_v3_thanks_subtitle)
+                    )
+                } else {
+                    com.appcodecraft.linkzary.ui.component.DonationCardCompact(
+                        title = stringResource(R.string.donation_v3_title),
+                        subtitle = stringResource(R.string.donation_v3_subtitle),
+                        onDonateClick = onNavigateToDonation
+                    )
+                }
+            }
+
             item {
                 SettingsItem(
-                    icon = Icons.Default.InsertChart,
-                    title = stringResource(R.string.settings_stats),
-                    subtitle = stringResource(R.string.settings_stats_description),
-                    onClick = onNavigateToStats
-                )
-            }
-            
-            // About Section
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-                SettingsSectionHeader(stringResource(R.string.settings_about))
-            }
-            
-            item {
-                SettingsItem(
-                    icon = Icons.Default.Info,
-                    title = stringResource(R.string.settings_about_app),
-                    subtitle = stringResource(R.string.settings_version, BuildConfig.VERSION_NAME),
-                    onClick = {
-                        showAboutDialog = true
-                    }
-                )
-            }
-            
-            item {
-                SettingsItem(
-                    icon = Icons.Default.Star,
+                    icon = Icons.Rounded.Star,
                     title = stringResource(R.string.settings_rate_app),
                     subtitle = stringResource(R.string.settings_rate_description),
                     onClick = {
@@ -493,10 +446,49 @@ fun SettingsScreen(
                     }
                 )
             }
-            
+
             item {
                 SettingsItem(
-                    icon = Icons.Default.Feedback,
+                    icon = Icons.Rounded.Share,
+                    title = stringResource(R.string.settings_share_app),
+                    subtitle = stringResource(R.string.settings_share_app_description),
+                    onClick = {
+                        shareApp(context)
+                    }
+                )
+            }
+
+            // ── 6. About (spec v4 §3 #6)
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                SettingsSectionHeader(stringResource(R.string.settings_about))
+            }
+
+            item {
+                SettingsItem(
+                    icon = Icons.Rounded.Info,
+                    title = stringResource(R.string.settings_about_app),
+                    subtitle = stringResource(R.string.settings_version, BuildConfig.VERSION_NAME),
+                    onClick = {
+                        showAboutDialog = true
+                    }
+                )
+            }
+
+            item {
+                SettingsItem(
+                    icon = Icons.Rounded.Security,
+                    title = stringResource(R.string.settings_privacy_policy),
+                    subtitle = stringResource(R.string.settings_privacy_description),
+                    onClick = {
+                        openPrivacyPolicy(context)
+                    }
+                )
+            }
+
+            item {
+                SettingsItem(
+                    icon = Icons.Rounded.Feedback,
                     title = stringResource(R.string.settings_send_feedback),
                     subtitle = stringResource(R.string.settings_feedback_description),
                     onClick = {
@@ -504,10 +496,10 @@ fun SettingsScreen(
                     }
                 )
             }
-            
+
             item {
                 SettingsItem(
-                    icon = Icons.Default.Person,
+                    icon = Icons.Rounded.Person,
                     title = stringResource(R.string.settings_developer_profile),
                     subtitle = stringResource(R.string.settings_developer_description),
                     onClick = {
@@ -515,7 +507,16 @@ fun SettingsScreen(
                     }
                 )
             }
-            
+
+            item {
+                SettingsItem(
+                    icon = Icons.Rounded.InsertChart,
+                    title = stringResource(R.string.settings_stats),
+                    subtitle = stringResource(R.string.settings_stats_description),
+                    onClick = onNavigateToStats
+                )
+            }
+
             // Add bottom padding
             item {
                 Spacer(modifier = Modifier.height(16.dp))
@@ -525,31 +526,28 @@ fun SettingsScreen(
     
     // Metadata Refresh Progress (runs in background, dismissible)
     if (metadataRefreshProgress != null && !isMetadataDialogHidden) {
-        AlertDialog(
+        com.appcodecraft.linkzary.ui.component.LinkzaryDialog(
             onDismissRequest = { viewModel.dismissMetadataDialog() },
-            title = { Text("Refreshing Metadata") },
-            text = {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    CircularProgressIndicator()
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text("${metadataRefreshProgress!!.first} / ${metadataRefreshProgress!!.second} links processed")
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Refresh continues in background",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { viewModel.dismissMetadataDialog() }) {
-                    Text("Hide")
-                }
+            icon = Icons.Rounded.Refresh,
+            title = "Refreshing Metadata",
+            confirmLabel = "Hide",
+            onConfirm = { viewModel.dismissMetadataDialog() }
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                CircularProgressIndicator()
+                Spacer(modifier = Modifier.height(16.dp))
+                Text("${metadataRefreshProgress!!.first} / ${metadataRefreshProgress!!.second} links processed")
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Refresh continues in background",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
-        )
+        }
     }
 
     // Language Dialog
@@ -594,34 +592,21 @@ fun SettingsScreen(
 
     // Merge Duplicates Dialog
     if (showMergeDialog) {
-        AlertDialog(
+        com.appcodecraft.linkzary.ui.component.LinkzaryDialog(
             onDismissRequest = { showMergeDialog = false },
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.MergeType,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
+            icon = Icons.Rounded.MergeType,
+            title = stringResource(R.string.merge_duplicates_title),
+            confirmLabel = stringResource(R.string.merge_duplicates_confirm),
+            onConfirm = {
+                viewModel.mergeDuplicates()
+                showMergeDialog = false
             },
-            title = { Text(stringResource(R.string.merge_duplicates_title)) },
-            text = { Text(stringResource(R.string.merge_duplicates_message, duplicateCount ?: 0)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        viewModel.mergeDuplicates()
-                        showMergeDialog = false
-                    },
-                    enabled = (duplicateCount ?: 0) > 0
-                ) {
-                    Text(stringResource(R.string.merge_duplicates_confirm))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showMergeDialog = false }) {
-                    Text(stringResource(R.string.common_cancel))
-                }
-            }
-        )
+            confirmEnabled = (duplicateCount ?: 0) > 0,
+            dismissLabel = stringResource(R.string.common_cancel),
+            onDismiss = { showMergeDialog = false }
+        ) {
+            Text(stringResource(R.string.merge_duplicates_message, duplicateCount ?: 0))
+        }
     }
     
     // About Dialog
@@ -755,6 +740,127 @@ fun SettingsSectionHeader(title: String) {
     )
 }
 
+/** One-line Drive status for the hero card (reads the existing [DriveBackupStatus]). */
+private fun driveHeroStatusText(status: DriveBackupStatus?): String = when (status) {
+    is DriveBackupStatus.InProgress -> "Working…"
+    is DriveBackupStatus.Success -> "Backup complete"
+    is DriveBackupStatus.Restored -> "Restored ${status.importedLinks} links"
+    is DriveBackupStatus.Error -> status.message
+    is DriveBackupStatus.NeedsSignIn -> "Sign-in needed"
+    is DriveBackupStatus.NeedsPermission -> "Tap again to grant Drive access"
+    null -> "Save all links and collections to your own Drive"
+}
+
+/**
+ * Drive Backup HERO card (spec v4 §3 #1): full-width primaryContainer card,
+ * cookie-clipped glyph tile, status line, Back-up-now (filled) + Restore
+ * (outlined) pill buttons. Vivid accent target per spec v4 §1/§5.
+ */
+@Composable
+fun DriveBackupHeroCard(
+    statusText: String,
+    isWorking: Boolean,
+    onBackUpNow: () -> Unit,
+    onRestore: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(com.appcodecraft.linkzary.ui.theme.CookieShape)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.CloudSync,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.settings_drive_hero_title),
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.SemiBold
+                    ),
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Text(
+                    text = statusText,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Button(
+                        onClick = onBackUpNow,
+                        enabled = !isWorking,
+                        shape = RoundedCornerShape(50),
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                            horizontal = 16.dp, vertical = 8.dp
+                        ),
+                        modifier = Modifier.height(36.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.settings_drive_back_up_now),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    OutlinedButton(
+                        onClick = onRestore,
+                        enabled = !isWorking,
+                        shape = RoundedCornerShape(50),
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                            horizontal = 16.dp, vertical = 8.dp
+                        ),
+                        modifier = Modifier.height(36.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.settings_drive_restore_short),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** Share-app intent (spec v4 §3 #5, Support section). */
+fun shareApp(context: Context) {
+    val intent = Intent(Intent.ACTION_SEND).apply {
+        type = "text/plain"
+        putExtra(
+            Intent.EXTRA_TEXT,
+            "Linkzary — a calm bookmark manager: https://play.google.com/store/apps/details?id=com.appcodecraft.linkzary"
+        )
+    }
+    context.startActivity(Intent.createChooser(intent, context.getString(R.string.settings_share_app_choice)))
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsItem(
@@ -811,7 +917,7 @@ fun SettingsItem(
             }
             
             Icon(
-                imageVector = Icons.Default.ChevronRight,
+                imageVector = Icons.Rounded.ChevronRight,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(20.dp)
@@ -895,45 +1001,37 @@ fun LanguageSelectionDialog(
         stringResource(R.string.language_arabic) to "ar"
     )
     
-    AlertDialog(
+    com.appcodecraft.linkzary.ui.component.LinkzaryDialog(
         onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = stringResource(R.string.settings_select_language),
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
-            )
-        },
-        text = {
-            LazyColumn {
-                items(languages) { (name, code) ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp)
-                            .clickable {
-                                onLanguageSelected(code)
-                            },
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
-                        )
-                    ) {
-                        Text(
-                            text = name,
-                            modifier = Modifier.padding(16.dp),
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                    }
+        icon = Icons.Rounded.Language,
+        title = stringResource(R.string.settings_select_language),
+        confirmLabel = null,
+        onConfirm = {},
+        dismissLabel = stringResource(R.string.common_cancel),
+        onDismiss = onDismiss
+    ) {
+        LazyColumn {
+            items(languages) { (name, code) ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                        .clickable {
+                            onLanguageSelected(code)
+                        },
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
+                    )
+                ) {
+                    Text(
+                        text = name,
+                        modifier = Modifier.padding(16.dp),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
                 }
             }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.common_cancel))
-            }
         }
-    )
+    }
 }
 
 // Clear Data Confirmation Dialog
@@ -942,61 +1040,36 @@ fun ClearDataConfirmationDialog(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit
 ) {
-    AlertDialog(
+    com.appcodecraft.linkzary.ui.component.LinkzaryDialog(
         onDismissRequest = onDismiss,
-        icon = {
-            Icon(
-                imageVector = Icons.Default.Warning,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.error,
-                modifier = Modifier.size(32.dp)
-            )
-        },
-        title = {
+        icon = Icons.Rounded.Warning,
+        title = stringResource(R.string.settings_clear_data_title),
+        confirmLabel = stringResource(R.string.settings_clear_data),
+        onConfirm = onConfirm,
+        dismissLabel = stringResource(R.string.common_cancel),
+        onDismiss = onDismiss,
+        destructive = true
+    ) {
+        Column {
             Text(
-                text = stringResource(R.string.settings_clear_data_title),
-                style = MaterialTheme.typography.headlineSmall,
+                text = stringResource(R.string.settings_clear_data_warning),
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(stringResource(R.string.settings_clear_data_item1))
+            Text(stringResource(R.string.settings_clear_data_item2))
+            Text(stringResource(R.string.settings_clear_data_item3))
+            Text(stringResource(R.string.settings_clear_data_item4))
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = stringResource(R.string.settings_clear_data_irreversible),
+                style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.error
             )
-        },
-        text = {
-            Column {
-                Text(
-                    text = stringResource(R.string.settings_clear_data_warning),
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(stringResource(R.string.settings_clear_data_item1))
-                Text(stringResource(R.string.settings_clear_data_item2))
-                Text(stringResource(R.string.settings_clear_data_item3))
-                Text(stringResource(R.string.settings_clear_data_item4))
-                Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = stringResource(R.string.settings_clear_data_irreversible),
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.error
-                )
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = onConfirm,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error
-                )
-            ) {
-                Text(stringResource(R.string.settings_clear_data))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.common_cancel))
-            }
         }
-    )
+    }
 }
 
 // Enhanced About Dialog
@@ -1006,28 +1079,14 @@ fun AboutDialog(
 ) {
     val context = LocalContext.current
     
-    AlertDialog(
+    com.appcodecraft.linkzary.ui.component.LinkzaryDialog(
         onDismissRequest = onDismiss,
-        title = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Bookmark,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(28.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = stringResource(R.string.settings_about_app),
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        },
-        text = {
-            Column {
+        icon = Icons.Rounded.Bookmark,
+        title = stringResource(R.string.settings_about_app),
+        confirmLabel = stringResource(R.string.common_close),
+        onConfirm = onDismiss
+    ) {
+        Column {
                 Text(
                     text = stringResource(R.string.settings_about_description),
                     style = MaterialTheme.typography.bodyMedium
@@ -1045,10 +1104,10 @@ fun AboutDialog(
                 
                 Spacer(modifier = Modifier.height(8.dp))
                 
-                FeatureRow(Icons.Default.Security, stringResource(R.string.about_feature_secure))
-                FeatureRow(Icons.Default.Favorite, stringResource(R.string.about_feature_free))
-                FeatureRow(Icons.Default.Palette, stringResource(R.string.about_feature_themes))
-                FeatureRow(Icons.Default.Language, stringResource(R.string.about_feature_languages))
+                FeatureRow(Icons.Rounded.Security, stringResource(R.string.about_feature_secure))
+                FeatureRow(Icons.Rounded.Favorite, stringResource(R.string.about_feature_free))
+                FeatureRow(Icons.Rounded.Palette, stringResource(R.string.about_feature_themes))
+                FeatureRow(Icons.Rounded.Language, stringResource(R.string.about_feature_languages))
                 
                 Spacer(modifier = Modifier.height(12.dp))
                 
@@ -1082,7 +1141,7 @@ fun AboutDialog(
                 AppCard(
                     name = stringResource(R.string.app_curioshuffle),
                     description = stringResource(R.string.app_curioshuffle_description),
-                    icon = Icons.Default.Shuffle,
+                    icon = Icons.Rounded.Shuffle,
                     onClick = {
                         openAppInPlayStore(context, "com.appcodecraft.curioshuffle")
                     }
@@ -1093,16 +1152,11 @@ fun AboutDialog(
                 AppCard(
                     name = stringResource(R.string.app_curiomate),
                     description = stringResource(R.string.app_curiomate_description),
-                    icon = Icons.Default.Construction,
+                    icon = Icons.Rounded.Construction,
                     onClick = {
                         openAppInPlayStore(context, "com.appcodecraft.curiomate")
                     }
                 )
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.common_close))
             }
         }
     )
@@ -1199,7 +1253,7 @@ fun AppCard(
             }
             
             Icon(
-                imageVector = Icons.Default.OpenInNew,
+                imageVector = Icons.Rounded.OpenInNew,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(16.dp)
