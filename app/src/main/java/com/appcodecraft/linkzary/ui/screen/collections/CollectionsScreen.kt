@@ -1,6 +1,7 @@
 package com.appcodecraft.linkzary.ui.screen.collections
 
 import androidx.compose.foundation.background
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -164,11 +165,15 @@ fun CollectionsScreen(
             }
         )
 
+        // Spec v3 §2.2: FAB hide/return scroll behavior, wired to the list.
+        val fabBehavior = com.appcodecraft.linkzary.ui.component.rememberLinkzaryFabScrollBehavior()
+
         // Main content — header is a real sibling now, so no hardcoded top pad
         LazyColumn(
             state = collectionsListState,
             modifier = Modifier
                 .fillMaxSize()
+                .nestedScroll(fabBehavior.nestedScrollConnection)
                 .padding(horizontal = 16.dp),
             contentPadding = PaddingValues(bottom = 96.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -282,6 +287,7 @@ fun CollectionsScreen(
                                 CollectionCard(
                                     collection = collection,
                                     linkCount = collectionMap[collection.id] ?: 0,
+                                    thumbnails = uiState.collectionThumbnails[collection.id] ?: emptyList(),
                                     onCardClick = {
                                         navController?.navigate(
                                             Screen.CollectionDetail.createRoute(collection.id.toString())
@@ -304,6 +310,7 @@ fun CollectionsScreen(
                         CollectionCard(
                             collection = collection,
                             linkCount = collectionMap[collection.id] ?: 0,
+                            thumbnails = uiState.collectionThumbnails[collection.id] ?: emptyList(),
                             onCardClick = {
                                 navController?.navigate(
                                     Screen.CollectionDetail.createRoute(collection.id.toString())
@@ -357,10 +364,11 @@ fun CollectionsScreen(
 
         } // Column (header + content)
 
-        // The one FAB — standard M3 extended FAB (replaces the cookie morph)
-        com.appcodecraft.linkzary.ui.component.LinkzaryFab(
+        // The one FAB — spec v3 §2.2 Extended FAB with scroll hide/return
+        com.appcodecraft.linkzary.ui.component.LinkzaryExtendedFab(
             label = stringResource(R.string.fab_new_collection),
             onClick = { showCreateCollectionDialog = true },
+            behavior = fabBehavior,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(16.dp)

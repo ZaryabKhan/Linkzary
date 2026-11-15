@@ -385,6 +385,13 @@
     <string name="settings_support_description">Help us continue improving Linkzary</string>
     <string name="settings_donate_button">Donate</string>
     <string name="settings_donate_disclaimer">Your support helps us maintain and improve the app</string>
+    <!-- Spec v3 §2.3 donation card copy -->
+    <string name="donation_v3_title">Support Linkzary</string>
+    <string name="donation_v3_subtitle">Help keep the app alive</string>
+    <string name="donation_v3_button">Support the app</string>
+    <string name="donation_v3_footer">Small yearly cost, no pressure. Quiet, optional.</string>
+    <string name="donation_v3_thanks_title">Thank you for your support!</string>
+    <string name="donation_v3_thanks_subtitle">You\'ve already donated to support Linkzary\'s development</string>
     <string name="settings_clear_data_title">Clear All Data</string>
     <string name="settings_clear_data_warning">This will permanently delete:</string>
     <string name="settings_clear_data_item1">All your bookmarks</string>

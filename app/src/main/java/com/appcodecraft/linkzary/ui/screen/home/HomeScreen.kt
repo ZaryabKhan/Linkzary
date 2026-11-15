@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.DriveFileMove
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.automirrored.filled.ViewList
@@ -118,7 +119,7 @@ import androidx.navigation.NavController
 import com.appcodecraft.linkzary.R
 import com.appcodecraft.linkzary.data.entity.SavedLink
 import com.appcodecraft.linkzary.navigation.Screen
-import com.appcodecraft.linkzary.ui.component.BookmarkCard
+import com.appcodecraft.linkzary.ui.component.LinkCard
 import com.appcodecraft.linkzary.ui.component.CreateCollectionForm
 import com.appcodecraft.linkzary.ui.component.EditLinkDialog
 import com.appcodecraft.linkzary.ui.component.EmptyStateIllustration
@@ -866,11 +867,15 @@ fun HomeScreen(
         )
     }
 
+    // Spec v3 §2.2: FAB hide/return scroll behavior, wired to the list.
+    val fabBehavior = com.appcodecraft.linkzary.ui.component.rememberLinkzaryFabScrollBehavior()
+
     // Main content with LazyColumn
     LazyColumn(
         state = listState,
         modifier = Modifier
             .fillMaxSize()
+            .nestedScroll(fabBehavior.nestedScrollConnection)
             // No app bar in multi-select: pad for the status bar ourselves
             .then(if (uiState.isMultiSelectMode) Modifier.statusBarsPadding() else Modifier)
             .padding(horizontal = 16.dp),
@@ -1094,8 +1099,21 @@ fun HomeScreen(
                             Text(
                                 text = stringResource(R.string.home_recent_collections),
                                 style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.SemiBold
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.weight(1f)
                             )
+                            // Spec v3 §3.1: `>` affordance chip at the shelf's right
+                            IconButton(
+                                onClick = { navController?.navigate(Screen.Collections.route) },
+                                modifier = Modifier.size(32.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                    contentDescription = stringResource(R.string.home_recent_collections),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
                         }
                         Spacer(modifier = Modifier.height(12.dp))
                         LazyRow(
@@ -1225,13 +1243,12 @@ fun HomeScreen(
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             rowLinks.forEach { link ->
-                                BookmarkCard(
+                                LinkCard(
                                     link = link,
+                                    collectionId = link.collectionId,
                                     collectionName = collectionMap[link.collectionId]?.name,
-                                    collectionColor = collectionMap[link.collectionId]?.color,
                                     isMultiSelectMode = uiState.isMultiSelectMode,
                                     isSelected = uiState.selectedLinks.contains(link.id),
-                                    isGrid = true,
                                     onCardClick = {
                                         if (uiState.isMultiSelectMode) {
                                             viewModel.toggleLinkSelection(link.id)
@@ -1255,10 +1272,10 @@ fun HomeScreen(
                         items = filteredLinks,
                         key = { it.id }
                     ) { link ->
-                        BookmarkCard(
+                        LinkCard(
                             link = link,
+                            collectionId = link.collectionId,
                             collectionName = collectionMap[link.collectionId]?.name,
-                            collectionColor = collectionMap[link.collectionId]?.color,
                             isMultiSelectMode = uiState.isMultiSelectMode,
                             isSelected = uiState.selectedLinks.contains(link.id),
                             modifier = Modifier
@@ -1375,11 +1392,12 @@ fun HomeScreen(
     }
 
     // Floating Action Button (overlay, bottom-right)
-    // Standard M3 extended FAB — full label, never clips.
+    // Spec v3 §2.2: M3 Extended FAB, slides out on scroll down / returns on up.
     if (!uiState.isMultiSelectMode && !showCoachMark) {
-        com.appcodecraft.linkzary.ui.component.LinkzaryFab(
+        com.appcodecraft.linkzary.ui.component.LinkzaryExtendedFab(
             label = stringResource(R.string.home_add_link),
             onClick = { showAddLinkDialog = true },
+            behavior = fabBehavior,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(16.dp)

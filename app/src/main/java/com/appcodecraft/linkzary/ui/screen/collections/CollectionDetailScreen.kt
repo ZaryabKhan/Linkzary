@@ -1,6 +1,7 @@
 package com.appcodecraft.linkzary.ui.screen.collections
 
 import androidx.compose.foundation.background
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -63,20 +64,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.toColorInt
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.appcodecraft.linkzary.R
 import com.appcodecraft.linkzary.data.entity.SavedLink
-import com.appcodecraft.linkzary.ui.component.BookmarkCard
+import com.appcodecraft.linkzary.ui.component.LinkCard
 import com.appcodecraft.linkzary.ui.component.EditLinkDialog
 import com.appcodecraft.linkzary.ui.component.OptionItem
 import com.appcodecraft.linkzary.ui.component.CollectionSelectionDialog
@@ -133,27 +132,19 @@ fun CollectionDetailScreen(
     // Spec v2 §2.1/§5: root paints its surface behind the status bar; the
     // hero header (container tone, never alpha tint) sits directly on top.
     Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceContainerLow)) {
+        // Spec v3 §2.2: FAB hide/return scroll behavior
+        val fabBehavior = com.appcodecraft.linkzary.ui.component.rememberLinkzaryFabScrollBehavior()
         Column(
             modifier = Modifier
                 .fillMaxSize()
         ) {
-        // Hero header (spec v2 §2.1): harmonized collection color at real
-        // container tone (dark ~tone30 / light ~tone90), 28dp bottom corners,
-        // compact height, titleLarge + labelMedium count.
-        val parsedCollectionColor = uiState.collection?.color
-            ?.let { runCatching { Color(it.toColorInt()) }.getOrNull() }
-            ?: MaterialTheme.colorScheme.primary
-        val darkTheme = androidx.compose.foundation.isSystemInDarkTheme()
-        val heroContainer = com.appcodecraft.linkzary.ui.theme.harmonizedContainerTone(
-            design = parsedCollectionColor,
-            source = MaterialTheme.colorScheme.primary,
-            dark = darkTheme
-        )
-        val onHeroContainer = com.appcodecraft.linkzary.ui.theme.harmonizedOnContainerTone(
-            design = parsedCollectionColor,
-            source = MaterialTheme.colorScheme.primary,
-            dark = darkTheme
-        )
+        // Hero header (spec v3 §3.3): tinted with THIS collection's hue pair
+        // (hash→harmonized HSL), not a single indigo for all collections.
+        val huePair = uiState.collection?.id?.let {
+            com.appcodecraft.linkzary.ui.component.collectionHuePair(it)
+        }
+        val heroContainer = huePair?.first ?: MaterialTheme.colorScheme.primaryContainer
+        val onHeroContainer = huePair?.second ?: MaterialTheme.colorScheme.onPrimaryContainer
         com.appcodecraft.linkzary.ui.component.LinkzaryHeroHeader(
             title = uiState.collection?.name ?: stringResource(R.string.collections_collection),
             countLabel = stringResource(R.string.collections_links_count, filteredLinks.size),
@@ -193,7 +184,11 @@ fun CollectionDetailScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         // Content - wrapped with weight to fill remaining space
-        Box(modifier = Modifier.weight(1f)) {
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .nestedScroll(fabBehavior.nestedScrollConnection)
+        ) {
         when {
             uiState.isLoading -> {
                 Box(
@@ -256,13 +251,12 @@ fun CollectionDetailScreen(
                         contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 96.dp)
                     ) {
                         itemsIndexed(filteredLinks, key = { _, link -> link.id }) { index, link ->
-                            BookmarkCard(
+                            LinkCard(
                                 link = link,
-                                collectionName = uiState.collection?.name ?: "",
-                                collectionColor = uiState.collection?.color ?: "#FF6200EE",
+                                collectionId = uiState.collection?.id,
+                                collectionName = uiState.collection?.name,
                                 isMultiSelectMode = uiState.isMultiSelectMode,
                                 isSelected = uiState.selectedLinks.contains(link.id),
-                                isGrid = true,
                                 onCardClick = {
                                     if (uiState.isMultiSelectMode) {
                                         viewModel.toggleLinkSelection(link.id)
@@ -292,10 +286,10 @@ fun CollectionDetailScreen(
                         contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 96.dp)
                     ) {
                         lazyColumnItemsIndexed(filteredLinks, key = { _, link -> link.id }) { index, link ->
-                            BookmarkCard(
+                            LinkCard(
                                 link = link,
-                                collectionName = uiState.collection?.name ?: "",
-                                collectionColor = uiState.collection?.color ?: "#FF6200EE",
+                                collectionId = uiState.collection?.id,
+                                collectionName = uiState.collection?.name,
                                 isMultiSelectMode = uiState.isMultiSelectMode,
                                 isSelected = uiState.selectedLinks.contains(link.id),
                                 onCardClick = {
@@ -328,9 +322,10 @@ fun CollectionDetailScreen(
         // Add Floating Action Button for adding bookmarks directly to this collection
         // (standard M3 extended FAB)
         if (!uiState.isMultiSelectMode) {
-            com.appcodecraft.linkzary.ui.component.LinkzaryFab(
+            com.appcodecraft.linkzary.ui.component.LinkzaryExtendedFab(
                 label = stringResource(R.string.home_add_link),
                 onClick = { showAddLinkDialog = true },
+                behavior = fabBehavior,
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(16.dp)

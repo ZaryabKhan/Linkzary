@@ -105,7 +105,7 @@ fun RssFeedsScreen(
         },
         floatingActionButton = {
             if (uiState.selectedFeed == null) {
-                com.appcodecraft.linkzary.ui.component.LinkzaryFab(
+                com.appcodecraft.linkzary.ui.component.LinkzaryExtendedFab(
                     label = stringResource(R.string.rss_add_feed),
                     onClick = viewModel::startAddingFeed
                 )

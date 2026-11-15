@@ -1,14 +1,15 @@
 package com.appcodecraft.linkzary.ui.component
 
-// Animation imports removed for better performance
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -34,36 +35,45 @@ import androidx.compose.material.icons.rounded.ShoppingCart
 import androidx.compose.material.icons.rounded.SportsSoccer
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.icons.rounded.Work
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.toColorInt
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.appcodecraft.linkzary.R
 import com.appcodecraft.linkzary.data.entity.Collection
+import com.appcodecraft.linkzary.ui.theme.collectionContainerDark
+import com.appcodecraft.linkzary.ui.theme.collectionContainerLight
+import com.appcodecraft.linkzary.ui.theme.collectionHue
+import com.appcodecraft.linkzary.ui.theme.collectionOnContainerDark
+import com.appcodecraft.linkzary.ui.theme.collectionOnContainerLight
 import com.appcodecraft.linkzary.ui.theme.LinkzaryTheme
-import java.util.Date
 
 /**
- * The one glyph mapping (spec v2 §4, audit D4): M3 rounded glyphs inside a
- * harmonized tonal tile, glyph colored onContainer — no stock-blue folder
- * anywhere. "Unsorted" collections get a bookmark glyph in primary, not a
- * folder.
+ * The one glyph mapping: M3 rounded glyphs inside a hue-tinted tile. The
+ * user-picked icon ALWAYS wins (bug build 2026-11-15); blank/Folder/unknown
+ * falls back to the bookmark glyph.
  */
 fun getCollectionGlyph(iconName: String?): ImageVector {
     if (iconName.isNullOrBlank() || iconName == "Folder") {
@@ -89,44 +99,39 @@ fun getCollectionGlyph(iconName: String?): ImageVector {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+/** Hue container/on-container pair for a collection id, theme-aware (spec v3 §1.1). */
+@Composable
+fun collectionHuePair(collectionId: Long): Pair<Color, Color> {
+    val isDark = isSystemInDarkTheme()
+    val accent = MaterialTheme.colorScheme.primary
+    val hue = collectionHue(collectionId)
+    return if (isDark) {
+        collectionContainerDark(hue, accent) to collectionOnContainerDark(hue, accent)
+    } else {
+        collectionContainerLight(hue, accent) to collectionOnContainerLight(hue, accent)
+    }
+}
+
+/**
+ * CollectionCard v3 (spec v3 §2.4): per-collection hue identity + thumbnail
+ * fan. Name + kebab on top; a fan of up to 3 real thumbnails (56dp, -6°,
+ * overlapping 8dp) when filled; a hue-tinted glyph tile holding the
+ * user-picked icon when empty — never a grey void. 4dp hue strip on the top
+ * edge. Count pill bottom-right in collContainer.
+ */
 @Composable
 fun CollectionCard(
     collection: Collection,
     linkCount: Int,
     onCardClick: () -> Unit,
     onMoreClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    thumbnails: List<String> = emptyList()
 ) {
-    // Static interaction source for click handling only
-    val interactionSource = remember { MutableInteractionSource() }
     val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
-
-    // Addendum (2026-11-15) #1/#2: shape party REVOKED — one card shape, one
-    // fixed icon slot for every collection. Icon color = brand indigo tonal
-    // family only (primaryContainer/onPrimaryContainer); no per-card hues.
-    // #3: '0 links' collections get a visibly muted treatment.
-    val isMuted = linkCount == 0
-    val tileContainer = if (isMuted) {
-        MaterialTheme.colorScheme.surfaceContainerHigh
-    } else {
-        MaterialTheme.colorScheme.primaryContainer
-    }
-    val onTileContainer = if (isMuted) {
-        MaterialTheme.colorScheme.onSurfaceVariant
-    } else {
-        MaterialTheme.colorScheme.onPrimaryContainer
-    }
-    val titleColor = if (isMuted) {
-        MaterialTheme.colorScheme.onSurfaceVariant
-    } else {
-        MaterialTheme.colorScheme.onSurface
-    }
-    val countColor = if (isMuted) {
-        MaterialTheme.colorScheme.outline
-    } else {
-        MaterialTheme.colorScheme.onSurfaceVariant
-    }
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    val (hueContainer, hueOnContainer) = collectionHuePair(collection.id)
 
     Card(
         modifier = modifier
@@ -140,9 +145,8 @@ fun CollectionCard(
                     onMoreClick()
                 }
             ),
-        shape = MaterialTheme.shapes.extraLarge,
+        shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
-            // Spec v2 §3: harmonized container tone on surfaceContainerLowest-tier card
             containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
@@ -150,54 +154,130 @@ fun CollectionCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .height(IntrinsicSize.Min)
         ) {
-            // Fixed icon slot (addendum #1): 48dp tile, fixed 16dp-corner
-            // shape, 24dp glyph centered — content can never overflow.
+            // 4dp hue strip — subtle identity, no "shape party"
             Box(
                 modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(tileContainer),
-                contentAlignment = Alignment.Center
+                    .fillMaxWidth()
+                    .height(4.dp)
+                    .background(hueContainer)
+            )
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
             ) {
-                Icon(
-                    imageVector = getCollectionGlyph(collection.icon),
-                    contentDescription = null,
-                    tint = onTileContainer,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
+                // Name + kebab
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = collection.name,
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.SemiBold
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+                    IconButton(
+                        onClick = onMoreClick,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.MoreVert,
+                            contentDescription = stringResource(R.string.home_more_options),
+                            modifier = Modifier.size(18.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
 
-            Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-            // Name: two lines allowed so it never truncates below 2 words at
-            // grid width (spec v2 §2.6); the kebab moved to long-press.
-            Text(
-                text = collection.name,
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.SemiBold
-                ),
-                color = titleColor,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            Text(
-                text = if (linkCount == 1) {
-                    stringResource(R.string.collections_link_count_single, linkCount)
+                // Fan (filled) or hue glyph tile (empty)
+                if (thumbnails.isNotEmpty()) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy((-8).dp)
+                    ) {
+                        thumbnails.take(3).forEachIndexed { index, url ->
+                            AsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(url)
+                                    .crossfade(true)
+                                    .memoryCachePolicy(coil.request.CachePolicy.ENABLED)
+                                    .diskCachePolicy(coil.request.CachePolicy.ENABLED)
+                                    .build(),
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .size(56.dp)
+                                    .graphicsLayer { rotationZ = -6f * (index + 1) }
+                                    .clip(RoundedCornerShape(12.dp))
+                            )
+                        }
+                    }
                 } else {
-                    stringResource(R.string.collections_link_count_plural, linkCount)
-                },
-                style = MaterialTheme.typography.bodyMedium,
-                color = countColor
-            )
+                    // Empty: 56dp hue tile holding the user-picked glyph
+                    Box(
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(hueContainer),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = getCollectionGlyph(collection.icon),
+                            contentDescription = stringResource(R.string.collections_collection_icon),
+                            tint = hueOnContainer,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Count pill bottom-right, hue-tinted
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    HueCountPill(hueContainer, hueOnContainer, linkCount)
+                }
+            }
         }
     }
 }
 
+@Composable
+private fun HueCountPill(container: Color, onContainer: Color, count: Int) {
+    androidx.compose.material3.Surface(
+        shape = RoundedCornerShape(50),
+        color = container
+    ) {
+        Text(
+            text = if (count == 1) {
+                stringResource(R.string.collections_link_count_single, count)
+            } else {
+                stringResource(R.string.collections_link_count_plural, count)
+            },
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+            color = onContainer,
+            maxLines = 1,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+        )
+    }
+}
+
+/**
+ * Home shelf mini card (spec v3 §3.1): 148dp wide, name + hue glyph tile +
+ * count. The user-picked icon always shows on the tile.
+ */
 @Composable
 fun SmallCollectionCard(
     collection: Collection,
@@ -205,14 +285,12 @@ fun SmallCollectionCard(
     onCardClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Addendum #2: brand indigo tonal family only for icon tiles
-    val tileContainer = MaterialTheme.colorScheme.primaryContainer
-    val onTileContainer = MaterialTheme.colorScheme.onPrimaryContainer
+    val (hueContainer, hueOnContainer) = collectionHuePair(collection.id)
     Card(
         modifier = modifier
-            .width(130.dp)
+            .width(148.dp)
             .clickable { onCardClick() },
-        shape = MaterialTheme.shapes.extraLarge,
+        shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
         ),
@@ -221,94 +299,62 @@ fun SmallCollectionCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(12.dp)
         ) {
             Box(
                 modifier = Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(tileContainer),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = getCollectionGlyph(collection.icon),
-                    contentDescription = stringResource(R.string.collections_collection_icon),
-                    tint = onTileContainer,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-            
+                    .fillMaxWidth()
+                    .height(4.dp)
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(hueContainer)
+            )
+
             Spacer(modifier = Modifier.height(8.dp))
-            
-            // Collection name
+
             Text(
                 text = collection.name,
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Medium,
+                style = MaterialTheme.typography.titleSmall.copy(
+                    fontWeight = FontWeight.SemiBold
+                ),
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-            
-            // Link count
-            Text(
-                text = if (linkCount == 1) {
-                    stringResource(R.string.collections_link_count_single, linkCount)
-                } else {
-                    stringResource(R.string.collections_link_count_plural, linkCount)
-                },
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
-            )
-        }
-    }
-}
 
-@Preview
-@Composable
-fun CollectionCardPreview() {
-    LinkzaryTheme {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            CollectionCard(
-                collection = Collection(
-                    id = 1,
-                    name = "Design Inspiration",
-                    color = "#FF6B6B",
-                    createdDate = Date()
-                ),
-                linkCount = 15,
-                onCardClick = { },
-                onMoreClick = { }
-            )
-            
+            Spacer(modifier = Modifier.height(8.dp))
+
             Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                SmallCollectionCard(
-                    collection = Collection(
-                        id = 2,
-                        name = "Tech",
-                        color = "#4ECDC4",
-                        createdDate = Date()
-                    ),
-                    linkCount = 8,
-                    onCardClick = { }
-                )
-                
-                SmallCollectionCard(
-                    collection = Collection(
-                        id = 3,
-                        name = "Articles",
-                        color = "#45B7D1",
-                        createdDate = Date()
-                    ),
-                    linkCount = 23,
-                    onCardClick = { }
-                )
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(hueContainer),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = getCollectionGlyph(collection.icon),
+                        contentDescription = stringResource(R.string.collections_collection_icon),
+                        tint = hueOnContainer,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.weight(1f))
+                Box(
+                    modifier = Modifier
+                        .background(hueContainer, RoundedCornerShape(50))
+                        .padding(horizontal = 8.dp, vertical = 2.dp)
+                ) {
+                    Text(
+                        text = linkCount.toString(),
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontWeight = FontWeight.SemiBold
+                        ),
+                        color = hueOnContainer
+                    )
+                }
             }
         }
     }
