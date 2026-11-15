@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -46,6 +47,7 @@ import com.appcodecraft.linkzary.R
  */
 
 /** Standard 64dp bar. Used pinned on Home/Collections/RSS, enterAlways on Settings. */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LinkzaryTopBar(
     title: String,

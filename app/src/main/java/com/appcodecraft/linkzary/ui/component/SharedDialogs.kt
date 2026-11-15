@@ -126,12 +126,8 @@ fun CollectionOptionItem(
                 modifier = Modifier
                     .size(32.dp)
                     .background(
-                        // Spec v2 §4: harmonized tonal tile, glyph in onContainer
-                        color = com.appcodecraft.linkzary.ui.theme.harmonizedContainerTone(
-                            design = Color(color),
-                            source = MaterialTheme.colorScheme.primary,
-                            dark = androidx.compose.foundation.isSystemInDarkTheme()
-                        ),
+                        // Addendum #2: brand indigo tonal family only
+                        color = MaterialTheme.colorScheme.primaryContainer,
                         shape = CircleShape
                     ),
                 contentAlignment = Alignment.Center
@@ -139,11 +135,7 @@ fun CollectionOptionItem(
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = com.appcodecraft.linkzary.ui.theme.harmonizedOnContainerTone(
-                        design = Color(color),
-                        source = MaterialTheme.colorScheme.primary,
-                        dark = androidx.compose.foundation.isSystemInDarkTheme()
-                    ),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
                     modifier = Modifier.size(16.dp)
                 )
             }

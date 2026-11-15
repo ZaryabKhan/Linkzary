@@ -47,3 +47,6 @@ agconnect-services.json
 # Misc
 *.log
 icon-build/
+
+# Local agent scratch (tokens, watchers)
+tmp/

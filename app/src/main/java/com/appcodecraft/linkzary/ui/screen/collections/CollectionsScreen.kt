@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -275,8 +276,12 @@ fun CollectionsScreen(
                         items = uiState.collections.chunked(2),
                         key = { _, chunk -> chunk.joinToString(",") { it.id.toString() } }
                     ) { rowIndex, rowCollections ->
+                        // Addendum #3: equal card heights per row — the row
+                        // sizes to its tallest card, both cards stretch.
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(IntrinsicSize.Min),
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             rowCollections.forEachIndexed { colIndex, collection ->
@@ -289,9 +294,7 @@ fun CollectionsScreen(
                                         )
                                     },
                                     onMoreClick = { selectedCollection = collection },
-                                    modifier = Modifier.weight(1f),
-                                    // Spec §6 shape party: rotate shapes across items
-                                    shapeVariant = rowIndex * 2 + colIndex
+                                    modifier = Modifier.weight(1f)
                                 )
                             }
                             if (rowCollections.size == 1) {
@@ -312,8 +315,7 @@ fun CollectionsScreen(
                                     Screen.CollectionDetail.createRoute(collection.id.toString())
                                 )
                             },
-                            onMoreClick = { selectedCollection = collection },
-                            shapeVariant = index
+                            onMoreClick = { selectedCollection = collection }
                         )
                     }
                 }
@@ -459,25 +461,14 @@ fun CollectionOptionsBottomSheet(
                     modifier = Modifier
                         .size(40.dp)
                         .clip(RoundedCornerShape(14.dp))
-                        .background(
-                            com.appcodecraft.linkzary.ui.theme.harmonizedContainerTone(
-                                design = runCatching { Color(collection.color.toColorInt()) }
-                                    .getOrDefault(MaterialTheme.colorScheme.primary),
-                                source = MaterialTheme.colorScheme.primary,
-                                dark = androidx.compose.foundation.isSystemInDarkTheme()
-                            )
-                        ),
+                        // Addendum #2: brand indigo tonal family only
+                        .background(MaterialTheme.colorScheme.primaryContainer),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = getCollectionGlyph(collection.icon),
                         contentDescription = stringResource(R.string.collections_collection_icon),
-                        tint = com.appcodecraft.linkzary.ui.theme.harmonizedOnContainerTone(
-                            design = runCatching { Color(collection.color.toColorInt()) }
-                                .getOrDefault(MaterialTheme.colorScheme.primary),
-                            source = MaterialTheme.colorScheme.primary,
-                            dark = androidx.compose.foundation.isSystemInDarkTheme()
-                        ),
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
                         modifier = Modifier.size(20.dp)
                     )
                 }

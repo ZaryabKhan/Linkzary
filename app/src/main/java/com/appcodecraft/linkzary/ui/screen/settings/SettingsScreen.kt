@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.ColorLens
 import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.Construction
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Favorite
@@ -193,6 +194,9 @@ fun SettingsScreen(
         }
     }
     
+    // Standard header, enterAlways collapse (spec v2 §2.1/§5 Settings row)
+    val settingsScrollBehavior = androidx.compose.material3.TopAppBarDefaults.enterAlwaysScrollBehavior()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -200,11 +204,9 @@ fun SettingsScreen(
             .nestedScroll(settingsScrollBehavior.nestedScrollConnection)
             .padding(horizontal = 16.dp)
     ) {
-        // Standard header, enterAlways collapse (spec v2 §2.1/§5 Settings row)
-        val settingsScrollBehavior = androidx.compose.material3.TopAppBarDefaults.enterAlwaysScrollBehavior()
         com.appcodecraft.linkzary.ui.component.LinkzaryTopBar(
             title = stringResource(R.string.settings_title),
-            leadingGlyph = androidx.compose.material.icons.Icons.Default.Settings,
+            leadingGlyph = Icons.Default.Settings,
             scrollBehavior = settingsScrollBehavior,
             containerColor = MaterialTheme.colorScheme.surface
         )

@@ -59,8 +59,10 @@ fun LinkzaryBottomNavigationBar(
     navController: NavController,
     currentRoute: String?
 ) {
-    // Spec §6: nav bar sits on surfaceContainer (tone, not elevation)
-    NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainer) {
+    // Addendum #9: active pill must read in light AND dark. Bar sits on the
+    // lowest surface so the brand primaryContainer pill has real contrast
+    // (tone-90 pill on the old tone-94 bar was invisible in light mode).
+    NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest) {
         bottomNavItems.forEach { item ->
             val isSelected = currentRoute == item.screen.route
 
@@ -73,7 +75,9 @@ fun LinkzaryBottomNavigationBar(
                 ),
                 label = "navIconScale"
             )
-            val iconTint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+            // Addendum #9: icon rides on the primaryContainer pill in brand
+            // on-color; unselected stays neutral in both themes.
+            val iconTint = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
 
             NavigationBarItem(
                 icon = {
@@ -89,6 +93,13 @@ fun LinkzaryBottomNavigationBar(
                 },
                 label = { Text(stringResource(item.titleRes)) },
                 selected = isSelected,
+                colors = androidx.compose.material3.NavigationBarItemDefaults.colors(
+                    selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    selectedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    indicatorColor = MaterialTheme.colorScheme.primaryContainer
+                ),
                 onClick = {
                     if (currentRoute != item.screen.route) {
                         navController.navigate(item.screen.route) {
