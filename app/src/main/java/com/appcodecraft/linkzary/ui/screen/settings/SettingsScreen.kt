@@ -13,9 +13,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -71,6 +71,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -196,10 +197,19 @@ fun SettingsScreen(
         modifier = Modifier
             .fillMaxSize()
             .statusBarsPadding()
+            .nestedScroll(settingsScrollBehavior.nestedScrollConnection)
             .padding(horizontal = 16.dp)
     ) {
-        Spacer(modifier = Modifier.height(16.dp))
-        
+        // Standard header, enterAlways collapse (spec v2 §2.1/§5 Settings row)
+        val settingsScrollBehavior = androidx.compose.material3.TopAppBarDefaults.enterAlwaysScrollBehavior()
+        com.appcodecraft.linkzary.ui.component.LinkzaryTopBar(
+            title = stringResource(R.string.settings_title),
+            leadingGlyph = androidx.compose.material.icons.Icons.Default.Settings,
+            scrollBehavior = settingsScrollBehavior,
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(8.dp))
+
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {

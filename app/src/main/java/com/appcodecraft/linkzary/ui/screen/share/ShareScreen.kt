@@ -49,7 +49,7 @@ import com.appcodecraft.linkzary.R
 import com.appcodecraft.linkzary.ui.component.CollectionOption
 import com.appcodecraft.linkzary.ui.component.CreateCollectionForm
 import com.appcodecraft.linkzary.ui.component.LinkEditorForm
-import com.appcodecraft.linkzary.ui.component.getCollectionIconVector
+import com.appcodecraft.linkzary.ui.component.getCollectionGlyph
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -269,7 +269,7 @@ fun ShareScreen(
                             }
                         }
                         CollectionOption(
-                            icon = getCollectionIconVector(collection.icon),
+                            icon = getCollectionGlyph(collection.icon),
                             name = collection.name,
                             color = colorInt,
                             isSelected = uiState.selectedCollectionId == collection.id,

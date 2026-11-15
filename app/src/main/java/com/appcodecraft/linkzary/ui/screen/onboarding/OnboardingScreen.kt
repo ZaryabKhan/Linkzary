@@ -62,7 +62,6 @@ import kotlinx.coroutines.launch
 private const val PAGE_COUNT = 5
 
 /** Accent reserved for "magic moments" (sparkles / sync arrows), spec §7. */
-private val AccentCyan = androidx.compose.ui.graphics.Color(0xFF22D3EE)
 
 @Composable
 fun OnboardingScreen(
@@ -404,7 +403,7 @@ private fun OnboardingIllustrationSave() {
                 Box(
                     modifier = Modifier
                         .size(8.dp)
-                        .background(AccentCyan, CircleShape)
+                        .background(MaterialTheme.colorScheme.tertiary, CircleShape)
                 )
             }
         }
@@ -464,7 +463,7 @@ private fun OnboardingIllustrationBackup() {
                 Box(
                     modifier = Modifier
                         .size(width = 24.dp, height = 6.dp)
-                        .background(AccentCyan, androidx.compose.foundation.shape.CircleShape)
+                        .background(MaterialTheme.colorScheme.tertiary, androidx.compose.foundation.shape.CircleShape)
                 )
             }
         }
@@ -484,7 +483,7 @@ private fun OnboardingIllustrationReminders() {
         Box(
             modifier = Modifier
                 .size(16.dp)
-                .background(AccentCyan, androidx.compose.foundation.shape.CircleShape)
+                .background(MaterialTheme.colorScheme.tertiary, androidx.compose.foundation.shape.CircleShape)
         )
     }
 }

@@ -126,7 +126,12 @@ fun CollectionOptionItem(
                 modifier = Modifier
                     .size(32.dp)
                     .background(
-                        color = Color(color),
+                        // Spec v2 §4: harmonized tonal tile, glyph in onContainer
+                        color = com.appcodecraft.linkzary.ui.theme.harmonizedContainerTone(
+                            design = Color(color),
+                            source = MaterialTheme.colorScheme.primary,
+                            dark = androidx.compose.foundation.isSystemInDarkTheme()
+                        ),
                         shape = CircleShape
                     ),
                 contentAlignment = Alignment.Center
@@ -134,7 +139,11 @@ fun CollectionOptionItem(
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = Color.White,
+                    tint = com.appcodecraft.linkzary.ui.theme.harmonizedOnContainerTone(
+                        design = Color(color),
+                        source = MaterialTheme.colorScheme.primary,
+                        dark = androidx.compose.foundation.isSystemInDarkTheme()
+                    ),
                     modifier = Modifier.size(16.dp)
                 )
             }
@@ -288,7 +297,7 @@ fun CollectionSelectionDialog(
                         0xFF6366F1.toInt()
                     }
                     CollectionOptionItem(
-                        icon = getCollectionIconVector(collection.icon),
+                        icon = getCollectionGlyph(collection.icon),
                         name = collection.name,
                         color = colorInt,
                         isSelected = currentCollectionId == collection.id,

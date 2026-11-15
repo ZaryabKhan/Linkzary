@@ -105,9 +105,11 @@ fun RssFeedsScreen(
         },
         floatingActionButton = {
             if (uiState.selectedFeed == null) {
-                FloatingActionButton(onClick = viewModel::startAddingFeed) {
-                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.rss_add_feed))
-                }
+                com.appcodecraft.linkzary.ui.component.LinkzaryFab(
+                    label = stringResource(R.string.rss_add_feed),
+                    onClick = viewModel::startAddingFeed,
+                    isScrolled = false
+                )
             }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }

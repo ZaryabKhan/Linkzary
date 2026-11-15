@@ -56,7 +56,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DockedSearchBar
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
@@ -82,7 +81,6 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.togetherWith
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -127,7 +125,7 @@ import com.appcodecraft.linkzary.ui.component.OptionItem
 import com.appcodecraft.linkzary.ui.component.CollectionSelectionDialog
 import com.appcodecraft.linkzary.ui.component.SkeletonBookmarkCard
 import com.appcodecraft.linkzary.ui.component.SmallCollectionCard
-import com.appcodecraft.linkzary.ui.component.getCollectionIconVector
+import com.appcodecraft.linkzary.ui.component.getCollectionGlyph
 import com.appcodecraft.linkzary.ui.theme.LinkzaryTheme
 
 // region Dialogs and Bottom Sheets
@@ -813,55 +811,27 @@ fun HomeScreen(
     ) {
 
     if (!uiState.isMultiSelectMode) {
-        TopAppBar(
-            title = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Bookmark,
-                        contentDescription = stringResource(R.string.home_linkzary_title),
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = stringResource(R.string.home_linkzary_title),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            },
+        com.appcodecraft.linkzary.ui.component.LinkzaryTopBar(
+            title = stringResource(R.string.home_linkzary_title),
+            leadingGlyph = Icons.Default.Bookmark,
             actions = {
-                // View toggle
-                IconToggleButton(
-                    checked = isGridView,
-                    onCheckedChange = { viewModel.toggleGridView() }
-                ) {
-                    Icon(
-                        imageVector = if (isGridView) Icons.AutoMirrored.Filled.ViewList else Icons.Default.GridView,
-                        contentDescription = if (isGridView) stringResource(R.string.home_switch_to_list_view) else stringResource(R.string.home_switch_to_grid_view),
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
+                // View toggle (spec v2 §2.4)
+                com.appcodecraft.linkzary.ui.component.ViewModeToggle(
+                    isGridView = isGridView,
+                    onToggle = { viewModel.toggleGridView() }
+                )
 
                 Spacer(modifier = Modifier.width(4.dp))
 
                 // Sort menu
                 Box {
                     IconButton(
-                        onClick = { showSortMenu = true },
-                        modifier = Modifier
-                            .size(40.dp)
-                            .background(
-                                color = if (showSortMenu) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.8f)
-                                else Color.Transparent,
-                                shape = RoundedCornerShape(10.dp)
-                            )
+                        onClick = { showSortMenu = true }
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Sort,
                             contentDescription = stringResource(R.string.home_sort_options),
-                            tint = if (showSortMenu) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(20.dp)
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
 
@@ -898,9 +868,7 @@ fun HomeScreen(
                 }
             },
             scrollBehavior = scrollBehavior,
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-            )
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         )
     }
 
@@ -915,96 +883,72 @@ fun HomeScreen(
         contentPadding = PaddingValues(bottom = if (uiState.isMultiSelectMode) 140.dp else 100.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-            // Search bar (audit #6): M3 DockedSearchBar with the existing
-            // search + history logic. History entries surface as native items.
+            // Search bar (spec v2 §2.2): the one shared search, same field on
+            // every screen. History entries drop in below while focused.
             item(key = "search") {
-                DockedSearchBar(
+                com.appcodecraft.linkzary.ui.component.LinkzarySearchBar(
                     query = localSearchQuery,
                     onQueryChange = { newQuery ->
                         localSearchQuery = newQuery
                         viewModel.updateSearchQuery(newQuery)
                     },
-                    onSearch = {
-                        viewModel.saveSearchQuery(localSearchQuery)
-                        isSearchFocused = false
-                        focusManager.clearFocus()
+                    onClear = {
+                        localSearchQuery = ""
+                        viewModel.updateSearchQuery("")
                     },
-                    active = isSearchFocused,
-                    onActiveChange = { focused ->
+                    onFocusChange = { focused ->
                         if (!focused && localSearchQuery.isNotBlank()) {
                             viewModel.saveSearchQuery(localSearchQuery)
                         }
                         isSearchFocused = focused
                     },
+                    placeholder = stringResource(R.string.home_search_bookmarks),
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text(stringResource(R.string.home_search_bookmarks)) },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = stringResource(R.string.home_search),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    },
-                    trailingIcon = if (localSearchQuery.isNotEmpty()) {
-                        {
-                            IconButton(
-                                onClick = {
-                                    localSearchQuery = ""
-                                    viewModel.updateSearchQuery("")
-                                }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Clear,
-                                    contentDescription = stringResource(R.string.home_clear_search),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                    } else null
-                ) {
-                    // History entries while focused with an empty query
-                    if (isSearchFocused && localSearchQuery.isEmpty()) {
-                        searchHistory.take(5).forEach { historyQuery ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        localSearchQuery = historyQuery
-                                        viewModel.updateSearchQuery(historyQuery)
-                                        isSearchFocused = false
-                                        focusManager.clearFocus()
-                                    }
-                                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    Icons.Default.History,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(16.dp),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Text(
-                                    text = historyQuery,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                IconButton(
-                                    onClick = { viewModel.removeSearchQuery(historyQuery) },
-                                    modifier = Modifier.size(24.dp)
+                    suggestionContent = {
+                        // History entries while focused with an empty query
+                        if (isSearchFocused && localSearchQuery.isEmpty()) {
+                            searchHistory.take(5).forEach { historyQuery ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            localSearchQuery = historyQuery
+                                            viewModel.updateSearchQuery(historyQuery)
+                                            isSearchFocused = false
+                                            focusManager.clearFocus()
+                                        }
+                                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Icon(
-                                        Icons.Default.Close,
-                                        contentDescription = "Remove",
-                                        modifier = Modifier.size(14.dp),
+                                        Icons.Default.History,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp),
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Text(
+                                        text = historyQuery,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    IconButton(
+                                        onClick = { viewModel.removeSearchQuery(historyQuery) },
+                                        modifier = Modifier.size(24.dp)
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Close,
+                                            contentDescription = "Remove",
+                                            modifier = Modifier.size(14.dp),
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
-                }
+                )
             }
 
             // Read status filter chips
@@ -1408,51 +1352,17 @@ fun HomeScreen(
     }
 
     // Floating Action Button (overlay, bottom-right)
-    // Spec §4/§6: 64dp cookie scallop at rest; morphs to a labeled pill once
-    // the list scrolls (AnimatedContent swap keeps the morph cheap and smooth).
+    // Spec v2 §2.3: the one LinkzaryFab — primaryContainer cookie scallop at
+    // rest, labeled pill when scrolled.
     if (!uiState.isMultiSelectMode && !showCoachMark) {
-        androidx.compose.animation.AnimatedContent(
-            targetState = isScrolled,
-            transitionSpec = {
-                (androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(180)) +
-                    androidx.compose.animation.scaleIn(androidx.compose.animation.core.tween(180))) togetherWith
-                    (androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(120)) +
-                    androidx.compose.animation.scaleOut(androidx.compose.animation.core.tween(120)))
-            },
-            label = "fabMorph",
+        com.appcodecraft.linkzary.ui.component.LinkzaryFab(
+            label = stringResource(R.string.home_add_link),
+            onClick = { showAddLinkDialog = true },
+            isScrolled = isScrolled,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(16.dp)
-        ) { scrolled ->
-            if (!scrolled) {
-                FloatingActionButton(
-                    onClick = { showAddLinkDialog = true },
-                    shape = com.appcodecraft.linkzary.ui.theme.CookieShape,
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.size(64.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = stringResource(R.string.home_add_link)
-                    )
-                }
-            } else {
-                ExtendedFloatingActionButton(
-                    onClick = { showAddLinkDialog = true },
-                    shape = androidx.compose.foundation.shape.CircleShape,
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = null
-                        )
-                    },
-                    text = { Text(stringResource(R.string.home_add_link), fontWeight = FontWeight.SemiBold) }
-                )
-            }
-        }
+        )
     }
 
     // Snackbar host

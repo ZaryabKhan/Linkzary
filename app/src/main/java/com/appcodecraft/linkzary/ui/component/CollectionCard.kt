@@ -4,6 +4,7 @@ package com.appcodecraft.linkzary.ui.component
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,23 +18,22 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Book
-import androidx.compose.material.icons.filled.Code
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Flight
-import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.Gamepad
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.Map
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Movie
-import androidx.compose.material.icons.filled.MusicNote
-import androidx.compose.material.icons.filled.School
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material.icons.filled.SportsSoccer
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.Work
+import androidx.compose.material.icons.rounded.Book
+import androidx.compose.material.icons.rounded.Bookmark
+import androidx.compose.material.icons.rounded.Code
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.Flight
+import androidx.compose.material.icons.rounded.Gamepad
+import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.Image
+import androidx.compose.material.icons.rounded.Map
+import androidx.compose.material.icons.rounded.Movie
+import androidx.compose.material.icons.rounded.MusicNote
+import androidx.compose.material.icons.rounded.School
+import androidx.compose.material.icons.rounded.ShoppingCart
+import androidx.compose.material.icons.rounded.SportsSoccer
+import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.rounded.Work
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -46,7 +46,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -60,40 +59,33 @@ import com.appcodecraft.linkzary.data.entity.Collection
 import com.appcodecraft.linkzary.ui.theme.LinkzaryTheme
 import java.util.Date
 
-// Helper function to create gradient from collection color
-@Composable
-fun createCollectionGradient(colorHex: String): Brush {
-    val baseColor = runCatching { Color(colorHex.toColorInt()) }
-        .getOrDefault(MaterialTheme.colorScheme.primary)
-    val lighterColor = baseColor.copy(alpha = 0.7f)
-    val darkerColor = baseColor.copy(alpha = 0.9f)
-    
-    return Brush.linearGradient(
-        colors = listOf(lighterColor, darkerColor)
-    )
-}
-
-// Helper function to get collection icon based on name
-@Composable
-fun getCollectionIconVector(iconName: String): ImageVector {
+/**
+ * The one glyph mapping (spec v2 §4, audit D4): M3 rounded glyphs inside a
+ * harmonized tonal tile, glyph colored onContainer — no stock-blue folder
+ * anywhere. "Unsorted" collections get a bookmark glyph in primary, not a
+ * folder.
+ */
+fun getCollectionGlyph(iconName: String?): ImageVector {
+    if (iconName.isNullOrBlank() || iconName == "Folder") {
+        return Icons.Rounded.Bookmark
+    }
     return when (iconName) {
-        "Folder" -> Icons.Default.Folder
-        "Work" -> Icons.Default.Work
-        "School" -> Icons.Default.School
-        "Home" -> Icons.Default.Home
-        "Star" -> Icons.Default.Star
-        "Favorite" -> Icons.Default.Favorite
-        "Code" -> Icons.Default.Code
-        "Book" -> Icons.Default.Book
-        "Music" -> Icons.Default.MusicNote
-        "Movie" -> Icons.Default.Movie
-        "Image" -> Icons.Default.Image
-        "Map" -> Icons.Default.Map
-        "Shopping" -> Icons.Default.ShoppingCart
-        "Travel" -> Icons.Default.Flight
-        "Sports" -> Icons.Default.SportsSoccer
-        "Game" -> Icons.Default.Gamepad
-        else -> Icons.Default.Folder
+        "Work" -> Icons.Rounded.Work
+        "School" -> Icons.Rounded.School
+        "Home" -> Icons.Rounded.Home
+        "Star" -> Icons.Rounded.Star
+        "Favorite" -> Icons.Rounded.Favorite
+        "Code" -> Icons.Rounded.Code
+        "Book" -> Icons.Rounded.Book
+        "Music" -> Icons.Rounded.MusicNote
+        "Movie" -> Icons.Rounded.Movie
+        "Image" -> Icons.Rounded.Image
+        "Map" -> Icons.Rounded.Map
+        "Shopping" -> Icons.Rounded.ShoppingCart
+        "Travel" -> Icons.Rounded.Flight
+        "Sports" -> Icons.Rounded.SportsSoccer
+        "Game" -> Icons.Rounded.Gamepad
+        else -> Icons.Rounded.Bookmark
     }
 }
 
@@ -109,100 +101,97 @@ fun CollectionCard(
 ) {
     // Static interaction source for click handling only
     val interactionSource = remember { MutableInteractionSource() }
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
 
     // Safely parse collection color, falling back to primary if invalid
     val collectionColor = runCatching { Color(collection.color.toColorInt()) }
         .getOrDefault(MaterialTheme.colorScheme.primary)
-    // Spec §3/§6: harmonize the collection hue toward the brand palette
-    val harmonized = com.appcodecraft.linkzary.ui.theme.harmonizeWith(
+    val dark = androidx.compose.foundation.isSystemInDarkTheme()
+    // Spec v2 §2.6: the TEXT card is always an extraLarge (28dp) rounded
+    // rectangle — expressive shapes never carry text. The variation moves
+    // INSIDE, onto the icon tile (rounded / cookie / clover, safe-zone sized).
+    val harmonized = com.appcodecraft.linkzary.ui.theme.harmonizedContainerTone(
         design = collectionColor,
-        source = MaterialTheme.colorScheme.primary
+        source = MaterialTheme.colorScheme.primary,
+        dark = dark
     )
-
-    // Spec §6 "shape party": rotate rounded (28dp) / scalloped / clover across
-    // items — expressive but subtle.
-    val shape = when (shapeVariant % 3) {
+    val onHarmonized = com.appcodecraft.linkzary.ui.theme.harmonizedOnContainerTone(
+        design = collectionColor,
+        source = MaterialTheme.colorScheme.primary,
+        dark = dark
+    )
+    val tileShape = when (shapeVariant % 3) {
         1 -> com.appcodecraft.linkzary.ui.theme.CookieShape
         2 -> com.appcodecraft.linkzary.ui.theme.CloverShape
-        else -> MaterialTheme.shapes.extraLarge
+        else -> RoundedCornerShape(16.dp)
     }
 
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(
+            .combinedClickable(
                 interactionSource = interactionSource,
-                indication = null
-            ) { onCardClick() },
-        shape = shape,
+                indication = null,
+                onClick = onCardClick,
+                onLongClick = {
+                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                    onMoreClick()
+                }
+            ),
+        shape = MaterialTheme.shapes.extraLarge,
         colors = CardDefaults.cardColors(
-            // Tonal container tinted with the (harmonized) collection color
-            containerColor = harmonized.copy(alpha = 0.14f)
+            // Spec v2 §3: harmonized container tone on surfaceContainerLowest-tier card
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(16.dp)
         ) {
-            // Enhanced color indicator with improved styling
+            // Icon tile: rotating expressive shape, harmonized tonal fill,
+            // glyph in onContainer (spec v2 §4)
             Box(
                 modifier = Modifier
                     .size(48.dp)
-                    .clip(androidx.compose.foundation.shape.CircleShape)
+                    .clip(tileShape)
                     .background(harmonized),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = getCollectionIconVector(collection.icon),
+                    imageVector = getCollectionGlyph(collection.icon),
                     contentDescription = null,
-                    tint = Color.White,
+                    tint = onHarmonized,
                     modifier = Modifier.size(24.dp)
                 )
             }
-            
-            Spacer(modifier = Modifier.width(16.dp))
-            
-            // Collection info
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = collection.name,
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.SemiBold
-                    ),
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                
-                Spacer(modifier = Modifier.height(6.dp))
-                
-                Text(
-                    text = if (linkCount == 1) {
-                        stringResource(R.string.collections_link_count_single, linkCount)
-                    } else {
-                        stringResource(R.string.collections_link_count_plural, linkCount)
-                    },
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
-                )
-            }
-            
-            // More button
-            IconButton(
-                onClick = onMoreClick,
-                modifier = Modifier.size(40.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = stringResource(R.string.home_more_options),
-                    modifier = Modifier.size(20.dp)
-                )
-            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Name: two lines allowed so it never truncates below 2 words at
+            // grid width (spec v2 §2.6); the kebab moved to long-press.
+            Text(
+                text = collection.name,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.SemiBold
+                ),
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            Text(
+                text = if (linkCount == 1) {
+                    stringResource(R.string.collections_link_count_single, linkCount)
+                } else {
+                    stringResource(R.string.collections_link_count_plural, linkCount)
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
@@ -214,15 +203,29 @@ fun SmallCollectionCard(
     onCardClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val collectionColor = runCatching { Color(collection.color.toColorInt()) }
+        .getOrDefault(MaterialTheme.colorScheme.primary)
+    val dark = androidx.compose.foundation.isSystemInDarkTheme()
+    // Spec v2 §2.6/§4: same tonal tile system as the grid card
+    val harmonized = com.appcodecraft.linkzary.ui.theme.harmonizedContainerTone(
+        design = collectionColor,
+        source = MaterialTheme.colorScheme.primary,
+        dark = dark
+    )
+    val onHarmonized = com.appcodecraft.linkzary.ui.theme.harmonizedOnContainerTone(
+        design = collectionColor,
+        source = MaterialTheme.colorScheme.primary,
+        dark = dark
+    )
     Card(
         modifier = modifier
             .width(130.dp)
             .clickable { onCardClick() },
-        shape = RoundedCornerShape(16.dp),
+        shape = MaterialTheme.shapes.extraLarge,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
             modifier = Modifier
@@ -230,18 +233,17 @@ fun SmallCollectionCard(
                 .padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Color indicator with gradient and icon
             Box(
                 modifier = Modifier
                     .size(40.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(createCollectionGradient(collection.color)),
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(harmonized),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = getCollectionIconVector(collection.icon),
+                    imageVector = getCollectionGlyph(collection.icon),
                     contentDescription = stringResource(R.string.collections_collection_icon),
-                    tint = Color.White,
+                    tint = onHarmonized,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -259,8 +261,12 @@ fun SmallCollectionCard(
             
             // Link count
             Text(
-                text = linkCount.toString(),
-                style = MaterialTheme.typography.bodyLarge,
+                text = if (linkCount == 1) {
+                    stringResource(R.string.collections_link_count_single, linkCount)
+                } else {
+                    stringResource(R.string.collections_link_count_plural, linkCount)
+                },
+                style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
             )

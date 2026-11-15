@@ -131,8 +131,15 @@ fun BookmarkCard(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    // 16:9 preview in list view, shorter 4:3 in grid (audit #3)
-                    .aspectRatio(if (isGrid) 4f / 3f else 16f / 9f)
+                    // Spec v2 §2.5: large 16:9 (list) / 4:3 (grid) ratios only
+                    // for REAL images; the fallback is a compact 56dp strip.
+                    .then(
+                        if (!effectiveImageUrl.isNullOrBlank() && !showPreviewFallback) {
+                            Modifier.aspectRatio(if (isGrid) 4f / 3f else 16f / 9f)
+                        } else {
+                            Modifier.height(56.dp)
+                        }
+                    )
                     .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
             ) {
                 if (!effectiveImageUrl.isNullOrBlank() && !showPreviewFallback) {
@@ -149,25 +156,46 @@ fun BookmarkCard(
                         onError = { showPreviewFallback = true }
                     )
                 } else {
-                    // Fallback: domain-colored box with domain name
-                    Box(
+                    // Spec v2 §2.5 fallback strip: harmonized domain-tone
+                    // container, favicon + small domain label, left-aligned.
+                    // No giant wordmark, ever.
+                    val domainTone = com.appcodecraft.linkzary.ui.theme.harmonizedContainerTone(
+                        design = generateColorFromDomain(domain),
+                        source = MaterialTheme.colorScheme.primary,
+                        dark = androidx.compose.foundation.isSystemInDarkTheme()
+                    )
+                    val onDomainTone = com.appcodecraft.linkzary.ui.theme.harmonizedOnContainerTone(
+                        design = generateColorFromDomain(domain),
+                        source = MaterialTheme.colorScheme.primary,
+                        dark = androidx.compose.foundation.isSystemInDarkTheme()
+                    )
+                    Row(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(generateColorFromDomain(domain).copy(alpha = 0.12f)),
-                        contentAlignment = Alignment.Center
+                            .background(domainTone)
+                            .padding(horizontal = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data("https://www.google.com/s2/favicons?domain=$domain&sz=64")
+                                .memoryCachePolicy(coil.request.CachePolicy.ENABLED)
+                                .diskCachePolicy(coil.request.CachePolicy.ENABLED)
+                                .build(),
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            error = ColorPainter(onDomainTone.copy(alpha = 0.3f))
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = domain.replaceFirstChar {
-                                if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
-                            },
-                            style = MaterialTheme.typography.headlineSmall.copy(
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 1.sp
+                            text = domain,
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium
                             ),
-                            color = generateColorFromDomain(domain),
+                            color = onDomainTone,
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.padding(16.dp)
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
@@ -220,25 +248,31 @@ fun BookmarkCard(
                 if (collectionName != null && collectionColor != null && !isMultiSelectMode) {
                     val parsedColor = runCatching { Color(collectionColor.toColorInt()) }
                         .getOrDefault(MaterialTheme.colorScheme.primary)
-                    // Spec §6: harmonize the collection hue toward the brand,
-                    // tint container at 0.24 alpha with full-color text.
-                    val harmonized = com.appcodecraft.linkzary.ui.theme.harmonizeWith(
+                    // Spec v2 §1 rule 2: real container tone for the badge —
+                    // harmonized container + matching on-color, never alpha.
+                    val harmonized = com.appcodecraft.linkzary.ui.theme.harmonizedContainerTone(
                         design = parsedColor,
-                        source = MaterialTheme.colorScheme.primary
+                        source = MaterialTheme.colorScheme.primary,
+                        dark = androidx.compose.foundation.isSystemInDarkTheme()
+                    )
+                    val onHarmonized = com.appcodecraft.linkzary.ui.theme.harmonizedOnContainerTone(
+                        design = parsedColor,
+                        source = MaterialTheme.colorScheme.primary,
+                        dark = androidx.compose.foundation.isSystemInDarkTheme()
                     )
                     Surface(
                         modifier = Modifier
                             .align(Alignment.BottomStart)
                             .padding(12.dp),
                         shape = androidx.compose.foundation.shape.CircleShape,
-                        color = harmonized.copy(alpha = 0.24f)
+                        color = harmonized
                     ) {
                         Text(
                             text = collectionName,
                             style = MaterialTheme.typography.labelMedium.copy(
                                 fontWeight = FontWeight.SemiBold
                             ),
-                            color = harmonized,
+                            color = onHarmonized,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
@@ -368,10 +402,10 @@ fun BookmarkCard(
                                     style = MaterialTheme.typography.labelMedium.copy(
                                         fontWeight = FontWeight.Medium
                                     ),
-                                    color = MaterialTheme.colorScheme.primary,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(8.dp))
-                                        .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f))
+                                        .background(MaterialTheme.colorScheme.secondaryContainer)
                                         .padding(horizontal = 10.dp, vertical = 4.dp)
                                 )
                             }

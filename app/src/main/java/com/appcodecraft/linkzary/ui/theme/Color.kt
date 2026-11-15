@@ -2,35 +2,37 @@ package com.appcodecraft.linkzary.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Light Theme Colors
-val Primary = Color(0xFF4F46E5) // Modern indigo
+// Light Theme Colors — rebuilt from the indigo tonal palette (spec v2 §3.3,
+// audit D5): primary at tone 40, containers at tone 90, violet-undertone
+// surfaces with real tonal steps. No raw Tailwind hues.
+val Primary = Color(0xFF4648D8) // tone 40 — saturated but not neon
 val OnPrimary = Color(0xFFFFFFFF)
-val PrimaryContainer = Color(0xFFE0E7FF)
-val OnPrimaryContainer = Color(0xFF1E1B4B)
+val PrimaryContainer = Color(0xFFE0DFFF) // tone 90
+val OnPrimaryContainer = Color(0xFF0B0B6B) // tone 10
 
-val Secondary = Color(0xFF6366F1) // Bright indigo
+val Secondary = Color(0xFF5A5BD8)
 val OnSecondary = Color(0xFFFFFFFF)
-val SecondaryContainer = Color(0xFFEDE9FE)
-val OnSecondaryContainer = Color(0xFF312E81)
+val SecondaryContainer = Color(0xFFE2E0FF)
+val OnSecondaryContainer = Color(0xFF161668)
 
-val Tertiary = Color(0xFF06B6D4) // Cyan accent
+val Tertiary = Color(0xFF00696B) // toned down from #06B6D4
 val OnTertiary = Color(0xFFFFFFFF)
-val TertiaryContainer = Color(0xFFCFFAFE)
-val OnTertiaryContainer = Color(0xFF164E63)
+val TertiaryContainer = Color(0xFFC9F2F4)
+val OnTertiaryContainer = Color(0xFF002021)
 
-val Error = Color(0xFFEF4444)
+val Error = Color(0xFFB3261E) // M3 standard, replaces #EF4444
 val OnError = Color(0xFFFFFFFF)
-val ErrorContainer = Color(0xFFFEE2E2)
-val OnErrorContainer = Color(0xFF991B1B)
+val ErrorContainer = Color(0xFFF9DEDC)
+val OnErrorContainer = Color(0xFF410E0B)
 
-val Background = Color(0xFFFAFAFA)
-val OnBackground = Color(0xFF1F2937)
-val Surface = Color(0xFFFFFFFF)
-val OnSurface = Color(0xFF1F2937)
-val SurfaceVariant = Color(0xFFF3F4F6)
-val OnSurfaceVariant = Color(0xFF6B7280)
-val Outline = Color(0xFFD1D5DB)
-val OutlineVariant = Color(0xFFE5E7EB)
+val Background = Color(0xFFFDFBFF) // violet undertone, not pure white
+val OnBackground = Color(0xFF1B1B21)
+val Surface = Color(0xFFFDFBFF)
+val OnSurface = Color(0xFF1B1B21)
+val SurfaceVariant = Color(0xFFE4E1F0)
+val OnSurfaceVariant = Color(0xFF46464F)
+val Outline = Color(0xFFC8C6D8)
+val OutlineVariant = Color(0xFFD9D7E8)
 
 // Dark Theme Colors
 val DarkPrimary = Color(0xFF818CF8) // Lighter indigo for dark mode
@@ -64,13 +66,13 @@ val DarkOnSurfaceVariant = Color(0xFFB3B3B3)
 val DarkOutline = Color(0xFF404040)
 val DarkOutlineVariant = Color(0xFF525252)
 
-// Tonal surface tiers (spec §3): Home bg = surfaceContainerLow,
-// cards = surfaceContainerLowest. Depth comes from tone, not shadows.
+// Tonal surface tiers (spec v2 §3.3): real tonal steps with a violet
+// undertone — the previous tiers were too faint to separate surfaces.
 val SurfaceContainerLowest = Color(0xFFFFFFFF)
-val SurfaceContainerLow = Color(0xFFF2F0FA)
-val SurfaceContainer = Color(0xFFECEAF4)
-val SurfaceContainerHigh = Color(0xFFE5E2F0)
-val SurfaceContainerHighest = Color(0xFFDDD9EA)
+val SurfaceContainerLow = Color(0xFFF4F2FC)
+val SurfaceContainer = Color(0xFFEEECF8)
+val SurfaceContainerHigh = Color(0xFFE7E4F3)
+val SurfaceContainerHighest = Color(0xFFE0DCEE)
 
 val DarkSurfaceContainerLowest = Color(0xFF17171C)
 val DarkSurfaceContainerLow = Color(0xFF1E1E24)
