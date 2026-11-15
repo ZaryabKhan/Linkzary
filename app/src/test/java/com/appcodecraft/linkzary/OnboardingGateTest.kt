@@ -68,4 +68,26 @@ class OnboardingGateTest {
         // Rollback installs: never re-show for an older versionCode
         assertFalse(OnboardingGate.shouldShow(lastOnboardedVersionCode = 18, currentVersionCode = 16))
     }
+
+    @Test
+    fun `donation navigation is deferred while onboarding is up`() {
+        // P0 regression: tapping Support on onboarding crashed because the
+        // nav graph isn't set while the NavHost is not composed. The nav
+        // must never fire while onboarding shows.
+        assertFalse(
+            OnboardingGate.deferWhileOnboarding(showOnboarding = true, pendingDonationNav = true)
+        )
+    }
+
+    @Test
+    fun `pending donation navigation fires once onboarding dismissed`() {
+        // The tap marked onboarding done; the deferred nav fires on the next
+        // composition, then the pending flag clears (caller's job).
+        assertTrue(
+            OnboardingGate.deferWhileOnboarding(showOnboarding = false, pendingDonationNav = true)
+        )
+        assertFalse(
+            OnboardingGate.deferWhileOnboarding(showOnboarding = false, pendingDonationNav = false)
+        )
+    }
 }

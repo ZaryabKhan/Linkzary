@@ -339,7 +339,11 @@ fun LinkCard(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Footer: unread dot + timestamp · ONE collection pill · kebab
+                // Footer: unread dot + timestamp · ONE collection pill · kebab.
+                // Width-aware per spec v3 §2.1 ("no clipped text anywhere"):
+                // timestamp and pill are weighted (fill=false) so at any font
+                // scale or column width they ellipsize instead of overflowing
+                // the card onto neighboring content; the kebab stays fixed.
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -358,15 +362,18 @@ fun LinkCard(
                     Text(
                         text = formatRelativeSaveDate(link.saveDate),
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false)
                     )
 
-                    Spacer(modifier = Modifier.weight(1f))
-
                     if (collectionName != null && !isMultiSelectMode) {
+                        Spacer(modifier = Modifier.width(8.dp))
                         Surface(
                             shape = RoundedCornerShape(50),
-                            color = chipContainer
+                            color = chipContainer,
+                            modifier = Modifier.weight(1f, fill = false)
                         ) {
                             Text(
                                 text = collectionName.let { name ->
@@ -377,11 +384,13 @@ fun LinkCard(
                                 ),
                                 color = chipOnContainer,
                                 maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                             )
                         }
-                        Spacer(modifier = Modifier.width(8.dp))
                     }
+
+                    Spacer(modifier = Modifier.width(8.dp))
 
                     IconButton(
                         onClick = onMoreClick,
