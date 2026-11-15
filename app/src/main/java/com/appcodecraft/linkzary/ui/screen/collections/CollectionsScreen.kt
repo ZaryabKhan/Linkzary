@@ -82,8 +82,8 @@ import com.appcodecraft.linkzary.data.entity.Collection
 import com.appcodecraft.linkzary.navigation.Screen
 import com.appcodecraft.linkzary.ui.component.CollectionCard
 import com.appcodecraft.linkzary.ui.component.CreateCollectionForm
-import com.appcodecraft.linkzary.ui.component.createCollectionGradient
-import com.appcodecraft.linkzary.ui.component.getCollectionIconVector
+import com.appcodecraft.linkzary.ui.component.getCollectionGlyph
+import com.appcodecraft.linkzary.ui.component.getCollectionGlyph
 import com.appcodecraft.linkzary.ui.component.OptionItem
 import com.appcodecraft.linkzary.ui.theme.LinkzaryTheme
 
@@ -99,124 +99,93 @@ fun CollectionsScreen(
     val isGridView by viewModel.isGridView.collectAsState()
     var showSortMenu by remember { mutableStateOf(false) }
 
+    // Scroll state drives the FAB morph (spec v2 §2.3)
+    val collectionsListState = androidx.compose.foundation.lazy.rememberLazyListState()
+    val collectionsListIsScrolled by remember {
+        androidx.compose.runtime.derivedStateOf {
+            collectionsListState.firstVisibleItemIndex > 0 ||
+                collectionsListState.firstVisibleItemScrollOffset > 200
+        }
+    }
+
     // Pre-compute collection lookup map
     val collectionMap by remember(uiState.collectionsWithCounts) {
         derivedStateOf { uiState.collectionsWithCounts }
     }
 
-    Box(modifier = Modifier.fillMaxSize().statusBarsPadding().background(MaterialTheme.colorScheme.background)) {
+    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceContainerLow)) {
 
-        // Custom header (matches HomeScreen style)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 16.dp, end = 8.dp, top = 20.dp, bottom = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.Folder,
-                contentDescription = stringResource(R.string.navigation_collections),
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = stringResource(R.string.nav_collections),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.weight(1f)
-            )
-
-            // View toggle
-            IconToggleButton(
-                checked = isGridView,
-                onCheckedChange = { viewModel.toggleGridView() }
-            ) {
-                Icon(
-                    imageVector = if (isGridView) Icons.AutoMirrored.Filled.ViewList else Icons.Default.GridView,
-                    contentDescription = if (isGridView) stringResource(R.string.home_switch_list_view) else stringResource(R.string.home_switch_grid_view),
-                    modifier = Modifier.size(24.dp)
+        Column(modifier = Modifier.fillMaxSize()) {
+        // The one standard header (spec v2 §2.1) — no screen-local header Row
+        com.appcodecraft.linkzary.ui.component.LinkzaryTopBar(
+            title = stringResource(R.string.nav_collections),
+            leadingGlyph = Icons.Default.Folder,
+            actions = {
+                com.appcodecraft.linkzary.ui.component.ViewModeToggle(
+                    isGridView = isGridView,
+                    onToggle = { viewModel.toggleGridView() }
                 )
-            }
 
-            Spacer(modifier = Modifier.width(4.dp))
+                Spacer(modifier = Modifier.width(4.dp))
 
-            // Sort menu
-            Box {
-                IconButton(
-                    onClick = { showSortMenu = true },
-                    modifier = Modifier
-                        .size(40.dp)
-                        .background(
-                            color = if (showSortMenu) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.8f)
-                            else Color.Transparent,
-                            shape = RoundedCornerShape(10.dp)
+                // Sort menu
+                Box {
+                    IconButton(
+                        onClick = { showSortMenu = true }
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Sort,
+                            contentDescription = stringResource(R.string.home_sort_options),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.Sort,
-                        contentDescription = stringResource(R.string.home_sort_options),
-                        tint = if (showSortMenu) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
+                    }
 
-                DropdownMenu(
-                    expanded = showSortMenu,
-                    onDismissRequest = { showSortMenu = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.collections_sort_name_az)) },
-                        onClick = { viewModel.setSortOrder(SortOrder.NAME_ASC); showSortMenu = false },
-                        leadingIcon = { Icon(Icons.Default.SortByAlpha, contentDescription = null) }
-                    )
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.collections_sort_name_za)) },
-                        onClick = { viewModel.setSortOrder(SortOrder.NAME_DESC); showSortMenu = false },
-                        leadingIcon = { Icon(Icons.Default.SortByAlpha, contentDescription = null) }
-                    )
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.collections_sort_most_links)) },
-                        onClick = { viewModel.setSortOrder(SortOrder.LINK_COUNT_DESC); showSortMenu = false },
-                        leadingIcon = { Icon(Icons.Default.Link, contentDescription = null) }
-                    )
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.collections_sort_recently_created)) },
-                        onClick = { viewModel.setSortOrder(SortOrder.DATE_DESC); showSortMenu = false },
-                        leadingIcon = { Icon(Icons.Default.Schedule, contentDescription = null) }
-                    )
+                    DropdownMenu(
+                        expanded = showSortMenu,
+                        onDismissRequest = { showSortMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.collections_sort_name_az)) },
+                            onClick = { viewModel.setSortOrder(SortOrder.NAME_ASC); showSortMenu = false },
+                            leadingIcon = { Icon(Icons.Default.SortByAlpha, contentDescription = null) }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.collections_sort_name_za)) },
+                            onClick = { viewModel.setSortOrder(SortOrder.NAME_DESC); showSortMenu = false },
+                            leadingIcon = { Icon(Icons.Default.SortByAlpha, contentDescription = null) }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.collections_sort_most_links)) },
+                            onClick = { viewModel.setSortOrder(SortOrder.LINK_COUNT_DESC); showSortMenu = false },
+                            leadingIcon = { Icon(Icons.Default.Link, contentDescription = null) }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.collections_sort_recently_created)) },
+                            onClick = { viewModel.setSortOrder(SortOrder.DATE_DESC); showSortMenu = false },
+                            leadingIcon = { Icon(Icons.Default.Schedule, contentDescription = null) }
+                        )
+                    }
                 }
             }
-        }
+        )
 
-        // Main content
+        // Main content — header is a real sibling now, so no hardcoded top pad
         LazyColumn(
+            state = collectionsListState,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 72.dp)
                 .padding(horizontal = 16.dp),
-            contentPadding = PaddingValues(bottom = 100.dp),
+            contentPadding = PaddingValues(bottom = 96.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Search bar
+            // One search style app-wide (spec v2 §2.2)
             item(key = "search") {
-                Box(modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
-                    OutlinedTextField(
-                        value = uiState.searchQuery,
-                        onValueChange = viewModel::updateSearchQuery,
-                        modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text(stringResource(R.string.collections_search_placeholder)) },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Search,
-                                contentDescription = stringResource(R.string.common_search),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        },
-                        singleLine = true,
-                        shape = RoundedCornerShape(16.dp)
-                    )
-                }
+                com.appcodecraft.linkzary.ui.component.LinkzarySearchBar(
+                    query = uiState.searchQuery,
+                    onQueryChange = viewModel::updateSearchQuery,
+                    placeholder = stringResource(R.string.collections_search_placeholder),
+                    modifier = Modifier.padding(top = 4.dp)
+                )
             }
 
             // Sort info chips
@@ -351,21 +320,17 @@ fun CollectionsScreen(
             }
         }
 
-        // Floating Action Button (overlay, bottom-right)
-        FloatingActionButton(
+        } // Column (header + content)
+
+        // The one FAB (spec v2 §2.3) — replaces the plain white circle
+        com.appcodecraft.linkzary.ui.component.LinkzaryFab(
+            label = stringResource(R.string.fab_new_collection),
             onClick = { showCreateCollectionDialog = true },
-            shape = androidx.compose.foundation.shape.CircleShape,
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary,
+            isScrolled = collectionsListIsScrolled,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(16.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = stringResource(R.string.collections_create_collection)
-            )
-        }
+        )
     }
 
     // Error handling
@@ -493,14 +458,26 @@ fun CollectionOptionsBottomSheet(
                 Box(
                     modifier = Modifier
                         .size(40.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(createCollectionGradient(collection.color)),
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(
+                            com.appcodecraft.linkzary.ui.theme.harmonizedContainerTone(
+                                design = runCatching { Color(collection.color.toColorInt()) }
+                                    .getOrDefault(MaterialTheme.colorScheme.primary),
+                                source = MaterialTheme.colorScheme.primary,
+                                dark = androidx.compose.foundation.isSystemInDarkTheme()
+                            )
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = getCollectionIconVector(collection.icon),
+                        imageVector = getCollectionGlyph(collection.icon),
                         contentDescription = stringResource(R.string.collections_collection_icon),
-                        tint = Color.White,
+                        tint = com.appcodecraft.linkzary.ui.theme.harmonizedOnContainerTone(
+                            design = runCatching { Color(collection.color.toColorInt()) }
+                                .getOrDefault(MaterialTheme.colorScheme.primary),
+                            source = MaterialTheme.colorScheme.primary,
+                            dark = androidx.compose.foundation.isSystemInDarkTheme()
+                        ),
                         modifier = Modifier.size(20.dp)
                     )
                 }

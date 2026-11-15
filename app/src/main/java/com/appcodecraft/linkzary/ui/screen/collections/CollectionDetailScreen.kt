@@ -80,7 +80,7 @@ import com.appcodecraft.linkzary.ui.component.BookmarkCard
 import com.appcodecraft.linkzary.ui.component.EditLinkDialog
 import com.appcodecraft.linkzary.ui.component.OptionItem
 import com.appcodecraft.linkzary.ui.component.CollectionSelectionDialog
-import com.appcodecraft.linkzary.ui.component.getCollectionIconVector
+import com.appcodecraft.linkzary.ui.component.getCollectionGlyph
 import com.appcodecraft.linkzary.ui.screen.home.HomeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -110,6 +110,15 @@ fun CollectionDetailScreen(
     var showAddLinkDialog by remember { mutableStateOf(false) }
     var showEditCollectionDialog by remember { mutableStateOf(false) }
 
+    // Scroll state drives the FAB morph (spec v2 §2.3)
+    val detailListState = androidx.compose.foundation.lazy.rememberLazyListState()
+    val detailListIsScrolled by remember {
+        androidx.compose.runtime.derivedStateOf {
+            detailListState.firstVisibleItemIndex > 0 ||
+                detailListState.firstVisibleItemScrollOffset > 200
+        }
+    }
+
     LaunchedEffect(collectionId) {
         viewModel.loadCollectionDetails(collectionId)
     }
@@ -128,108 +137,67 @@ fun CollectionDetailScreen(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    // Spec v2 §2.1/§5: root paints its surface behind the status bar; the
+    // hero header (container tone, never alpha tint) sits directly on top.
+    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceContainerLow)) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
         ) {
-        // Tonal header (spec §6): collection color tint with 24dp bottom corners,
-        // full-bleed behind the status bar.
-        val headerColor = uiState.collection?.color
+        // Hero header (spec v2 §2.1): harmonized collection color at real
+        // container tone (dark ~tone30 / light ~tone90), 28dp bottom corners,
+        // compact height, titleLarge + labelMedium count.
+        val parsedCollectionColor = uiState.collection?.color
             ?.let { runCatching { Color(it.toColorInt()) }.getOrNull() }
             ?: MaterialTheme.colorScheme.primary
-        val headerTint = com.appcodecraft.linkzary.ui.theme.harmonizeWith(
-            design = headerColor,
-            source = MaterialTheme.colorScheme.primary
-        ).copy(alpha = 0.18f)
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            color = headerTint,
-            shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)
-        ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = { navController.navigateUp() }) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
-            }
-
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = uiState.collection?.name ?: stringResource(R.string.collections_collection),
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = stringResource(R.string.collections_links_count, filteredLinks.size),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            // Enhanced view toggle button
-            Row {
-                IconButton(
-                    onClick = { showEditCollectionDialog = true }
-                ) {
+        val darkTheme = androidx.compose.foundation.isSystemInDarkTheme()
+        val heroContainer = com.appcodecraft.linkzary.ui.theme.harmonizedContainerTone(
+            design = parsedCollectionColor,
+            source = MaterialTheme.colorScheme.primary,
+            dark = darkTheme
+        )
+        val onHeroContainer = com.appcodecraft.linkzary.ui.theme.harmonizedOnContainerTone(
+            design = parsedCollectionColor,
+            source = MaterialTheme.colorScheme.primary,
+            dark = darkTheme
+        )
+        com.appcodecraft.linkzary.ui.component.LinkzaryHeroHeader(
+            title = uiState.collection?.name ?: stringResource(R.string.collections_collection),
+            countLabel = stringResource(R.string.collections_links_count, filteredLinks.size),
+            heroContainer = heroContainer,
+            onHeroContainer = onHeroContainer,
+            onBack = { navController.navigateUp() },
+            actions = {
+                IconButton(onClick = { showEditCollectionDialog = true }) {
                     Icon(
                         imageVector = Icons.Default.Edit,
                         contentDescription = stringResource(R.string.collections_edit_collection),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(24.dp)
+                        tint = onHeroContainer
                     )
                 }
-                
-                IconToggleButton(
-                    checked = isGridView,
-                    onCheckedChange = { viewModel.toggleGridView() }
-                ) {
-                    Icon(
-                        imageVector = if (isGridView) Icons.AutoMirrored.Filled.ViewList else Icons.Default.GridView,
-                        contentDescription = if (isGridView) stringResource(R.string.home_switch_to_list) else stringResource(R.string.home_switch_to_grid),
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
+                com.appcodecraft.linkzary.ui.component.ViewModeToggle(
+                    isGridView = isGridView,
+                    onToggle = { viewModel.toggleGridView() }
+                )
             }
-        }
-        } // Surface (tonal header)
+        )
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(horizontal = 16.dp)
         ) {
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
-        // Search bar
-        OutlinedTextField(
-            value = searchQuery,
-            onValueChange = { searchQuery = it },
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text(stringResource(R.string.collections_search_links)) },
-            leadingIcon = {
-                Icon(Icons.Default.Search, contentDescription = stringResource(R.string.common_search))
-            },
-            trailingIcon = {
-                if (searchQuery.isNotEmpty()) {
-                    IconButton(onClick = { searchQuery = "" }) {
-                        Icon(Icons.Default.Clear, contentDescription = stringResource(R.string.common_clear))
-                    }
-                }
-            },
-            shape = MaterialTheme.shapes.small,
-            singleLine = true
+        // One search style app-wide (spec v2 §2.2)
+        com.appcodecraft.linkzary.ui.component.LinkzarySearchBar(
+            query = searchQuery,
+            onQueryChange = { searchQuery = it },
+            placeholder = stringResource(R.string.collections_search_links)
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
         // Content - wrapped with weight to fill remaining space
         Box(modifier = Modifier.weight(1f)) {
@@ -291,7 +259,8 @@ fun CollectionDetailScreen(
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(2),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 96.dp)
                     ) {
                         itemsIndexed(filteredLinks, key = { _, link -> link.id }) { index, link ->
                             BookmarkCard(
@@ -325,7 +294,9 @@ fun CollectionDetailScreen(
                     }
                 } else {
                     LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        state = detailListState,
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 96.dp)
                     ) {
                         lazyColumnItemsIndexed(filteredLinks, key = { _, link -> link.id }) { index, link ->
                             BookmarkCard(
@@ -362,19 +333,16 @@ fun CollectionDetailScreen(
     }
 
         // Add Floating Action Button for adding bookmarks directly to this collection
+        // (spec v2 §2.3: the one LinkzaryFab — cookie at rest, pill when scrolled)
         if (!uiState.isMultiSelectMode) {
-            androidx.compose.material3.FloatingActionButton(
+            com.appcodecraft.linkzary.ui.component.LinkzaryFab(
+                label = stringResource(R.string.home_add_link),
                 onClick = { showAddLinkDialog = true },
+                isScrolled = detailListIsScrolled,
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(16.dp),
-                containerColor = MaterialTheme.colorScheme.primary
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = stringResource(R.string.home_add_link)
-                )
-            }
+                    .padding(16.dp)
+            )
         }
 
         // Contextual Action Bar for Multi-Select Mode
