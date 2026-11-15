@@ -26,6 +26,8 @@ enum class SortOrder {
 data class CollectionsUiState(
     val collections: List<Collection> = emptyList(),
     val collectionsWithCounts: Map<Long, Int> = emptyMap(),
+    // Spec v3 §2.4: up to 3 thumbnail URLs per collection for the card fan.
+    val collectionThumbnails: Map<Long, List<String>> = emptyMap(),
     val searchQuery: String = "",
     val sortOrder: SortOrder = SortOrder.NAME_ASC,
     val isLoading: Boolean = false,
@@ -59,7 +61,8 @@ class CollectionsViewModel @Inject constructor(
         )
     
     private val collectionsWithCounts = MutableStateFlow<Map<Long, Int>>(emptyMap())
-    
+    private val collectionThumbnails = MutableStateFlow<Map<Long, List<String>>>(emptyMap())
+
     init {
         // Observe collections changes
         viewModelScope.launch {
@@ -67,12 +70,23 @@ class CollectionsViewModel @Inject constructor(
                 refreshLinkCounts(collections)
             }
         }
-        
-        // Observe all links changes to update counts in real-time
+
+        // Observe all links changes to update counts and card-fan thumbnails
         viewModelScope.launch {
-            linkRepository.getAllLinks().collect { _ ->
+            linkRepository.getAllLinks().collect { links ->
                 // When any link changes, refresh all collection counts
                 refreshLinkCounts(allCollections.value)
+                // Spec v3 §2.4: up to 3 thumbnails per collection for the fan
+                collectionThumbnails.value = links
+                    .asSequence()
+                    .filter { it.collectionId != null }
+                    .mapNotNull { link ->
+                        val url = link.customImageUrl?.takeIf { it.isNotBlank() }
+                            ?: link.previewImageUrl?.takeIf { it.isNotBlank() }
+                        url?.let { link.collectionId!! to it }
+                    }
+                    .groupBy({ it.first }, { it.second })
+                    .mapValues { (_, urls) -> urls.take(3) }
             }
         }
     }
@@ -110,6 +124,7 @@ class CollectionsViewModel @Inject constructor(
     val uiState: StateFlow<CollectionsUiState> = combine(
         filteredAndSortedCollections,
         collectionsWithCounts,
+        collectionThumbnails,
         _searchQuery,
         _sortOrder,
         _isLoading,
@@ -118,15 +133,17 @@ class CollectionsViewModel @Inject constructor(
     ) { flows ->
         val collections = flows[0] as List<Collection>
         val counts = flows[1] as Map<Long, Int>
-        val searchQuery = flows[2] as String
-        val sortOrder = flows[3] as SortOrder
-        val isLoading = flows[4] as Boolean
-        val isRefreshing = flows[5] as Boolean
-        val error = flows[6] as String?
-        
+        val thumbnails = flows[2] as Map<Long, List<String>>
+        val searchQuery = flows[3] as String
+        val sortOrder = flows[4] as SortOrder
+        val isLoading = flows[5] as Boolean
+        val isRefreshing = flows[6] as Boolean
+        val error = flows[7] as String?
+
         CollectionsUiState(
             collections = collections,
             collectionsWithCounts = counts,
+            collectionThumbnails = thumbnails,
             searchQuery = searchQuery,
             sortOrder = sortOrder,
             isLoading = isLoading,

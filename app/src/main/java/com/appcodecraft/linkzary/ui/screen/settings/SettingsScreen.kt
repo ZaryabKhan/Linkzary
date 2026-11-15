@@ -726,158 +726,21 @@ fun DonationHeader(
     onDonateClick: () -> Unit,
     hasDonated: Boolean = false
 ) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onDonateClick() },
-        // Spec §6: about/support card uses primaryFixed (stable across themes)
-        shape = MaterialTheme.shapes.extraLarge,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryFixed
+    // Spec v3 §2.3: delegated to the shared DonationCard — tertiaryContainer /
+    // onTertiaryContainer tokens only, zero hard-coded hex, quiet by design.
+    if (hasDonated) {
+        com.appcodecraft.linkzary.ui.component.DonationCardThanks(
+            title = stringResource(R.string.donation_v3_thanks_title),
+            subtitle = stringResource(R.string.donation_v3_thanks_subtitle)
         )
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    brush = Brush.horizontalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                            MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f)
-                        )
-                    )
-                )
-                .padding(if (hasDonated) 20.dp else 20.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            if (hasDonated) {
-                // Enhanced thank you card for donors
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Favorite,
-                        contentDescription = null,
-                        // onPrimaryFixedVariant: muted token designed for this
-                        // container — `primary` blended into `primaryFixed`.
-                        tint = MaterialTheme.colorScheme.onPrimaryFixedVariant,
-                        modifier = Modifier.size(32.dp)
-                    )
-                    
-                    Spacer(modifier = Modifier.height(12.dp))
-                    
-                    Text(
-                        text = "Thank you for your support!",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimaryFixed,
-                        textAlign = TextAlign.Center
-                    )
-                    
-                    Spacer(modifier = Modifier.height(8.dp))
-                    
-                    Text(
-                        text = "You've already donated to support Linkzary's development",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryFixed.copy(alpha = 0.8f),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    
-                    Spacer(modifier = Modifier.height(12.dp))
-                    
-                    Button(
-                        onClick = onDonateClick,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
-                        ),
-                        shape = RoundedCornerShape(10.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.VolunteerActivism,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Donate More",
-                            fontWeight = FontWeight.SemiBold,
-                            style = MaterialTheme.typography.labelLarge
-                        )
-                    }
-                }
-            } else {
-                // Original full donation card for non-donors
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Favorite,
-                        contentDescription = null,
-                        // onPrimaryFixedVariant on the primaryFixed card — the
-                        // old `primary` tint vanished against the same hue.
-                        tint = MaterialTheme.colorScheme.onPrimaryFixedVariant,
-                        modifier = Modifier.size(32.dp)
-                    )
-                    
-                    Spacer(modifier = Modifier.height(12.dp))
-                    
-                    Text(
-                        text = stringResource(R.string.settings_support_title),
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimaryFixed,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    
-                    Spacer(modifier = Modifier.height(8.dp))
-                    
-                    Text(
-                        text = stringResource(R.string.settings_support_description),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryFixed.copy(alpha = 0.8f),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    
-                    Spacer(modifier = Modifier.height(16.dp))
-                    
-                    Button(
-                        onClick = onDonateClick,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        ),
-                        shape = androidx.compose.foundation.shape.CircleShape
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.VolunteerActivism,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = stringResource(R.string.settings_donate_button),
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
-                    
-                    Spacer(modifier = Modifier.height(8.dp))
-                    
-                    Text(
-                        text = stringResource(R.string.settings_donate_disclaimer),
-                        style = MaterialTheme.typography.bodySmall,
-                        // onPrimaryFixedVariant (not onPrimaryContainer): the
-                        // dark container token was unreadable on primaryFixed.
-                        color = MaterialTheme.colorScheme.onPrimaryFixedVariant,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            }
-        }
+    } else {
+        com.appcodecraft.linkzary.ui.component.DonationCard(
+            title = stringResource(R.string.donation_v3_title),
+            subtitle = stringResource(R.string.donation_v3_subtitle),
+            buttonText = stringResource(R.string.donation_v3_button),
+            footerText = stringResource(R.string.donation_v3_footer),
+            onDonateClick = onDonateClick
+        )
     }
 }
 
