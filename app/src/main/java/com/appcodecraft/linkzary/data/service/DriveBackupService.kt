@@ -4,9 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.IntentSender
 import com.google.android.gms.auth.api.identity.AuthorizationRequest
-import com.google.android.gms.auth.api.identity.ClearTokenRequest
 import com.google.android.gms.auth.api.identity.Identity
-import com.google.android.gms.auth.api.identity.RevokeAccessRequest
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -36,7 +34,8 @@ import javax.inject.Singleton
  *
  * Auth (v1.2.1): the deprecated GoogleAuthUtil/GoogleAccountCredential token
  * path — whose GMS-side failures surfaced as bare "key error" messages — is
- * replaced by Google Identity AuthorizationClient. Account picking stays on
+ * replaced by Google Identity AuthorizationClient (revoke via GoogleSignInClient).
+ * Account picking stays on
  * legacy GoogleSignIn; Drive access goes through authorize() → access token →
  * HttpCredentialsAdapter on the Drive REST client.
  */
@@ -126,20 +125,9 @@ class DriveBackupService @Inject constructor() {
 
     /** Signs the user out of Drive backup and revokes the granted scopes. */
     fun signOut(context: Context, onComplete: () -> Unit = {}) {
-        val account = getSignedInAccount(context)?.account
-        if (account != null) {
-            try {
-                Identity.getAuthorizationClient(context).revokeAccess(
-                    RevokeAccessRequest.builder()
-                        .setAccount(account)
-                        .setScopes(listOf(DRIVE_SCOPE))
-                        .build()
-                )
-            } catch (_: Exception) {
-                // Revocation is best-effort; local sign-out always proceeds.
-            }
-        }
-        signInClient(context).signOut().addOnCompleteListener { onComplete() }
+        signInClient(context).revokeAccess()
+            .continueWithTask { signInClient(context).signOut() }
+            .addOnCompleteListener { onComplete() }
     }
 
     /**
@@ -186,18 +174,6 @@ class DriveBackupService @Inject constructor() {
         }
     }
 
-    /** Drops an unusable access token from GMS's cache so the next run re-fetches. */
-    private fun clearCachedToken(context: Context, accessToken: String) {
-        try {
-            Tasks.await(
-                Identity.getAuthorizationClient(context)
-                    .clearToken(ClearTokenRequest.builder().setToken(accessToken).build())
-            )
-        } catch (_: Exception) {
-            // Best-effort; the retry path handles the fresh token case.
-        }
-    }
-
     /**
      * Uploads [json] (a serialized [com.appcodecraft.linkzary.data.model.ExportData])
      * as the backup, replacing any previous backup.
@@ -238,7 +214,6 @@ class DriveBackupService @Inject constructor() {
                     }
                     null
                 } catch (e: GoogleJsonResponseException) {
-                    if (e.statusCode == 401) clearCachedToken(context, step.accessToken)
                     e.printStackTrace()
                     "error: ${driveFailureMessage(e, "Backup failed — please try again.")}"
                 } catch (e: Exception) {
@@ -290,7 +265,6 @@ class DriveBackupService @Inject constructor() {
                     }
                     DriveRestoreResult.Success(json)
                 } catch (e: GoogleJsonResponseException) {
-                    if (e.statusCode == 401) clearCachedToken(context, step.accessToken)
                     e.printStackTrace()
                     DriveRestoreResult.Error(driveFailureMessage(e, "Restore failed — please try again."))
                 } catch (e: Exception) {
