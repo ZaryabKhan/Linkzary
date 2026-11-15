@@ -1,6 +1,6 @@
 package com.appcodecraft.linkzary
 
-import com.appcodecraft.linkzary.data.service.DriveBackupService
+import com.appcodecraft.linkzary.util.DriveErrorMessages
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -17,26 +17,26 @@ class DriveErrorMessagesTest {
     @Test
     fun `auth error codes map to actionable text`() {
         // DEVELOPER_ERROR: app identity not registered in the OAuth client.
-        assertTrue(DriveBackupService.authErrorMessage(10).contains("signature"))
+        assertTrue(DriveErrorMessages.authErrorMessage(10).contains("signature"))
         // Sign-in interrupted / cancelled states never blame the user.
-        assertTrue(DriveBackupService.authErrorMessage(13).contains("try again"))
-        assertTrue(DriveBackupService.authErrorMessage(15).contains("cancelled"))
+        assertTrue(DriveErrorMessages.authErrorMessage(13).contains("try again"))
+        assertTrue(DriveErrorMessages.authErrorMessage(15).contains("cancelled"))
         // Revoked access points back to reconnecting on the Drive card.
-        assertTrue(DriveBackupService.authErrorMessage(22).contains("reconnect"))
+        assertTrue(DriveErrorMessages.authErrorMessage(22).contains("reconnect"))
         // Play services availability issues never show a bare code.
-        assertTrue(DriveBackupService.authErrorMessage(4).contains("Google Play services"))
+        assertTrue(DriveErrorMessages.authErrorMessage(4).contains("Google Play services"))
     }
 
     @Test
     fun `unknown auth code still mentions the code for support`() {
-        val msg = DriveBackupService.authErrorMessage(9999)
+        val msg = DriveErrorMessages.authErrorMessage(9999)
         assertTrue(msg.contains("9999"))
         assertTrue(msg.contains("try again"))
     }
 
     @Test
     fun `io failures map to network text`() {
-        val msg = DriveBackupService.driveFailureMessage(
+        val msg = DriveErrorMessages.driveFailureMessage(
             IOException("socket failed: ECONNRESET"),
             default = "Backup failed — please try again."
         )
@@ -46,7 +46,7 @@ class DriveErrorMessagesTest {
     @Test
     fun `generic throwable never leaks its class name`() {
         // The v1.2.0 failure surfaced as "IllegalArgumentException: key error".
-        val msg = DriveBackupService.driveFailureMessage(
+        val msg = DriveErrorMessages.driveFailureMessage(
             IllegalArgumentException("key error"),
             default = "Backup failed — please try again."
         )
