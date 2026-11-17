@@ -362,7 +362,9 @@ class HomeViewModel @Inject constructor(
                     isOfflineAvailable = content != null
                 )
 
-                linkRepository.insertLink(link)
+                // Guarded insert: skips when an equivalent link was saved while
+                // metadata was loading (LZ-1 duplicate fix).
+                linkRepository.insertLinkIfNew(link)
             } catch (e: Exception) {
                 _error.value = "Failed to save link: ${e.message}"
             } finally {
@@ -403,7 +405,9 @@ class HomeViewModel @Inject constructor(
                     isOfflineAvailable = content != null
                 )
 
-                linkRepository.insertLink(link)
+                // Guarded insert: skips when an equivalent link was saved while
+                // metadata was loading (LZ-1 duplicate fix).
+                linkRepository.insertLinkIfNew(link)
             } catch (e: Exception) {
                 _error.value = "Failed to save link: ${e.message}"
             } finally {

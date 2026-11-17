@@ -3,6 +3,7 @@ package com.appcodecraft.linkzary
 import com.appcodecraft.linkzary.util.UrlNormalizer
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -69,6 +70,42 @@ class UrlNormalizerTest {
         assertEquals(
             UrlNormalizer.normalize("https://Example.com/Path/"),
             UrlNormalizer.normalize("https://example.com/Path")
+        )
+    }
+
+    @Test
+    fun `raw spaces in path still normalize and match encoded form`() {
+        // LZ-1: URI() used to throw on raw spaces, so detection silently
+        // fell back to exact matching and the link got saved twice.
+        assertEquals(
+            UrlNormalizer.normalize("https://example.com/my article"),
+            UrlNormalizer.normalize("https://www.example.com/my%20article")
+        )
+    }
+
+    @Test
+    fun `non-ascii path still normalizes`() {
+        val normalized = UrlNormalizer.normalize("https://example.com/Übersicht")
+        assertNotNull(normalized)
+        assertEquals(
+            normalized,
+            UrlNormalizer.normalize("https://example.com/%C3%9Cbersicht")
+        )
+    }
+
+    @Test
+    fun `lone percent sign does not break normalization`() {
+        assertEquals(
+            UrlNormalizer.normalize("https://example.com/100% done"),
+            UrlNormalizer.normalize("https://example.com/100%25%20done")
+        )
+    }
+
+    @Test
+    fun `valid percent encodings are preserved`() {
+        assertEquals(
+            "example.com/a%2Fb",
+            UrlNormalizer.normalize("https://example.com/a%2Fb")
         )
     }
 }

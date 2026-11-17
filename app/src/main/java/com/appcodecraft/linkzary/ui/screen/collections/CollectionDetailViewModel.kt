@@ -197,6 +197,15 @@ class CollectionDetailViewModel @Inject constructor(
                 
                 val metadata = urlMetadataExtractor.extractMetadata(url)
                 
+                val existing = linkRepository.getEquivalentLink(url)
+                if (existing != null) {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        errorMessage = "Link already saved"
+                    )
+                    return@launch
+                }
+
                 val link = SavedLink(
                     title = metadata.title,
                     url = url,
@@ -204,8 +213,10 @@ class CollectionDetailViewModel @Inject constructor(
                     favicon = metadata.favicon,
                     previewImageUrl = metadata.previewImageUrl
                 )
-                
-                linkRepository.insertLink(link)
+
+                // Guarded insert: skips when an equivalent link was saved while
+                // metadata was loading (LZ-1 duplicate fix).
+                linkRepository.insertLinkIfNew(link)
                 _uiState.value = _uiState.value.copy(isLoading = false)
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(

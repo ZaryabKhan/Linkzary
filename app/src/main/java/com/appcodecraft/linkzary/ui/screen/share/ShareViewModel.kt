@@ -28,6 +28,7 @@ data class ShareUiState(
     val selectedCollectionId: Long? = null,
     val isLoading: Boolean = false,
     val isSaved: Boolean = false,
+    val isAlreadySaved: Boolean = false,
     val error: String? = null
 )
 
@@ -65,6 +66,7 @@ class ShareViewModel @Inject constructor(
                         tags = existingLink.tags,
                         selectedCollectionId = existingLink.collectionId,
                         isLoading = false,
+                        isAlreadySaved = true,
                         error = "Link already saved"
                     )
                     return@launch
@@ -134,8 +136,19 @@ class ShareViewModel @Inject constructor(
                     isOfflineAvailable = content != null
                 )
 
-                linkRepository.insertLink(link)
-                _uiState.value = _uiState.value.copy(isLoading = false, isSaved = true)
+                // Guarded insert: skips when an equivalent link was saved while
+                // this screen was open (LZ-1 duplicate fix).
+                val inserted = linkRepository.insertLinkIfNew(link)
+                if (!inserted) {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        isSaved = true,
+                        isAlreadySaved = true,
+                        error = "Link already saved"
+                    )
+                } else {
+                    _uiState.value = _uiState.value.copy(isLoading = false, isSaved = true)
+                }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,

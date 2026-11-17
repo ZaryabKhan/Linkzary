@@ -197,7 +197,7 @@ fun ShareScreen(
                         Spacer(modifier = Modifier.width(8.dp))
                         Button(
                             onClick = viewModel::saveLink,
-                            enabled = uiState.title.isNotBlank() && uiState.url.isNotBlank() && !uiState.isLoading
+                            enabled = uiState.title.isNotBlank() && uiState.url.isNotBlank() && !uiState.isLoading && !uiState.isAlreadySaved
                         ) {
                             if (uiState.isLoading) {
                                 CircularProgressIndicator(
