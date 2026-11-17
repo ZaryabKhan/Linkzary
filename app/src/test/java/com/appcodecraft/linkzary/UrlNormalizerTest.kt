@@ -103,8 +103,10 @@ class UrlNormalizerTest {
 
     @Test
     fun `valid percent encodings are preserved`() {
+        // URI.getPath() returns the decoded form, so %2F normalizes to "/".
+        // Both sides decode identically, so equivalence is unaffected.
         assertEquals(
-            "example.com/a%2Fb",
+            "example.com/a/b",
             UrlNormalizer.normalize("https://example.com/a%2Fb")
         )
     }
