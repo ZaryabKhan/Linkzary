@@ -35,12 +35,30 @@ class LinkRepository @Inject constructor(
     /**
      * Finds an already-saved link that points at the same page as [url],
      * ignoring scheme, "www.", trailing slash, fragments and tracking params.
+     * Falls back to an exact URL match when [url] cannot be normalized.
      */
     suspend fun getEquivalentLink(url: String): SavedLink? = withContext(Dispatchers.IO) {
-        val target = com.appcodecraft.linkzary.util.UrlNormalizer.normalize(url) ?: return@withContext null
+        val target = com.appcodecraft.linkzary.util.UrlNormalizer.normalize(url)
+            ?: return@withContext savedLinkDao.getLinkByUrl(url)
         savedLinkDao.getAllLinksOnce().firstOrNull { existing ->
-            com.appcodecraft.linkzary.util.UrlNormalizer.normalize(existing.url) == target
+            val existingNormalized = com.appcodecraft.linkzary.util.UrlNormalizer.normalize(existing.url)
+            existingNormalized == target ||
+                // Stored URL unparseable: exact match is the only reliable signal.
+                (existingNormalized == null && existing.url == url)
         }
+    }
+
+    /**
+     * Inserts [link] only when no equivalent link is already saved (LZ-1).
+     * Returns true when inserted, false when an equivalent link exists and the
+     * insert was skipped. The check happens on Dispatchers.IO immediately
+     * before the insert, closing the share-sheet double-save race where two
+     * saves pass an earlier UI-level check while metadata is still loading.
+     */
+    suspend fun insertLinkIfNew(link: SavedLink): Boolean = withContext(Dispatchers.IO) {
+        if (getEquivalentLink(link.url) != null) return@withContext false
+        savedLinkDao.insertLink(link)
+        true
     }
 
     /**
