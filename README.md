@@ -9,7 +9,8 @@
 A clean, ad-free link & bookmark manager for Android with RSS reading, a distraction-free
 article reader, collections, tags, and Google Drive backup — built with Kotlin & Jetpack Compose.
 
-No accounts · No ads · No tracking · Your data stays on your device
+No ads · No tracking · Your data stays on your device
+No account needed to use Linkzary — the optional Drive backup is the only sign-in, and it's yours to skip
 
 [![Build](https://github.com/ZaryabKhan/Linkzary/actions/workflows/build.yml/badge.svg)](https://github.com/ZaryabKhan/Linkzary/actions/workflows/build.yml)
 [![Latest Release](https://img.shields.io/github/v/release/ZaryabKhan/Linkzary?display_name=tag&include_prereleases&logo=semantic-release&logoColor=white)](https://github.com/ZaryabKhan/Linkzary/releases/latest)
@@ -51,14 +52,14 @@ them with collections and tags, **reading** them in a distraction-free reader (e
 - 📖 **Distraction-free reader** — extracts the main article content; saved links keep it for **offline reading**.
 - 🩺 **Link health checks** — a background worker periodically checks whether saved links are still reachable.
 - ⏰ **Revisit reminders** — schedule reminders to come back to links you meant to read.
-- ☁️ **Google Drive backup & restore** — encrypted at rest by Drive, restored in one tap, with errors surfaced in the UI.
+- ☁️ **Google Drive backup & restore** (optional) — encrypted at rest by Drive, restored in one tap, with errors surfaced in the UI. Uses your own Google account, only when you turn it on; the app works fully without it.
 - 💾 **Import / Export** — back up and restore via **JSON or CSV**, and import or export **browser bookmarks (HTML)** — perfect for migrating from Chrome or Firefox.
 - 🖼️ **Custom thumbnails** — override the auto-generated preview with your own image per link.
 - 🎨 **Material 3 theming** — light, dark, and system themes with hue-identity dynamic color, brand colors on by default, theme `SegmentedButtons`, Material 3 haptics, and a scroll-aware extended FAB.
 - ✨ **Polished everywhere** — redesigned link cards, a unified dialog style across the app, and a redesigned Settings screen with the donation card up top and a Drive Backup hero card with live status.
 - 🧭 **Onboarding** — a friendly first-run flow that gets you productive fast.
 - 🌍 **Multi-language** — English, Arabic, German, Spanish, French, Italian, and Portuguese.
-- 💝 **Free forever** — optional in-app donations via Google Play Billing; every feature is free, and there are no ads, accounts, or analytics.
+- 💝 **Free forever** — optional in-app donations via Google Play Billing; every feature is free, and there are no ads or analytics. No account is required — the optional Drive backup is the only feature that ever asks you to sign in.
 
 ## 📸 Screenshots
 
